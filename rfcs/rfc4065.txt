@@ -1,0 +1,451 @@
+
+
+
+
+
+
+Network Working Group                                           J. Kempf
+Request for Comments: 4065                               DoCoMo Labs USA
+Category: Experimental                                         July 2005
+
+
+                     Instructions for Seamoby and
+            Experimental Mobility Protocol IANA Allocations
+
+Status of This Memo
+
+   This memo defines an Experimental Protocol for the Internet
+   community.  It does not specify an Internet standard of any kind.
+   Discussion and suggestions for improvement are requested.
+   Distribution of this memo is unlimited.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2005).
+
+Abstract
+
+   The Seamoby Candidate Access Router Discovery (CARD) protocol and the
+   Context Transfer Protocol (CXTP) are experimental protocols designed
+   to accelerate IP handover between wireless access routers.  These
+   protocols require IANA allocations for ICMP type and options, Stream
+   Control Transmission Protocol (SCTP) Payload Protocol Identifiers,
+   port numbers, and registries for certain formatted message options.
+   This document contains instructions to IANA about which allocations
+   are required for the Seamoby protocols.  The ICMP subtype extension
+   format for Seamoby has been additionally designed so that it can be
+   utilized by other experimental mobility protocols, and the SCTP port
+   number is also available for other experimental mobility protocols.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kempf                         Experimental                      [Page 1]
+
+RFC 4065                Seamoby IANA Allocations               July 2005
+
+
+Table of Contents
+
+   1.  Introduction..................................................  2
+   2.  Common IPv4 and IPv6 Allocations..............................  2
+   3.  IPv4 Allocations..............................................  3
+   4.  IPv6 Allocations..............................................  3
+   5.  Candidate Access Router Discovery Protocol Registries.........  3
+   6.  Context Transfer Profile Type Registry........................  5
+   7.  Context Transfer Protocol Authorization Token Calculation
+       Algorithm.....................................................  5
+   8.  ICMP Experimental Mobility Subtype Format and Registry........  5
+   9.  Utilization by Other Experimental Mobility Protocols..........  6
+   10. Normative References..........................................  6
+   11. Security Considerations.......................................  7
+   12. IANA Considerations...........................................  7
+
+1.  Introduction
+
+   The Seamoby Candidate Access Router Discovery (CARD) protocol
+   [RFC4066] and the Context Transfer Protocol (CXTP) [RFC4067] are
+   experimental protocols designed to accelerate IP handover between
+   wireless access routers.  These protocols require IANA allocations
+   for ICMP options and type, SCTP Payload Protocol Identifiers, port
+   numbers, and the establishment of registries for certain formatted
+   message options.  Because the protocols are experimental, there is no
+   guarantee that they will ever see widespread deployment in their
+   current form.  Consequently, it is prudent to conserve Internet
+   numbering resources that might be needed for other protocols that
+   could see wider deployment.  This document contains instructions to
+   IANA for the Seamoby protocols.  Additionally, the ICMP subtype
+   extension format has been designed so that it could be used by other
+   experimental mobility protocols.
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in RFC 2119 [RFC2119].
+   Allocation policy names Specification Required, IETF Consensus
+   Action, and Designated Expert are to be interpreted as described in
+   RFC 2434 [RFC2434].
+
+2.  Common IPv4 and IPv6 Allocations
+
+   IANA has assigned SCTP port numbers 5090 for use by [RFC4066] and
+   5091 for use of [RFC4067].  See Section 5.2.1 of [RFC4066] for a
+   description of the inter-access router CARD protocol use of SCTP, and
+   Section 3.1 of [RFC4067] for a description of the inter-access router
+   CXTP use of SCTP.
+
+
+
+
+Kempf                         Experimental                      [Page 2]
+
+RFC 4065                Seamoby IANA Allocations               July 2005
+
+
+3.  IPv4 Allocations
+
+   IANA has assigned ICMP type 41 for IPv4 identifying ICMP messages
+   utilized by experimental mobility protocols such as Seamoby.  See
+   Section 5.1.1 of [RFC4066] for a description of experimental mobility
+   CARD ICMP messages and Section 3.2 of [RFC4067] for the CXTP ICMP
+   messages, specified by Seamoby.  See Section 9 of this document for a
+   description of the experimental mobility protocol ICMP subtype format
+   and initial allocations.
+
+   IANA has assigned Mobile IPv4 Foreign Agent Discovery [RFC3344]
+   option type codes for the following:
+
+   Code              Purpose                  Reference
+   ---------------------------------------------------------------------
+    137        CARD MN-AR signature option  Section 6.4 of [RFC4066]
+    138        CARD Request option          Section 5.1.2.1 of [RFC4066]
+    139        CARD Reply option            Section 5.1.2.2 of [RFC4066]
+
+4.  IPv6 Allocations
+
+   IANA has assigned ICMP type code 150 for IPv6 identifying ICMP
+   messages utilized by experimental mobility protocols such as Seamoby.
+   See Section 5.1.1 of [RFC4066] for a description of experimental
+   mobility CARD ICMP messages and Section 3.2 of [RFC4067] for the CXTP
+   ICMP messages, specified by Seamoby.  See Section 9 of this document
+   for a description of the experimental mobility protocol subtype
+   format and initial allocations.
+
+   IANA has assigned IPv6 RFC 2461 Neighbor Discovery [RFC2461] option
+   type codes for the following:
+
+   Code            Purpose                   Reference
+   ----------------------------------------------------------------
+    138          CARD Request option   Section 5.1.2.1 of [RFC4066]
+    139          CARD Reply option     Section 5.1.2.2 of [RFC4066]
+
+5.  Candidate Access Router Discovery Protocol Registries
+
+   For CARD, two new registries are created that IANA is to maintain,
+   named:
+
+   1) The AVP Type Registry,
+   2) The Layer 2 Access Technology Identifier Registry.
+
+   These are described in the following subsections.
+
+
+
+
+
+Kempf                         Experimental                      [Page 3]
+
+RFC 4065                Seamoby IANA Allocations               July 2005
+
+
+5.1.  AVP Type Registry
+
+   The AVP Type Registry allows for future expansion of the CARD AVP
+   type space to include new AVPs.  AVP Type codes are 16 bit unsigned
+   integers.  See Section 5.1.4 of [RFC4066] for a description of AVPs.
+
+   The registry SHALL be initially populated with the following table:
+
+      AVP Name                            Type Code
+      ----------------------------------------------
+      RESERVED                                0x00
+
+   Future allocations of AVP type codes will be made through Expert
+   Review, as defined in RFC 2434.
+
+5.2.  Layer 2 Access Technology Identifier Registry
+
+   The Layer 2 Access Technology Identifier registry allows the
+   registration of type codes to uniquely identify specific access
+   technologies in the L2-Type field of the CARD L2 ID sub-option.  L2
+   ID codes are 16 bit unsigned integers.  See Section 5.1.3.1 of
+   [RFC4066] for a description of the CARD L2 ID sub-option.
+
+   The registry SHALL initially be populated with the following table:
+
+      Layer 2 Access Technology            Type Code
+      ----------------------------------------------
+      RESERVED                                0x00
+      IEEE 802.3 (Ethernet)                   0x01
+      IEEE 802.11a                            0x02
+      IEEE 802.11b                            0x03
+      IEEE 802.11g                            0x04
+      IEEE 802.15.1(Bluetooth)                0x05
+      IEEE 802.15.3                           0x06
+      IEEE 802.15.4                           0x07
+      IEEE 802.16                             0x08
+
+   Future allocation of Layer 2 Access Technology identifiers will be
+   made by the method of Specification Required, as defined in RFC 2434.
+   All requests for allocations MUST be accompanied by a reference to a
+   technical document in which the design of the Layer 2 access
+   technology is described.
+
+
+
+
+
+
+
+
+
+Kempf                         Experimental                      [Page 4]
+
+RFC 4065                Seamoby IANA Allocations               July 2005
+
+
+6.  Context Transfer Profile Type Registry
+
+   CXTP requires IANA to maintain a registry named the Context Transfer
+   Profile Type Registry, which is a registry of context Feature Profile
+   Type identifiers.  Feature Profile Type identifiers are 16 bit
+   unsigned integers that identify particular types of feature contexts.
+   See Section 2.4 of [RFC4067] for a description of how contexts are
+   carried in CXTP.
+
+   The registry SHALL initially be populated with the following table:
+
+      Context Profile                      Type Code
+      ----------------------------------------------
+      RESERVED                                0x00
+      IPv6 Multicast Listener Context         0x01
+
+   Future allocations of Feature Profile Type codes will be made through
+   Expert Review, as defined in RFC 2434.
+
+7.  Context Transfer Protocol Authorization Token Calculation Algorithm
+
+   In Section 2.5.4 of [RFC4067], CXTP requires an authorization token
+   calculation algorithm indicator.  Currently, the only indicator
+   defined is 0x1, for HMAC_SHA1.  Additional algorithms may be added by
+   the method of Specification Required [RFC2434].
+
+8.  ICMP Experimental Mobility Subtype Format and Registry
+
+   The ICMP Experimental Mobility Type is utilized by CARD and CXTP in
+   the following way.  The interpretation of the Code field is as
+   defined by the relevant ICMP standard for IPv4 and IPv6, and does not
+   change.  The protocols are free to utilize the Code for their own
+   purposes.  The ICMP Experimental Mobility Type defines a one octet
+   subtype field within the ICMP Reserved field that identifies the
+   specific protocol.  The ICMP header for the Experimental Mobility
+   Type is:
+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |     Type      |    Code       |          Checksum             |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |     Subtype   |              Reserved                         |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |    Options...
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+      Type         For IPv4, 41; for IPv6 150
+
+
+
+Kempf                         Experimental                      [Page 5]
+
+RFC 4065                Seamoby IANA Allocations               July 2005
+
+
+      Code         As defined by the relevant ICMP specification and
+                   free for use by the Experimental Mobility protocol.
+
+      Checksum     ICMP checksum
+
+      Subtype      One octet subtype code identifying the Experimental
+                   Mobility protocol
+
+      Reserved     Unless otherwise defined by the Experimental Mobility
+                   protocol, set to zero by the sender and ignored by
+                   the receiver.
+
+      Options      As defined by the Experimental Mobility protocol.
+
+   IANA SHALL maintain a registry of one octet unsigned integer subtype
+   codes for the Experimental Mobility protocols called the Experimental
+   Mobility Protocol Subtype Registry.
+
+   Initial allocations in the registry SHALL be established as follows:
+
+   Protocol/Message  Subtype         Reference
+   ----------------------------------------------------------
+    CARD               0       Section 5.1.1 of [RFC4066]
+    CXTP               1       Section 3.2 of [RFC4067]
+
+   Subsequent allocations of subtype codes SHALL be made by the method
+   of Specification Required and IESG Review as defined in RFC 2434.
+
+9.  Usage by Other Experimental Mobility Protocols
+
+   The ICMP Experimental Mobility type code is available for other
+   experimental mobility protocols to use.  Other experimental mobility
+   protocols MAY define additional ICMP messages that use code points
+   under the Experimental Mobility ICMP type.
+
+10.  Normative References
+
+   [RFC2434] Narten, T. and H. Alvestrand, "Guidelines for Writing an
+             IANA Considerations Section in RFCs", BCP 26, RFC 2434,
+             October 1998.
+
+   [RFC2461] Narten, T., Nordmark, E., and W. Simpson, "Neighbor
+             Discovery for IP Version 6 (IPv6)", RFC 2461, December
+             1998.
+
+   [RFC3344] Perkins, C., "IP Mobility Support for IPv4", RFC 3344,
+             August 2002.
+
+
+
+
+Kempf                         Experimental                      [Page 6]
+
+RFC 4065                Seamoby IANA Allocations               July 2005
+
+
+   [RFC4066] Liebsch, M., Ed., Singh, A., Ed., Chaskar, H., Funato, D.,
+             and E. Shim, "Candidate Access Router Discovery (CARD)",
+             RFC 4066, July 2005.
+
+   [RFC4067] Loughney, J., Ed., Nahkjiri, M., Perkins, C., and R.
+             Koodli, "Context Transfer Protocol", RFC 4067, July 2005.
+
+11.  Security Considerations
+
+   There are no security considerations associated with this document.
+
+12.  IANA Considerations
+
+   This entire document is about IANA considerations.
+
+Author's Address
+
+   James Kempf
+   DoCoMo Labs USA
+   181 Metro Drive
+   Suite 300
+   San Jose, CA
+   95110
+
+   Phone: +1 408 451 4711
+   EMail: kempf@docomolabs-usa.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kempf                         Experimental                      [Page 7]
+
+RFC 4065                Seamoby IANA Allocations               July 2005
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2005).
+
+   This document is subject to the rights, licenses and restrictions
+   contained in BCP 78, and except as set forth therein, the authors
+   retain all their rights.
+
+   This document and the information contained herein are provided on an
+   "AS IS" basis and THE CONTRIBUTOR, THE ORGANIZATION HE/SHE REPRESENTS
+   OR IS SPONSORED BY (IF ANY), THE INTERNET SOCIETY AND THE INTERNET
+   ENGINEERING TASK FORCE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED,
+   INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE
+   INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
+   WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Intellectual Property
+
+   The IETF takes no position regarding the validity or scope of any
+   Intellectual Property Rights or other rights that might be claimed to
+   pertain to the implementation or use of the technology described in
+   this document or the extent to which any license under such rights
+   might or might not be available; nor does it represent that it has
+   made any independent effort to identify any such rights.  Information
+   on the procedures with respect to rights in RFC documents can be
+   found in BCP 78 and BCP 79.
+
+   Copies of IPR disclosures made to the IETF Secretariat and any
+   assurances of licenses to be made available, or the result of an
+   attempt made to obtain a general license or permission for the use of
+   such proprietary rights by implementers or users of this
+   specification can be obtained from the IETF on-line IPR repository at
+   http://www.ietf.org/ipr.
+
+   The IETF invites any interested party to bring to its attention any
+   copyrights, patents or patent applications, or other proprietary
+   rights that may cover technology that may be required to implement
+   this standard.  Please address the information to the IETF at ietf-
+   ipr@ietf.org.
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+Kempf                         Experimental                      [Page 8]
+

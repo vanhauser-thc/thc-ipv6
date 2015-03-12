@@ -1,0 +1,283 @@
+
+
+
+
+
+
+Network Working Group                                          G. Huston
+Request for Comments: 4773                                         APNIC
+Category: Informational                                    December 2006
+
+
+     Administration of the IANA Special Purpose IPv6 Address Block
+
+Status of This Memo
+
+   This memo provides information for the Internet community.  It does
+   not specify an Internet standard of any kind.  Distribution of this
+   memo is unlimited.
+
+Copyright Notice
+
+   Copyright (C) The IETF Trust (2006).
+
+Abstract
+
+   This is a direction to IANA concerning the management of the IANA
+   Special Purpose IPv6 address assignment registry.
+
+1.  Introduction
+
+   This is a direction to IANA concerning the management of the IANA
+   Special Purpose IPv6 address assignment registry.
+
+2.  IANA IPv6 Special Purpose Address Block
+
+   [RFC2928] specified the assignment of the IPv6 address prefix to
+   IANA.  The rationale for this allocation is:
+
+      "The block of Sub-TLA IDs assigned to the IANA (i.e., 2001:
+      0000::/29 - 2001:01F8::/29) is for assignment for testing and
+      experimental usage to support activities such as the 6bone, and
+      for new approaches like exchanges."  [RFC2928]
+
+   This address allocation to IANA was intended to support testing and
+   experimental activities.  A more general view of the roles of IANA
+   with respect to address allocation functions is documented in
+   [RFC2860]:
+
+      "4.3. [...]  Note that [...] (b) assignments of specialised
+      address blocks (such as multicast or anycast blocks), and (c)
+      experimental assignments are not considered to be policy issues,
+      and shall remain subject to the provisions of this Section 4.
+      (For purposes of this MOU, the term "assignments" includes
+      allocations.)"  [RFC2860]
+
+
+
+Huston                       Informational                      [Page 1]
+
+RFC 4773                   IANA IPv6 Registry              December 2006
+
+
+   The reference to section 4 here is to the general technical work for
+   the IANA:
+
+      "4.1.  The IANA will assign and register Internet protocol
+      parameters only as directed by the criteria and procedures
+      specified in RFCs, including Proposed, Draft, and full Internet
+      Standards and Best Current Practice documents, and any other RFC
+      that calls for IANA assignment."  [RFC2860]
+
+   This document directs IANA to undertake designation of special
+   purpose address blocks within the purview of direct assignments by
+   the IANA under the terms of the assignment criteria specified in RFC
+   2928.
+
+   This document directs IANA to open a Special Purpose IPv6 address
+   registry for the management of these IANA-designated address blocks.
+   Special Purpose registrations to be made from this registry include
+   addresses for experimental purposes, as described in [RFC2928], and
+   other special purpose cases, as documented in IESG-reviewed published
+   RFCs, according to the provisions described in section 4.1 of
+   [RFC2860].
+
+3.  IANA Considerations
+
+   IANA maintains an "IANA IPv6 Address Special Purpose Registry".  The
+   registry records current IANA address designations from the IANA-
+   managed Special Purpose IPv6 address pool.
+
+   This recommendation concerns the management of the address pool
+   assigned by the IETF to the IANA in July 1999 by [RFC2928], namely
+   2001:0000::/23.  Following the policies outlined in [RFC2434],
+   further assignments of address space to IANA for subsequent
+   designation of address prefixes for the purposes listed here shall be
+   undertaken only through an IETF Consensus action.  Such directions
+   for assignments of address space to augment the IANA-managed special
+   purpose address pool should, in the general course of events, be
+   consistent with prevailing IANA IPv6 address management policies
+   [IPv6-Policies].
+
+   IANA may undertake IPv6 address designations in support of special
+   purposes as requested in "IANA Considerations" sections in IESG-
+   reviewed RFCs, where an address is requested with an intended use of
+   the designated address block for the purpose of testing or
+   experimental usage activities initiated by IETF, or for specialised
+   use of the address block in a context (e.g., anycast) associated with
+   an Internet Standards track protocol.
+
+
+
+
+
+Huston                       Informational                      [Page 2]
+
+RFC 4773                   IANA IPv6 Registry              December 2006
+
+
+   The IANA IPv6 Special Purpose Address Registry records, for all
+   current address designations undertaken by IANA:
+
+   1.  The designated address prefix.
+
+   2.  The RFC that called for the IANA address designation.
+
+   3.  The date the designation was made.
+
+   4.  The date the use designation is to be terminated (if specified as
+       a limited-use designation).
+
+   5.  The nature of the purpose of the designated address (e.g.,
+       unicast experiment or protocol service anycast).
+
+   6.  For experimental unicast applications and otherwise as
+       appropriate, the registry will also identify the entity and
+       related contact details to whom the address designation has been
+       made.
+
+   7.  The registry will also note, for each designation, the intended
+       routing scope of the address, indicating whether the address is
+       intended to be routable only in scoped, local, or private
+       contexts, or whether the address prefix is intended to be routed
+       globally.
+
+   8.  The date in the IANA registry is the date of the IANA action,
+       i.e., the day IANA records the allocation.
+
+   The IANA registry notes, as a general comment, that address prefixes
+   listed in the Special Purpose Address Registry are not guaranteed
+   routability in any particular local or global context.
+
+   IANA will not maintain further sub-registries for any special purpose
+   address block designated according to this direction.
+
+4.  Security Considerations
+
+   Security of the Internet's routing system relies on the ability to
+   authenticate an assertion of unique control of an address block.
+   Measures to authenticate such assertions rely on validation that the
+   address block forms part of an existing allocated address block, and
+   that there is a trustable and unique reference in the IANA address
+   registries.
+
+   The proposed registry is intended to provide an authoritative source
+   of information regarding the currency and intended purpose of special
+   use IPv6 address blocks that are designated from the IANA-
+
+
+
+Huston                       Informational                      [Page 3]
+
+RFC 4773                   IANA IPv6 Registry              December 2006
+
+
+   administered Special Use registry.  This is a small step towards the
+   creation of a comprehensive registry framework that can be used as a
+   trust point for commencing a chain of address validation.
+   Consideration should be given to IANA registry publication formats
+   that are machine parseable, and also the use of file signatures and
+   associated certificate mechanisms to allow applications to confirm
+   that the registry contents are current, and that they have been
+   published by the IANA.
+
+5.  Acknowledgements
+
+   The document was prepared with the assistance of Leslie Daigle, Brian
+   Haberman, Bob Hinden, David Kessens, Kurt Lindqvist, Thomas Narten,
+   and Paul Wilson.
+
+6.  Informative References
+
+   [IPv6-Policies] IANA, "IPv6 Allocation and Assignment Policy", June
+                   2002.
+
+   [RFC2434]       Narten, T. and H. Alvestrand, "Guidelines for Writing
+                   an IANA Considerations Section in RFCs", BCP 26, RFC
+                   2434, October 1998.
+
+   [RFC2860]       Carpenter, B., Baker, F., and M. Roberts, "Memorandum
+                   of Understanding Concerning the Technical Work of the
+                   Internet Assigned Numbers Authority", RFC 2860, June
+                   2000.
+
+   [RFC2928]       Hinden, R., Deering, S., Fink, R., and T. Hain,
+                   "Initial IPv6 Sub-TLA ID Assignments", RFC 2928,
+                   September 2000.
+
+Author's Address
+
+   Geoff Huston
+   Asia Pacific Network Information Centre
+
+   EMail: gih@apnic.net
+   URI:   http://www.apnic.net
+
+
+
+
+
+
+
+
+
+
+
+Huston                       Informational                      [Page 4]
+
+RFC 4773                   IANA IPv6 Registry              December 2006
+
+
+Full Copyright Statement
+
+   Copyright (C) The IETF Trust (2006).
+
+   This document is subject to the rights, licenses and restrictions
+   contained in BCP 78, and except as set forth therein, the authors
+   retain all their rights.
+
+   This document and the information contained herein are provided on an
+   "AS IS" basis and THE CONTRIBUTOR, THE ORGANIZATION HE/SHE REPRESENTS
+   OR IS SPONSORED BY (IF ANY), THE INTERNET SOCIETY, THE IETF TRUST,
+   AND THE INTERNET ENGINEERING TASK FORCE DISCLAIM ALL WARRANTIES,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT
+   THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY
+   IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR
+   PURPOSE.
+
+Intellectual Property
+
+   The IETF takes no position regarding the validity or scope of any
+   Intellectual Property Rights or other rights that might be claimed to
+   pertain to the implementation or use of the technology described in
+   this document or the extent to which any license under such rights
+   might or might not be available; nor does it represent that it has
+   made any independent effort to identify any such rights.  Information
+   on the procedures with respect to rights in RFC documents can be
+   found in BCP 78 and BCP 79.
+
+   Copies of IPR disclosures made to the IETF Secretariat and any
+   assurances of licenses to be made available, or the result of an
+   attempt made to obtain a general license or permission for the use of
+   such proprietary rights by implementers or users of this
+   specification can be obtained from the IETF on-line IPR repository at
+   http://www.ietf.org/ipr.
+
+   The IETF invites any interested party to bring to its attention any
+   copyrights, patents or patent applications, or other proprietary
+   rights that may cover technology that may be required to implement
+   this standard.  Please address the information to the IETF at
+   ietf-ipr@ietf.org.
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+Huston                       Informational                      [Page 5]
+

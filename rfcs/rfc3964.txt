@@ -1,0 +1,2299 @@
+
+
+
+
+
+
+Network Working Group                                          P. Savola
+Request for Comments: 3964                                     CSC/FUNET
+Category: Informational                                         C. Patel
+                                                       All Play, No Work
+                                                           December 2004
+
+
+                    Security Considerations for 6to4
+
+Status of this Memo
+
+   This memo provides information for the Internet community.  It does
+   not specify an Internet standard of any kind.  Distribution of this
+   memo is unlimited.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2004).
+
+Abstract
+
+   The IPv6 interim mechanism 6to4 (RFC3056) uses automatic
+   IPv6-over-IPv4 tunneling to interconnect IPv6 networks.  The
+   architecture includes 6to4 routers and 6to4 relay routers, which
+   accept and decapsulate IPv4 protocol-41 ("IPv6-in-IPv4") traffic from
+   any node in the IPv4 internet.  This characteristic enables a number
+   of security threats, mainly Denial of Service.  It also makes it
+   easier for nodes to spoof IPv6 addresses.  This document discusses
+   these issues in more detail and suggests enhancements to alleviate
+   the problems.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Savola & Patel               Informational                      [Page 1]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+Table of Contents
+
+   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
+   2.  Different 6to4 Forwarding Scenarios  . . . . . . . . . . . . .  4
+       2.1.  From 6to4 to 6to4  . . . . . . . . . . . . . . . . . . .  4
+       2.2.  From Native to 6to4  . . . . . . . . . . . . . . . . . .  5
+       2.3.  From 6to4 to Native  . . . . . . . . . . . . . . . . . .  5
+       2.4.  Other Models . . . . . . . . . . . . . . . . . . . . . .  6
+             2.4.1.  BGP between 6to4 Routers and Relays  . . . . . .  6
+             2.4.2.  6to4 as an Optimization Method . . . . . . . . .  7
+             2.4.3.  6to4 as Tunnel End-Point Addressing Mechanism . . 8
+   3.  Functionalities of 6to4 Network Components . . . . . . . . . .  9
+       3.1.  6to4 Routers . . . . . . . . . . . . . . . . . . . . . .  9
+       3.2.  6to4 Relay Routers . . . . . . . . . . . . . . . . . . . 10
+   4.  Threat Analysis  . . . . . . . . . . . . . . . . . . . . . . . 11
+       4.1.  Attacks on 6to4 Networks . . . . . . . . . . . . . . . . 12
+             4.1.1.  Attacks with ND Messages . . . . . . . . . . . . 13
+             4.1.2.  Spoofing Traffic to 6to4 Nodes . . . . . . . . . 14
+             4.1.3.  Reflecting Traffic to 6to4 Nodes . . . . . . . . 17
+             4.1.4.  Local IPv4 Broadcast Attack  . . . . . . . . . . 19
+       4.2.  Attacks on Native IPv6 Internet  . . . . . . . . . . . . 20
+             4.2.1.  Attacks with ND Messages . . . . . . . . . . . . 21
+             4.2.2.  Spoofing Traffic to Native IPv6 Nodes. . . . . . 21
+             4.2.3.  Reflecting Traffic to Native IPv6 Nodes  . . . . 23
+             4.2.4.  Local IPv4 Broadcast Attack  . . . . . . . . . . 24
+             4.2.5.  Theft of Service . . . . . . . . . . . . . . . . 25
+             4.2.6.  Relay Operators Seen as Source of Abuse  . . . . 26
+       4.3.  Attacks on IPv4 Internet . . . . . . . . . . . . . . . . 28
+       4.4.  Summary of the Attacks . . . . . . . . . . . . . . . . . 28
+   5.  Implementing Proper Security Checks in 6to4  . . . . . . . . . 30
+       5.1.  Encapsulating IPv6 into IPv4 . . . . . . . . . . . . . . 31
+       5.2.  Decapsulating IPv4 into IPv6 . . . . . . . . . . . . . . 31
+       5.3.  IPv4 and IPv6 Sanity Checks  . . . . . . . . . . . . . . 32
+             5.3.1.  IPv4 . . . . . . . . . . . . . . . . . . . . . . 32
+             5.3.2.  IPv6 . . . . . . . . . . . . . . . . . . . . . . 33
+             5.3.3.  Optional Ingress Filtering . . . . . . . . . . . 33
+             5.3.4.  Notes about the Checks . . . . . . . . . . . . . 33
+   6.  Issues in 6to4 Implementation and Use  . . . . . . . . . . . . 34
+       6.1.  Implementation Considerations with Automatic Tunnels . . 34
+       6.2.  A Different Model for 6to4 Deployment  . . . . . . . . . 35
+   7.  Security Considerations  . . . . . . . . . . . . . . . . . . . 36
+   8.  Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . . 36
+   9.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 37
+   A.  Some Trivial Attack Scenarios Outlined . . . . . . . . . . . . 39
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 40
+   Full Copyright Statement . . . . . . . . . . . . . . . . . . . . . 41
+
+
+
+
+
+Savola & Patel               Informational                      [Page 2]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+1.  Introduction
+
+   The IPv6 interim mechanism "6to4" [1] specifies automatic
+   IPv6-over-IPv4 tunneling to interconnect isolated IPv6 clouds by
+   embedding the tunnel IPv4 address in the IPv6 6to4 prefix.
+
+   Two characteristics of the 6to4 mechanism introduce most of the
+   security considerations:
+
+   1.  All 6to4 routers must accept and decapsulate IPv4 packets from
+       every other 6to4 router, and from 6to4 relays.
+
+   2.  6to4 relay routers must accept traffic from any native IPv6 node.
+
+   As the 6to4 router must accept traffic from any other 6to4 router or
+   relay, a certain requirement for trust is implied, and there are no
+   strict constraints on what the IPv6 packet may contain.  Thus,
+   addresses within the IPv4 and IPv6 headers may be spoofed, and this
+   leads to various types of threats, including different flavors of
+   Denial of Service attacks.
+
+   The 6to4 specification outlined a few security considerations and
+   rules but was ambiguous as to their exact requirement level.
+   Moreover, the description of the considerations was rather short, and
+   some of them have proven difficult to understand or impossible to
+   implement.
+
+   This document analyzes the 6to4 security issues in more detail and
+   outlines some enhancements and caveats.
+
+   Sections 2 and 3 are more or less introductory, rehashing how 6to4 is
+   used today based on the 6to4 specification, so that it is easier to
+   understand how security could be affected.  Section 4 provides a
+   threat analysis for implementations that already implement most of
+   the security checks.  Section 5 describes the optimal
+   decapsulation/encapsulation rules for 6to4 implementations, and
+   Section 6 provides further discussion on a few issues that have
+   proven difficult to implement.  Appendix A outlines a few possible
+   trivial attack scenarios in which very little or no security has been
+   implemented.
+
+   For the sake of simplicity, in this document, the native Internet is
+   assumed to encompass IPv6 networks formed by using other transition
+   mechanisms (e.g., RFC 2893 [4]), as these mechanisms cannot talk
+   directly to the 6to4 network.
+
+
+
+
+
+
+Savola & Patel               Informational                      [Page 3]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in BCP 14, RFC 2119 [2].
+
+   Throughout this memo, IPv4 addresses from blocks 7.0.0.0/24,
+   8.0.0.0/24, and 9.0.0.0/24 are used for demonstrative purposes, to
+   represent global IPv4 addresses that have no relation to each other.
+   This approach was chosen instead of just using addresses from
+   192.0.2.0/24 [5] for two reasons: to use addresses whose 6to4 mapping
+   is glaringly obvious, and to make it obvious that the IPv4 addresses
+   of different 6to4 gateways need not have any relation to each other.
+
+2.  Different 6to4 Forwarding Scenarios
+
+   Note that when one communicates between 6to4 and native domains, the
+   6to4 relays that will be used in the two directions are very likely
+   different; routing is highly asymmetric.  Because of this, it is not
+   feasible to limit relays from which 6to4 routers may accept traffic.
+
+   The first three subsections introduce the most common forms of 6to4
+   operation.  Other models are presented in the fourth subsection.
+
+2.1.  From 6to4 to 6to4
+
+   6to4 domains always exchange 6to4 traffic directly via IPv4
+   tunneling; the endpoint address V4ADDR is derived from 6to4 prefix
+   2002:V4ADDR::/48 of the destination.
+
+    .--------.           _----_          .--------.
+    |  6to4  |         _( IPv4 )_        |  6to4  |
+    | router | <====> ( Internet ) <===> | router |
+    '--------'         (_      _)        '--------'
+        ^                '----'              ^
+        |      Direct tunneling over IPv4    |
+        V                                    V
+    .--------.                           .-------.
+    |  6to4  |                           |  6to4  |
+    |  host  |                           |  host  |
+    '--------'                           '--------'
+
+                       Figure 1
+
+   It is required that every 6to4 router consider every other 6to4
+   router it wants to talk to be "on-link" (with IPv4 as the
+   link-layer).
+
+
+
+
+
+
+Savola & Patel               Informational                      [Page 4]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+2.2.  From Native to 6to4
+
+   When native domains send traffic to 6to4 prefix 2002:V4ADDR::/48, it
+   will be routed to the topologically nearest advertising 6to4 relay
+   (advertising route to 2002::/16).  The 6to4 relay will tunnel the
+   traffic over IPv4 to the corresponding IPv4 address V4ADDR.
+
+   Note that IPv4 address 9.0.0.1 here is just an example of a global
+   IPv4 address, and it is assigned to the 6to4 router's
+   pseudo-interface.
+
+                                     Closest to
+                                 "Native IPv6 node"
+    .--------.       _----_        .------------.            .--------.
+    | Native |     _( IPv6 )_      | 6to4 relay |  Tunneled  |  6to4  |
+    | IPv6   | -> ( Internet ) --> | router     | =========> | router |
+    | node   |     (_      _)      '------------'   9.0.0.1  '--------'
+    '--------'       '----'  dst_v6=2002:0900:0001::1            |
+                                                                 V
+                                                             .-------.
+                                                             |  6to4  |
+                                                             |  host  |
+                                                             '--------'
+
+                                 Figure 2
+
+2.3.  From 6to4 to Native
+
+   6to4 domains send traffic to native domains by tunneling it over IPv4
+   to their configured 6to4 relay router, or the closest one found by
+   using 6to4 IPv4 Anycast [3].  The relay will decapsulate the packet
+   and forward it to native IPv6 Internet, as would any other IPv6
+   packet.
+
+   Note that the destination IPv6 address in the packet is a non-6to4
+   address and is assumed to be 2001:db8::1 in the example.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Savola & Patel               Informational                      [Page 5]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+                                     Configured
+                                        -or-
+                                 found by IPv4 Anycast
+    .--------.       _----_        .------------.            .--------.
+    | Native |     _( IPv6 )_      | 6to4 relay |  Tunneled  |  6to4  |
+    | Client | <- ( Internet ) <-- | router     | <========= | router |
+    '--------'     (_      _)      '------------' 192.88.99.1'--------'
+   2001:db8::1       '----'                     (or configured)   ^
+                                                                  |
+                                                             .-------.
+                                                             |  6to4  |
+                                                             | client |
+                                                             '--------'
+
+                                 Figure 3
+
+2.4.  Other Models
+
+   These are more or less special cases of 6to4 operations.  In later
+   chapters, unless otherwise stated, only the most generally used
+   models (above) will be considered.
+
+2.4.1.  BGP between 6to4 Routers and Relays
+
+   Section 5.2.2.2 in [1] presents a model where, instead of static
+   configuration, BGP [6] is used between 6to4 relay routers and 6to4
+   routers (for outgoing relay selection only).
+
+   Going further than [1], if the 6to4 router established a BGP session
+   between all the possible 6to4 relays and advertised its /48 prefix to
+   them, the traffic from non-6to4 sites would always come from a
+   "known" relay.  Alternatively, the 6to4 relays might advertise the
+   more specific 6to4 routes between 6to4 relays.
+
+   Both of these approaches are obviously infeasible due to scalability
+   issues.
+
+   Neither of these models are known to be used at the time of writing;
+   this is probably because parties that need 6to4 are not able to run
+   BGP, and because setting up these sessions would be much more work
+   for relay operators.
+
+
+
+
+
+
+
+
+
+
+Savola & Patel               Informational                      [Page 6]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+2.4.2.  6to4 as an Optimization Method
+
+   Some sites seem to use 6to4 as an IPv6 connectivity "optimization
+   method"; that is, they also have non-6to4 addresses on their nodes
+   and border routers but also employ 6to4 to reach 6to4 sites.
+
+   This is typically done to be able to reach 6to4 destinations by
+   direct tunneling without using relays at all.
+
+   These sites also publish both 6to4 and non-6to4 addresses in DNS to
+   affect inbound connections.  If the source host's default address
+   selection [7] works properly, 6to4 sources will use 6to4 addresses to
+   reach the site and non-6to4 nodes use non-6to4 addresses.  If this
+   behavior of foreign nodes can be assumed, the security threats to
+   such sites can be significantly simplified.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Savola & Patel               Informational                      [Page 7]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+2.4.3.  6to4 as Tunnel End-Point Addressing Mechanism
+
+   6to4 addresses can also be used only as an IPv6-in-IPv4 tunnel
+   endpoint addressing and routing mechanism.
+
+   An example of this is interconnecting 10 branch offices where nodes
+   use non-6to4 addresses.  Only the offices' border routers need to be
+   aware of 6to4, and use 6to4 addresses solely for addressing the
+   tunnels between different branch offices.  An example is provided in
+   the figure below.
+
+    2001:db8:0:10::/60                   2001:db8:0:20::/60
+       .--------.                           .--------.
+      ( Branch 1 )                         ( Branch 2 )
+       '--------'                           '--------'
+           |                                     |
+       .--------.           _----_          .--------.
+       |  6to4  |         _( IPv4 )_        |  6to4  |
+       | router | <====> ( Internet ) <===> | router |
+       '--------'         (_      _)        '--------'
+        9.0.0.1             '----'            8.0.0.2
+                              ^^
+                              ||
+                              vv
+                          .--------.
+                          |  6to4  | 7.0.0.3
+                          | router |
+                          '--------'
+                              |        2001:db8::/48
+                        .-----------.
+                       ( Main Office )
+                        '-----------'
+                              ^
+                              |
+                              v
+                            _----_
+                          _( IPv6 )_
+                         ( Internet )
+                          (_      _)
+                            '----'
+
+                                 Figure 4
+
+   In the figure, the main office sets up two routes:
+
+      2001:db8:0:10::/60 -> 2002:0900:0001::1
+
+      2001:db8:0:20::/60 -> 2002:0800:0002::1
+
+
+
+Savola & Patel               Informational                      [Page 8]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   And a branch office sets up two routes as well:
+
+      2001:db8:0:20::/60 -> 2002:0800:0002::1
+
+      default -> 2002:0700:0003::1
+
+   Thus, the IPv4 Internet is treated as an NBMA link-layer for
+   interconnecting 6to4-enabled sites; with explicit routes, 6to4
+   addressing need not be used in routers other than the 6to4 edge
+   routers.  However, note that if a branch office sends a packet to any
+   6to4 destination, it will not go through the main office, as the 6to4
+   2002::/16 route overrides the default route.
+
+   This approach may make addressing and routing slightly easier in some
+   circumstances.
+
+3.  Functionalities of 6to4 Network Components
+
+   This section summarizes the main functionalities of the 6to4 network
+   components (6to4 routers, and 6to4 relays) and the security checks
+   they must do.  The pseudo-code for the security checks is provided in
+   Section 5.
+
+   This section summarizes the main functions of the various components
+   of a 6to4 network: 6to4 relay routers and 6to4 routers.  Refer to
+   Section 1.1 of RFC 3056 [1] for 6to4-related definitions.
+
+3.1.  6to4 Routers
+
+   The 6to4 routers act as the border routers of a 6to4 domain.  It does
+   not have a native global IPv6 address except in certain special
+   cases.  Since the specification [1] uses the term "6to4 router", this
+   memo does the same; however, note that in this definition, we also
+   include a single host with a 6to4 pseudo-interface, which doesn't
+   otherwise act as a router.  The main functions of the 6to4 router are
+   as follows:
+
+   o  Provide IPv6 connectivity to local clients and routers.
+
+   o  Tunnel packets sent to foreign 6to4 addresses to the destination
+      6to4 router using IPv4.
+
+   o  Forward packets sent to locally configured 6to4 addresses to the
+      6to4 network.
+
+   o  Tunnel packets sent to non-6to4 addresses to the configured/
+      closest-by-anycast 6to4 relay router.
+
+
+
+
+Savola & Patel               Informational                      [Page 9]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   o  Decapsulate directly received IPv4 packets from foreign 6to4
+      addresses.
+
+   o  Decapsulate IPv4 packets received via the relay closest to the
+      native IPv6 sources.  Note that it is not easily distinguishable
+      whether the packet was received from a 6to4 relay router or from a
+      spoofing third party.
+
+   The 6to4 router should also perform security checks on traffic that
+   it receives from other 6to4 relays, or 6to4 routers, or from within
+   the 6to4 site.  These checks include the following:
+
+   o  Disallow traffic that has private, broadcast or certain specific
+      reserved IPv4 addresses (see Section 5.3.1 for details) in
+      tunnels, or the matching 6to4 prefixes.
+
+   o  Disallow traffic from 6to4 routers in which the IPv4 tunnel source
+      address does not match the 6to4 prefix.  (Note that the
+      pseudo-interface must pick the IPv4 address corresponding to the
+      prefix when encapsulating, or problems may ensue, e.g., on
+      multi-interface routers.)
+
+   o  Disallow traffic in which the destination IPv6 address is not a
+      global address; in particular, link-local addresses, mapped
+      addresses, and such should not be used.
+
+   o  Disallow traffic transmission to other 6to4 domains through 6to4
+      relay router or via some third party 6to4 router.  (To avoid
+      transmission to the relay router, the pseudo-interface prefix
+      length must be configured correctly to /16.  Further, to avoid the
+      traffic being discarded, 6to4 source addresses must always
+      correspond to the IPv4 address encapsulating the traffic.)
+
+   o  Discard traffic received from other 6to4 domains via a 6to4 relay
+      router.
+
+   o  Discard traffic received for prefixes other than one's own 6to4
+      prefix(es).
+
+3.2.  6to4 Relay Routers
+
+   The 6to4 relay router acts as a relay between all 6to4 domains and
+   native IPv6 networks; more specifically, it
+
+   o  advertises the reachability of the 2002::/16 prefix to native IPv6
+      routing, thus receiving traffic to all 6to4 addresses from the
+      closest native IPv6 nodes,
+
+
+
+
+Savola & Patel               Informational                     [Page 10]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   o  advertises (if RFC 3068 [3] is implemented) the reachability of
+      IPv4 "6to4 relay anycast prefix" (192.88.99.0/24) to IPv4 routing,
+      thus receiving some tunneled traffic to native IPv6 nodes from
+      6to4 routers.
+
+   o  decapsulates and forwards packets received from 6to4 addresses
+      through tunneling, by using normal IPv6 routing, and
+
+   o  tunnels packets received through normal IPv6 routing from native
+      addresses that are destined for 2002::/16 to the corresponding
+      6to4 router.
+
+   The 6to4 relay should also perform security checks on traffic that it
+   receives from 6to4 routers, or from native IPv6 nodes.  These checks
+   are as follows:
+
+   o  Disallow traffic that has private, broadcast, or certain specific
+      reserved IPv4 addresses in tunnels, or in the matching 6to4
+      prefixes.
+
+   o  Disallow traffic from 6to4 routers in which the IPv4 tunnel source
+      address does not match the 6to4 prefix.  (Note that the
+      pseudo-interface must pick the IPv4 address corresponding to the
+      prefix when encapsulating, or problems may ensue, e.g., on
+      multi-interface routers.)
+
+   o  Disallow traffic in which the destination IPv6 address is not a
+      global address; in particular, link-local addresses, mapped
+      addresses, and such should not be used.
+
+   o  Discard traffic received from 6to4 routers with the destination as
+      a 6to4 prefix.
+
+4.  Threat Analysis
+
+    This section discusses attacks against the 6to4 network or attacks
+    caused by the 6to4 network.  The threats are discussed in light of
+    the 6to4 deployment models defined in Section 2.
+
+    There are three general types of threats:
+
+   1.  Denial-of-Service (DoS) attacks, in which a malicious node
+       prevents communication between the node under attack and other
+       nodes.
+
+
+
+
+
+
+
+Savola & Patel               Informational                     [Page 11]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   2.  Reflection Denial-of-Service (DoS) attacks, in which a malicious
+       node reflects the traffic off unsuspecting nodes to a particular
+       node (node under attack) in order to prevent communication
+       between the node under attack and other nodes.
+
+   3.  Service theft, in which a malicious node/site/operator may make
+       unauthorized use of service.
+
+   6to4 also provides a means for a "meta-threat", traffic laundering,
+   in which some other attack is channeled through the third parties to
+   make tracing the real origin of the attack more difficult.  This is
+   used in conjunction with other threats, whether specific to 6to4 or
+   not.
+
+   At this point it is important to reiterate that the attacks are
+   possible because
+
+   1.  6to4 routers have to consider all 6to4 relays, and other 6to4
+       routers, as "on-link",
+
+   2.  6to4 relays have to consider all 6to4 routers as "on-link", and
+
+   3.  it has been discovered that at least a couple of major 6to4
+       implementations do not implement all the security checks.
+
+   The attacks' descriptions are classified based on the target of the
+   attack:
+
+   1.  Attacks on 6to4 networks.
+
+   2.  Attacks on IPv6 networks.
+
+   3.  Attacks on IPv4 networks.
+
+   Note that one of the mitigation methods listed for various attacks is
+   based on the premise that 6to4 relays could have a feature limiting
+   traffic to/from specific 6to4 sites.  At the time of this writing,
+   this feature is speculative, and more work needs to be done to
+   determine the logistics.
+
+4.1.  Attacks on 6to4 Networks
+
+   This section describes attacks against 6to4 networks.  Attacks that
+   leverage 6to4 networks, but for which the ultimate victim is
+   elsewhere (e.g., a native IPv6 user, an IPv4 user), are described
+   later in the memo.
+
+
+
+
+
+Savola & Patel               Informational                     [Page 12]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   6to4 relays and routers are IPv4 nodes, and there is no way for any
+   6to4 router to confirm the identity of the IPv4 node from which it
+   receives traffic -- whether from a legitimate 6to4 relay or some
+   other node.  A 6to4 router has to process traffic from all IPv4
+   nodes.  Malicious IPv4 nodes can exploit this property and attack
+   nodes within the 6to4 network.
+
+   It is possible to conduct a variety of attacks on the 6to4 nodes.
+   These attacks are as follows:
+
+   1.  Attacks with Neighbor Discovery (ND) Messages
+
+   2.  Spoofing traffic to 6to4 nodes
+
+   3.  Reflecting traffic from 6to4 nodes
+
+   4.  Local IPv4 broadcast attack
+
+4.1.1.  Attacks with ND Messages
+
+   ATTACK DESCRIPTION
+
+   Since the 6to4 router assumes that all the other 6to4 routers and
+   6to4 relays are "on-link", it is possible to attack the 6to4 router
+   by using ND messages from any node in the IPv4 network, unless a
+   prior trust relationship has been established.
+
+   The attacks target the 6to4 pseudo-interface.  As long as the 6to4
+   addresses are not used in the source or destination address, the
+   security checks specified by 6to4 take no stance on these packets.
+   Typically they use link-local addresses.
+
+   For example, an attack could be a Route Advertisement or Neighbor
+   Advertisement message crafted specifically to cause havoc; the
+   addresses in such a packet could resemble to the following:
+
+   src_v6 = fe80::2           (forged address)
+   dst_v6 = fe80::1           (valid or invalid address)
+   src_v4 = 8.0.0.1           (valid or forged address)
+   dst_v4 = 9.0.0.2           (valid address, matches dst_v6)
+
+   These attacks are exacerbated if the implementation supports more
+   tunneling mechanisms than 6to4 (or configured tunneling) because it
+   is impossible to disambiguate such mechanisms, making it difficult to
+   enable strict security checks (see Section 6.1).
+
+   The Neighbor Discovery threats (Redirect DoS, or DoS) are described
+   in [8].  Note that all attacks may not be applicable, as the 6to4
+
+
+
+Savola & Patel               Informational                     [Page 13]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   pseudo-interface is assumed not to have a link-layer address (Section
+   3.8 RFC 2893 [4]).  However, note that the 6to4 router can be either
+   a router or host from the Neighbor Discovery perspective.
+
+   THREAT ANALYSIS AND MITIGATION METHODS
+
+   The attacks can be mitigated by using any of the following methods:
+
+   o  The usage of ND messages could be prohibited.  This implies that
+      all packets using addresses of scope link-local will be silently
+      discarded.  Section 3.1 of RFC 3056 [1] leaves scope for future
+      uses of link-local address.  This method has its pitfalls: It
+      would prohibit any sort of ND message and thus close the doors on
+      development and use of other ND options.  Whether this is a
+      significant problem is another thing.
+
+   o  The 6to4 pseudo-interface could be insulated from the other
+      interfaces, particularly the other tunnel interfaces (if any), for
+      example by using a separate neighbor cache.
+
+   o  If ND messages are needed, either IPsec [4] or an extension of
+      SEND could be used [9] to secure packet exchange using the
+      link-local address; vanilla SEND would not work, as the link-layer
+      does not have an address -- and IPsec would be rather complex.
+
+   COMPARISON TO SITUATION WITHOUT 6to4
+
+   Even though rather simply fixed, this attack is not new as such; the
+   same is possible by using automatic tunneling [4] or configured
+   tunneling (if one is able to spoof source IPv4 address to that of the
+   tunnel end-point).
+
+   However, as 6to4 provides open decapsulation, and automatic tunneling
+   is being deprecated [10], 6to4 provides an easy means, which would
+   not exist without it.
+
+4.1.2.  Spoofing Traffic to 6to4 Nodes
+
+   ATTACK DESCRIPTION
+
+   The attacker - a malicious IPv4 or IPv6 node - can send packets that
+   are difficult to trace (e.g., due to spoofing or going through a
+   relay) to a 6to4 node.  This can be used e.g., to accomplish a DoS
+   attack.
+
+   The IPv6 and IPv4 addresses of the packets will be similar to the
+   following:
+
+
+
+
+Savola & Patel               Informational                     [Page 14]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   src_v6 = 2001:db8::1       (forged address)
+   dst_v6 = 2002:0900:0002::1 (valid address)
+   src_v4 = 8.0.0.1           (valid or forged address)
+   dst_v4 = 9.0.0.2           (valid address, matches dst_v6)
+
+   For attacks launched from a native IPv6 node, the src_v4 will be the
+   address of the relay through which the traffic will reach the 6to4
+   node.  From IPv4 nodes, src_v4 can be either a spoofed source address
+   or the real one.
+
+   The 6to4 router receives these packets from 8.0.0.1, decapsulates
+   them, discards the IPv4 header containing the source address 8.0.0.1,
+   and processes them as normal (the attacker has guessed or obtained
+   "dst_v6" by using one of a number of techniques).
+
+   This is a DoS attack on 6to4 nodes.
+
+   This attack is similar to those shown in [11].
+
+   EXTENSIONS
+
+   Replies to the traffic will be directed to the src_v6 address,
+   resulting in 6to4 nodes participating in a reflection DoS.  This
+   attack is described in more detail in Section 4.2.3.  The replies
+   (e.g., TCP SYN ACK, TCP RST, ICMPv6 Echo Reply, input sent to UDP
+   echo service, ICMPv6 Destination Unreachable) are sent to the victim
+   (src_v6), above.  All the traces from the original attacker (src_v4)
+   have been discarded.  These return packets will go through a relay.
+
+   Certain 6to4 networks may have a trivial ACL (Access Control List)
+   based firewall that allows traffic to pass through if it comes from
+   particular source(s).  Such a firewalling mechanism can be bypassed
+   by address spoofing.  This attack can therefore be used for trivial
+   ACL avoidance as well.  These attacks might be hampered because the
+   replies from the 6to4 node to the spoofed address will be lost.
+
+   THREAT ANALYSIS AND SOLUTIONS/MITIGATION METHODS
+
+   The Denial-of-Service attack based on traffic spoofing is not new;
+   the only twists come from the fact that traces of an attack are more
+   easily lost, and that spoofing the IPv6 address is possible even to
+   those who are unable to do so in their current networks.  The 6to4
+   router typically does not log IPv4 addresses (as they would be
+   treated as L2 addresses), and thus the source of the attack (if
+   launched from an IPv4 node) is lost.  Because traces to the src_v4
+   address are easily lost, these attacks can also be launched from IPv4
+   nodes whose connections are ingress-filtered.
+
+
+
+
+Savola & Patel               Informational                     [Page 15]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   However, often this is not a real factor, as usually the attackers
+   are just zombies and real attackers may not even care whether the
+   unspoofed source address is discovered.
+
+   Malicious native IPv6 nodes could be caught easily if ingress
+   filtering was enabled everywhere in the IPv6 Internet.
+
+   These attacks are easy to perform, but the extent of harm is limited:
+
+   o  For every packet sent, at most one reply packet is generated:
+      there is no amplification factor.
+
+   o  Attack packets, if initiated from an IPv6 node, will pass through
+      choke point(s), namely a 6to4 relay; in addition to physical
+      limitations, these could implement some form of 6to4-site-specific
+      traffic limiting.
+
+   On the other hand, a variety of factors can make the attacks serious:
+
+   o  The attacker may have the ability to choose the relay, and he
+      might employ the ones best suited for the attacks.  Also, many
+      relays use 192.88.99.1 [3] as the source address, making tracing
+      even more difficult (also see Section 4.2.6).
+
+   o  The relay's IPv4 address may be used as a source address for these
+      attacks, potentially causing a lot of complaints or other actions,
+      as the relay might seem to be the source of the attack (see
+      Section 4.2.6 for more).
+
+   Some of the mitigation methods for such attacks are as follows:
+
+   1.  Ingress filtering in the native IPv6 networks to prevent packets
+       with spoofed IPv6 sources from being transmitted.  This would,
+       thus, make it easy to identify the source of the attack.
+       Unfortunately, it would depend on significant (or even complete)
+       ingress filtering everywhere in other networks; while this is
+       highly desirable, it may not be feasible.
+
+   2.  Security checks in the 6to4 relay.  The 6to4 relay must drop
+       traffic (from the IPv6 Internet) that has 6to4 addresses as
+       source address; see Section 5 for more detail.  This has very
+       little cost.
+
+   However, these mitigation methods do not address the case of an IPv4
+   node sending encapsulated IPv6 packets.
+
+   No simple way to prevent such attacks exists, and longer-term
+   solutions, such as ingress filtering [12] or itrace [13], would have
+
+
+
+Savola & Patel               Informational                     [Page 16]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   to be deployed in both IPv6 and IPv4 networks to help identify the
+   source of the attacks.  A total penetration is likely impossible.
+   (Note that itrace work has been discontinued, as of this writing in
+   July 2004.)
+
+   COMPARISON TO SITUATION WITHOUT 6to4
+
+   Traffic spoofing is not a new phenomenon in IPv4 or IPv6.  6to4 just
+   makes it easier: Anyone can, regardless of ingress filtering, spoof a
+   native IPv6 address to a 6to4 node, even if "maximal security" would
+   be implemented and deployed.  Losing trails is also easier.
+
+   Therefore, depending on how much one assumes ingress filtering is
+   deployed for IPv4 and IPv6, this could be considered either a very
+   serious issue or close to irrelevant compared to the IP spoofing
+   capabilities without 6to4.
+
+4.1.3.  Reflecting Traffic to 6to4 Nodes
+
+   ATTACK DESCRIPTION
+
+   Spoofed traffic (as described in Section 4.2.2) may be sent to native
+   IPv6 nodes to perform a reflection attack against 6to4 nodes.
+
+   The spoofed traffic is sent to a native IPv6 node, either from an
+   IPv4 node (through a 6to4 relay) or from a native IPv6 node (unless
+   ingress filtering has been deployed).  With the former, the sent
+   packets would resemble the following:
+
+   src_v6 = 2002:1234:1234::1 (forged address of the target 6to4 node)
+   dst_v6 = 2002:0900:0002::1 (valid address)
+   src_v4 = 8.0.0.1           (valid or invalid address)
+   dst_v4 = 9.0.0.2           (valid address, matches dst_v6)
+
+   Note that an attack through the relay is prevented if the relay
+   implements proper decapsulation security checks (see Section 5 for
+   details) unless the IPv4 node can spoof the source address to match
+   src_v6.  Similarly, the attack from native IPv6 nodes could be
+   prevented by global ingress filtering deployment.
+
+   These attacks can be initiated by native IPv6, IPv4, or 6to4 nodes.
+
+   EXTENSIONS
+
+   A distributed Reflection DoS can be performed if a large number of
+   nodes are involved in sending spoofed traffic with the same src_v6.
+
+
+
+
+
+Savola & Patel               Informational                     [Page 17]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   Malicious 6to4 nodes can also (try to) initiate this attack by
+   bouncing traffic off 6to4 nodes in other 6to4 sites.  However, this
+   attack may not be possible, as the 6to4 router (in the site from
+   which the attack is launched) will filter packets with forged source
+   addresses (with security checks mentioned in Section 5).
+
+   THREAT ANALYSIS AND SOLUTIONS/MITIGATION METHODS
+
+   In this case, the reverse traffic comprises replies to the messages
+   received by the 6to4 nodes.  The attacker has less control on the
+   packet type, and this would inhibit certain types of attacks.  For
+   example, flooding a 6to4 node with TCP SYN packets will not be
+   possible (but e.g., a SYN-ACK or RST would be).
+
+   These attacks may be mitigated in various ways:
+
+   o  Implementation of ingress filtering by the IPv4 service providers.
+      This would prevent forging of the src_v4 address and help in
+      closing down on the culprit IPv4 nodes.  Note that it will be
+      difficult to shut down the attack if a large number of IPv4 nodes
+      are involved.
+
+      These attacks may be also be stopped at the 6to4 sites if the
+      culprit src_v4 address is identified, and if it is constant, by
+      filtering traffic from this address.  Note that it would be
+      difficult to implement this method if appropriate logging were not
+      done by the 6to4 router or if a large number of 6to4 nodes, and/or
+      a large number of IPv4 nodes were participating in the attack.
+
+      Unfortunately, because many IPv4 service providers don't implement
+      ingress filtering, for whatever reasons, this may not be a
+      satisfactory solution.
+
+   o  Implementation of ingress filtering by all IPv6 service providers
+      would eliminate this attack, because src_v6 could not be spoofed
+      as a 6to4 address.  However, expecting this to happen may not be
+      practical.
+
+   o  Proper implementation of security checks (see Section 5) both at
+      the 6to4 relays and routers would eliminate an attack launched
+      from an IPv4 node, except when the IPv4 source address was also
+      spoofed -- but then the attacker would have been able to attack
+      the ultimate destination directly.
+
+   o  Rate limiting traffic at the 6to4 relays.  In a scenario where
+      most of the traffic is passing through few 6to4 relays, these
+      relays can implement traffic rate-limiting features and rate-limit
+      the traffic from 6to4 sites.
+
+
+
+Savola & Patel               Informational                     [Page 18]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   COMPARISON TO SITUATION WITHOUT 6to4
+
+   This particular attack can be mitigated by proper implementation of
+   security checks (which is quite straightforward) and ingress
+   filtering; when ingress filtering is not implemented, it is typically
+   easier to attack directly than through reflection -- unless "traffic
+   laundering" is an explicit goal of the attack.  Therefore, this
+   attack does not seem very serious.
+
+4.1.4.  Local IPv4 Broadcast Attack
+
+   ATTACK DESCRIPTION
+
+   This threat is applicable if the 6to4 router does not check whether
+   the IPv4 address to which it tries to send encapsulated IPv6 packets
+   is a local broadcast address or a multicast address.
+
+   This threat is described in the specification [1], and implementing
+   the checks eliminates this threat.  However, as checks have not been
+   widely implemented, the threat is included here for completeness.
+
+   There practically two kinds of attacks: when a local 6to4 user tries
+   to send packets to the address corresponding to the broadcast
+   address, and when someone is able to do so remotely.
+
+   In the first option, assume that 9.0.0.255 is the 6to4 router's
+   broadcast address.  After receiving the packet with a destination
+   address like "2002:0900:00ff::bbbb" from a local 6to4 node, if the
+   router doesn't check the destination address for subnet broadcast, it
+   would send the encapsulated protocol-41 packet to 9.0.0.255.  This
+   would be received by all nodes in the subnet, and the responses would
+   be directed to the 6to4 router.
+
+   Malicious sites may also embed forged 6to4 addresses in the DNS, use
+   of which by a 6to4 node would result in a local broadcast by the 6to4
+   router.  One way to perform this attack would be to send an HTML mail
+   containing a link to an invalid URL (for example,
+   http://[2002:0900:00ff::bbbb]/index.html) to all users in a 6to4
+   technology based network.  Opening of the mail simultaneously would
+   result in a broadcast storm.
+
+   The second kind of attack is more complex: The attack can be
+   initiated by IPv4 nodes not belonging to the local network as long as
+   they can send traffic with invalid (for example 2002:0900:00ff::bbbb)
+   source address.  The 6to4 router has to respond to the traffic by
+   sending ICMPv6 packets back to the source, (e.g., Hop Limit Exceeded
+   or Destination Unreachable).  The packet would be as follows:
+
+
+
+
+Savola & Patel               Informational                     [Page 19]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   src_v6 = 2002:0800:00ff::bbbb (broadcast address of the router)
+   dst_v6 = 2002:0800:0001::0001 (valid non-existent address)
+
+   This is a DoS attack.
+
+   EXTENSIONS
+
+   The attacks could also be directed at non-local broadcast addresses,
+   but these would be so-called "IPv4 directed broadcasts", which have
+   (luckily enough) already been extensively blocked in the Internet.
+
+   THREAT ANALYSIS AND SOLUTIONS/MITIGATION METHODS
+
+   The attack is based on the premise that the 6to4 router has to send a
+   packet that embeds an invalid IPv4 address to an IPv6 address.  Such
+   an attack is easily thwarted by ensuring that the 6to4 router does
+   not transmit packets to invalid IPv4 addresses.  Specifically,
+   traffic should not be sent to broadcast or multicast IPv4 addresses.
+
+   COMPARISON TO SITUATION WITHOUT 6to4
+
+   The first threat is similar to what is already possible with IPv4,
+   but IPv6 does not have broadcast addresses.
+
+   The second, a more complex threat, is, similarly, also available in
+   IPv4.
+
+   In consequence, the security does not seem to be significantly worse
+   than with IPv4, and even that is restricted to the site(s) with 6to4
+   implementations that haven't been secured as described in Section 5.
+
+4.2.  Attacks on Native IPv6 Internet
+
+   This section describes attacks against native IPv6 Internet that
+   somehow leverage 6to4 architecture.  Attacks against 6to4 nodes were
+   described in the previous section.
+
+   6to4 and IPv4 nodes can access native IPv6 nodes through the 6to4
+   relay routers.  Thus, the 6to4 relays play a crucial role in any
+   attack on native IPv6 nodes by IPv4 nodes or 6to4 nodes.
+
+   6to4 relays have only one significant security check they must
+   perform for general safety: When decapsulating IPv4 packets, they
+   check that 2002:V4ADDR::/48 and V4ADDR match in the source address.
+   If this is not done, several threats become more serious; in the
+   following analysis, it is assumed that such checks are implemented.
+
+
+
+
+
+Savola & Patel               Informational                     [Page 20]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   6to4 relay should not relay packets between 6to4 addresses.  In
+   particular, packets decapsulated from 6to4 routers should not be
+   encapsulated toward 6to4 routers, as described in Section 5.
+   Similarly, packets with 6to4 source and destination addresses sent
+   from IPv6 nodes should not be relayed.  It is not clear whether this
+   kind of check is typically implemented.  The attacks described below
+   assume that such checks are not implemented.
+
+4.2.1.  Attacks with ND Messages
+
+   These attacks are the same as those employed against 6to4 routers, as
+   described in Section 4.1.1.
+
+4.2.2.  Spoofing Traffic to Native IPv6 Node
+
+   ATTACK DESCRIPTION
+
+   The attacker - a malicious IPv4 or 6to4 node - can send packets with
+   a spoofed (or not spoofed) 6to4 source address to a native IPv6 node
+   to accomplish a DoS attack.
+
+   The threat is similar to that involving 6to4 routers, as described in
+   Section 4.1.2.
+
+   The difference here is that the attack is initiated by IPv4 or 6to4
+   nodes.  The source IPv6 address may or may not be spoofed.  Note
+   that, as mentioned above, the relay is assumed to correlate the
+   source IPv4 address with the address embedded in the source IPv6
+   address during decapsulation.  A side effect is that all spoofed
+   traffic will have a 6to4 source address.
+
+   EXTENSIONS
+
+   Spoofed traffic may also be sent to native IPv6 nodes either by other
+   native IPv6 nodes, by 6to4 nodes, or by malicious IPv4 nodes to
+   conduct Reflection DoS on either native IPv6 nodes or 6to4 nodes.
+
+   Certain native IPv6 networks may have a trivial ACL (Access Control
+   List) based firewall that allows traffic to pass through if it comes
+   from particular source(s).  Such a firewalling mechanism can be
+   bypassed by address spoofing.  This attack can therefore be used for
+   trivial ACL avoidance as well.  These attacks might be hampered by
+   lost replies from the 6to4 node to the spoofed address.
+
+
+
+
+
+
+
+
+Savola & Patel               Informational                     [Page 21]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   THREAT ANALYSIS AND SOLUTIONS/MITIGATION METHODS
+
+   The Denial-of-Service attack based on traffic spoofing is not new;
+   the only twist is that traces of an attack are more easily lost.  The
+   6to4 relay typically does not log IPv4 addresses (as they would be
+   treated as L2 addresses), and thus the source of the attack (if
+   launched from an IPv4 node) is lost.  Because traces to the src_v4
+   address are easily lost, these attacks can also be launched from IPv4
+   nodes whose connections are ingress-filtered.
+
+   These attacks might not be easy to perform and might be hampered
+   because of the following:
+
+   o  It might be difficult to launch such attacks from 6to4 nodes
+      because even if the 6to4 routers allow spoofing of the source IPv6
+      address, the 6to4 relay would check whether the source V4ADDR is
+      the same as the one embedded in the source IPv6 address.  Thus,
+      6to4 nodes will be forced to use the correct IPv6 prefix while
+      launching an attack, making it easy to close such attacks.
+
+   o  Packets may pass through choke point(s), namely a 6to4 relay.  In
+      addition to physical limitations, there could be some sort of
+      traffic rate limiting mechanisms that may be implemented, and
+      these could tone down the attack.
+
+   o  For every packet sent, at most one reply packet is generated:
+      There is no amplification factor.
+
+   Some of the mitigation methods for such attacks are as follows:
+
+   1.  Ingress filtering in the IPv4 Internet to prevent packets with a
+       spoofed IPv4 source from being transmitted.  As the relay checks
+       that the 6to4 address embeds the IPv4 address, no spoofing can be
+       achieved unless IPv4 addresses can be spoofed.  However, this
+       would probably be an unfeasible requirement.
+
+   2.  Security checks in the 6to4 relay.  The 6to4 relay must drop
+       traffic (from 6to4 nodes, or IPv4 nodes) with non-6to4 addresses
+       as the source address, or for which the source IPv4 address does
+       not match the address embedded in the source IPv6 address.
+
+   COMPARISON TO SITUATION WITHOUT 6to4
+
+   Compared to Section 4.1.2, which describes more serious threats, this
+   threat appears to be slightly more manageable.  If the relays perform
+   proper decapsulation checks, the spoofing can only be achieved, to a
+   6to4 source address, when the IPv4 address is spoofable as well.
+
+
+
+
+Savola & Patel               Informational                     [Page 22]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+4.2.3.  Reflecting Traffic to Native IPv6 Nodes
+
+   ATTACK DESCRIPTION
+
+   These reflection attacks are similar to that involving 6to4 routers,
+   as described in Section 4.1.3.  Traffic may be reflected off native
+   IPv6 nodes, or off 6to4 nodes.  The attack can be initiated by one of
+   the following:
+
+   o  Native IPv6 nodes.  These nodes can send invalid traffic with
+      spoofed native IPv6 addresses to valid 6to4 nodes.  Replies from
+      the 6to4 nodes are part of a reflection attack.
+
+   o  IPv4 nodes.  These nodes can send traffic with native IPv6 source
+      addresses (encapsulated by the IPv4 node itself into a protocol-41
+      packet) to 6to4 nodes.  Replies from the 6to4 nodes are part of a
+      reflection attack.
+
+   o  6to4 nodes.  These nodes can perform attacks similar to those by
+      IPv4 nodes, but this would require spoofing of the source address
+      at the 6to4 site before encapsulation, which is likely to be
+      difficult.
+
+   When launched from a native IPv6 node, the traffic goes through 6to4
+   relays twice, both before and after the reflection; when launched
+   from a 6to4/IPv4 node, the traffic goes through a relay only after
+   the reflection.
+
+   EXTENSIONS
+
+   A distributed reflection DoS can be performed if a large number of
+   native IPv6 nodes or IPv4/6to4 nodes are involved in sending spoofed
+   traffic with the same source IPv6 address.
+
+   THREAT ANALYSIS AND SOLUTIONS/MITIGATION METHODS
+
+   Some of the mitigation methods for such attacks are as follows:
+
+   1.  Attacks from the native IPv6 nodes could be stopped by
+       implementing ingress filtering in the IPv6 Internet; hopefully
+       this will become commonplace, but past experience of IPv4 ingress
+       filtering deployment (or lack thereof) does not promise much.
+
+   2.  Two measures are needed to stop or mitigate the attacks from IPv4
+       nodes: 1) Implementing ingress filtering in the IPv4 internet,
+       and 2) logging IPv4 source addresses in the 6to4 router.
+
+
+
+
+
+Savola & Patel               Informational                     [Page 23]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   3.  Attacks from 6to4 nodes in other sites can be stopped if the 6to4
+       routers in those sites implement egress filtering.  This could be
+       done by those sites, but the sites that are most likely to be
+       abused are typically also those most likely to neglect installing
+       appropriate filtering at their edges.
+
+   4.  The traffic passes through one or two relays, and traffic rate
+       limiting in the 6to4 relays might help tone down the reflection
+       attack.
+
+   COMPARISON TO SITUATION WITHOUT 6to4
+
+   Even though there are means to mitigate it, the attack is still
+   rather efficient, especially when used by native IPv6 nodes with
+   spoofed addresses.  Using 6to4 relays and routers could easily take
+   down the 6to4 relay system and/or provide an easy means for traffic
+   laundering.  However, if the attack is intended to DoS the victim,
+   this can be achieved more smoothly by doing it directly (as the
+   source address spoofing was available as well).
+
+   Therefore, the threat to the availability and stability of the 6to4
+   relay system itself seems to be higher than to the native IPv6
+   Internet.
+
+4.2.4.  Local IPv4 Broadcast Attack
+
+   This attack is similar to the ones employed against 6to4 routers, as
+   described in Section 4.1.4.  There are slight differences with regard
+   to the source of the attacks.  This attack can be initiated by:
+
+   o  native IPv6 nodes that may send traffic to the relay's subnet
+      broadcast address, and
+
+   o  IPv4 nodes that may send traffic with a spoofed source IP address
+      (to be the relay's broadcast address) to elicit replies (e.g.,
+      ICMPv6 Hop Limit Exceeded) from the 6to4 relay to its local nodes.
+
+   The first approach is more dangerous than those in Section 4.1.4
+   because it can be initiated by any IPv6 node (allowed to use the
+   relay); the approach is not limited to local users.
+
+   The second approach is trickier and not really useful.  For it to
+   succeed, the relay would have to accept native source addresses over
+   the 6to4 pseudo-interface (we did not assume this check was
+   implemented), as if coming from another relay, triggering an ICMPv6
+   message to the relay's local IPv4 subnet.  The former method is more
+   lucrative.
+
+
+
+
+Savola & Patel               Informational                     [Page 24]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   EXTENSIONS
+
+   None.
+
+   THREAT ANALYSIS AND SOLUTIONS/MITIGATION METHODS
+
+   The threat is restricted to the relay's local subnet and is fixed by
+   tightening the 6to4 security checks.
+
+   COMPARISON TO SITUATION WITHOUT 6to4
+
+   This scenario is caused by 6to4, but fortunately the issue is not
+   serious.
+
+4.2.5.  Theft of Service
+
+   ATTACK DESCRIPTION
+
+   The 6to4 relay administrators would often want to use some policy to
+   limit the use of the relay to specific 6to4 sites and/or specific
+   IPv6 sites.
+
+   The policy control is usually enacted by applying restrictions to
+   where the routing information for 2002::/16 and/or 192.188.99.0/24
+   (if the anycast address used [3]) will spread.
+
+   Some users may be able to use the service regardless of these
+   controls, by
+
+   o  configuring the address of the relay using its IPv4 address
+      instead of 192.88.99.1, or
+
+   o  using the routing header to route IPv6 packets to reach specific
+      6to4 relays.  (Other routing tricks, such as using static routes,
+      may also be used.)
+
+   EXTENSIONS
+
+   None.
+
+   THREAT ANALYSIS AND SOLUTIONS/MITIGATION METHODS
+
+   Attempts to use the relay's IPv4 address instead of 192.88.99.1 can
+   be mitigated in the following ways:
+
+   1.  IPv4 domains should prevent use of the actual IPv4 address of the
+       relay instead of 192.88.99.1.
+
+
+
+
+Savola & Patel               Informational                     [Page 25]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   2.  Usage of access lists in the 6to4 relay to limit access.  This is
+       only feasible if the number of IP networks the relay is supposed
+       to serve is relatively low.
+
+   3.  The 6to4 relay should filter out arriving tunneled packets with
+       protocol 41 (IPv6) that do not have 192.88.99.1 as the
+       destination address.
+
+   The other threat, of using routing tricks in the IPv6 networks to
+   reach the 6to4 relay, has similar solutions:
+
+   1.  Usage of access lists in the relay to limit access.
+
+   2.  Filtering out the packets with a routing header (although this
+       may have other implications).
+
+   3.  Monitoring the source addresses going through the relay to
+       detect, e.g., peers setting up static routes.
+
+   Routing Header is not specific to 6to4.  The main thing one could do
+   with it here would be to select the relay.  Some generic threats
+   about routing header use are described in [11].
+
+   As this threat does not have implications for anything other than the
+   organization providing 6to4 relay, it is not analyzed any further.
+
+   COMPARISON TO SITUATION WITHOUT 6to4
+
+   These threats are specific to 6to4 relays (or in general anycast
+   services) and do not exist in networks without 6to4.
+
+4.2.6.  Relay Operators Seen as Source of Abuse
+
+   ATTACK DESCRIPTION
+
+   Several attacks use 6to4 relays to anonymize the traffic; this often
+   results in packets being tunneled from the relay to a supposedly-6to4
+   site.
+
+   However, as was pointed out in Section 4.2, the IPv4 source address
+   used by the relay could, on a cursory look, be seen as the source of
+   these "protocol-41" attacks.
+
+   This could cause a number of concerns for the operators deploying
+   6to4 relay service, including the following:
+
+   o  being contacted a lot (via email, phone, fax, or lawyers) on
+      suspected "abuse",
+
+
+
+Savola & Patel               Informational                     [Page 26]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   o  having the whole IPv4 address range rejected as a source of abuse
+      or spam, causing outage to other operations as well, or
+
+   o  causing the whole IPv4 address range to be blacklisted in some
+      "spammer databases", if the relay were used for those purposes.
+
+   This threat seems slightly similar to the outburst of SMTP abuse
+   caused by open relays but is more generic.
+
+   EXTENSIONS
+
+   None.
+
+   THREAT ANALYSIS AND SOLUTIONS/MITIGATION METHODS
+
+   This problem can be avoided (or, really, "made someone else's
+   problem") by using the 6to4 anycast address in 192.88.99.0/24 as the
+   source address.  Blacklisting or rejecting this should not cause
+   problems to the other operations.
+
+   Further, when someone files complaints to the owner of
+   192.88.99.0/24, depending on which registry they are querying, they
+   might get, for example:
+
+   o  knowledge that this is a special IANA address block, with no real
+      contact person,
+
+   o  knowledge that this is a special address block for RFC 3068, or
+
+   o  knowledge that this is a special address block for RFC 3068, and
+      that there are multiple entries by relay operators in the
+      database.
+
+   Any of these, at least when processed by a human, should show that
+   the 6to4 relay is in fact innocent.  Of course, this could result in
+   reports going to the closest anycast 6to4 relay as well, which had
+   nothing to do with the incident.
+
+   However, the widespread usage of 192.88.99.1 as the source address
+   may make it more difficult to disambiguate the relays, which might be
+   a useful feature for debugging purposes.
+
+   COMPARISON TO SITUATION WITHOUT 6to4
+
+   This threat is caused by 6to4 deployment but can be avoided, at least
+   in the short-term, by using 192.88.99.1 as the source address.
+
+
+
+
+
+Savola & Patel               Informational                     [Page 27]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+4.3.  Attacks on IPv4 Internet
+
+   There are two types of attacks on the IPv4 internet - spoofed
+   traffic, and reflection.  These can be initiated by native IPv6
+   nodes, 6to4 nodes, and IPv4 nodes.
+
+   Attacks initiated by IPv4 nodes that send spoofed traffic, which
+   would not use the 6to4 infrastructure, are considered out of the
+   scope of this document.  6to4 infrastructure may be used in
+   reflection attacks initiated by IPv4 nodes.
+
+   It is difficult for these attacks to be effective, as the traffic
+   sent out will be IPv6-in-IPv4.  Such traffic will be rejected by most
+   IPv4 nodes unless they have implemented some sort of IPv6-in-IPv4
+   tunneling.
+
+4.4.  Summary of the Attacks
+
+   Columns:
+
+   o  Section number.  The section that describes the attack.
+
+   o  Attack name.
+
+   o  Initiator.  The node that initiates the attack.
+
+      *  I_4 - IPv4 node
+
+      *  I_6 - native IPv6 node
+
+      *  6to4 - 6to4 node
+
+      *  * - All of the above
+
+   o  Victim.  The victim node
+
+      *  I_4 - IPv4 node
+
+      *  I_6 - native IPv6 node
+
+      *  6to4 - 6to4 node
+
+      *  Relay - 6to4 relay
+
+      *  Router - 6to4 router
+
+
+
+
+
+
+Savola & Patel               Informational                     [Page 28]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   o  ToA.  Type of Attack
+
+      *  D - DoS
+
+      *  R - Reflection DoS
+
+      *  T - Theft of Service
+
+   o  Fix.  Specified who is responsible for fixing the attack.
+
+      *  6 - The 6to4 developer and/or operator can completely mitigate
+         this attack.
+
+      *  6* - The 6to4 developer and/or operator can partially mitigate
+         this attack.
+
+      *  E - This threat cannot be fixed by the 6to4 developer or the
+         6to4 operator.
+
+   Summary of attacks on a 6to4 network:
+
+      +-------+----------------------+---------+----------+-----+-----+
+      | Sec   | Attack name          |Initiator| Victim   | ToA | Fix |
+      +-------+----------------------+---------+----------+-----+-----+
+      | 4.1.1 | Attacks with ND      |  I_4    |  Router  |  D  |  6  |
+      +-------+----------------------+---------+----------+-----+-----+
+      | 4.1.2 | Spoofing Traffic     | I_4,I_6 |   6to4   |  D  |  E  |
+      +-------+----------------------+---------+----------+-----+-----+
+      | 4.1.3 | Reflection Attacks   |   *     |   6to4   |  R  |  6* |
+      +-------+----------------------+---------+----------+-----+-----+
+      | 4.1.4 | Local IPv4 Broadcast |   *     |  Router  |  D  |  6  |
+      +-------+----------------------+---------+----------+-----+-----+
+
+                                 Figure 9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Savola & Patel               Informational                     [Page 29]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   Summary of attacks on the native IPv6 internet:
+
+      +-------+----------------------+---------+----------+-----+-----+
+      | Sec   | Attack name          |Initiator|  Victim  | ToA | Fix |
+      +-------+----------------------+---------+----------+-----+-----+
+      | 4.2.1 | Attacks with ND      |   I_4   |  Relay   |  D  |  6  |
+      +-------+----------------------+---------+----------+-----+-----+
+      | 4.2.2 | Spoofing Traffic     | I_4,6to4|    I_6   |  D  |  6* |
+      +-------+----------------------+---------+----------+-----+-----+
+      | 4.2.3 | Reflection Attacks   |    *    |    I_6   |  R  |  6* |
+      +-------+----------------------+---------+----------+-----+-----+
+      | 4.2.4 | Local IPv4 Broadcast |    *    |  Relay   |  D  |  6  |
+      +-------+----------------------+---------+----------+-----+-----+
+      | 4.2.5 | Theft of Service     |  6to4   |  Relay   |  T  |  6  |
+      +-------+----------------------+---------+----------+-----+-----+
+      | 4.2.6 | Relay Operators ...  |    -    |    -     |  D  |  1) |
+      +-------+----------------------+---------+----------+-----+-----+
+
+                                 Figure 10
+
+   Notes:
+
+   1) This attack is a side-effect of the other attacks and thus does
+   not have any Initiator, Victim, and Fix.  It is a Denial of Service
+   attack not on the network but on the organization in-charge of the
+   relay.
+
+   Summary of attacks on IPv4 internet:
+
+      +-------+----------------------+---------+----------+-----+-----+
+      | Sec   | Attack name          |Initiator|  Victim  | ToA | Fix |
+      +-------+----------------------+---------+----------+-----+-----+
+      |  4.3  | Spoofing Traffic     |    *    |    I_4   |  D  |  6* |
+      +-------+----------------------+---------+----------+-----+-----+
+      |  4.3  | Reflection Attacks   |    *    |    I_4   |  R  |  6* |
+      +-------+----------------------+---------+----------+-----+-----+
+
+                                 Figure 11
+
+5.  Implementing Proper Security Checks in 6to4
+
+   This section describes several ways to implement the security checks
+   required or implied by the specification [1] or augmented by this
+   memo.  These do not, in general, protect against most of the threats
+   listed above in the "Threat Analysis" section.  They are only
+   prerequisites for a relatively safe and simple 6to4 implementation.
+
+
+
+
+
+Savola & Patel               Informational                     [Page 30]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   Note that, in general, the 6to4 router or relay does not know whether
+   it is acting as a router or relay.  It would be possible to include a
+   toggle to specify the behaviour, to be used when, e.g., the interface
+   is brought up, but as of February 2004, no implementations were known
+   to do that.  Therefore, the checks are described as that which works
+   independently of whether the node is a router or relay.
+
+5.1.  Encapsulating IPv6 into IPv4
+
+   The checks described in this section are to be performed when
+   encapsulating IPv6 into IPv4.
+
+   The encapsulation rules are mainly designed to keep implementors from
+   "shooting themselves in the foot."  For example, the source address
+   check would verify that the packet will be acceptable to the
+   decapsulator, or the sanity checks would ensure that addresses
+   derived from private addresses are not used (which would be equally
+   unacceptable).
+
+    src_v6 and dst_v6 MUST pass ipv6-sanity checks (see below) else drop
+    if prefix (src_v6) == 2002::/16
+        ipv4 address embedded in src_v6 MUST match src_v4
+    else if prefix (dst_v6) == 2002::/16
+            dst_v4 SHOULD NOT be assigned to the router
+    else
+        drop
+            /* we somehow got a native-native ipv6 packet */
+    fi
+    accept
+
+5.2.  Decapsulating IPv4 into IPv6
+
+   The checks described in this section are to be performed when
+   decapsulating IPv4 into IPv6.  They will be performed in both the
+   6to4 router and relay.
+
+    src_v4 and dst_v4 MUST pass ipv4-sanity checks, else drop
+    src_v6 and dst_v6 MUST pass ipv6-sanity checks, else drop
+    if prefix (dst_v6) == 2002::/16
+        ipv4 address embedded in dst_v6 MUST match dst_v4
+            if prefix (src_v6) == 2002::/16
+                ipv4 address embedded in src_v6 MUST match src_v4
+                dst_v4 SHOULD be assigned to the router
+            fi
+    elif prefix (src_v6) == 2002::/16
+        ipv4 address embedded in src_v6 MUST match src_v4
+        dst_v4 SHOULD be assigned to the router (see notes below)
+
+
+
+
+Savola & Patel               Informational                     [Page 31]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+    else
+        drop
+            /* the we somehow got a native-native ipv6 packet */
+    fi
+    accept
+
+5.3.  IPv4 and IPv6 Sanity Checks
+
+   The encapsulation and decapsulation checks include certain sanity
+   checks for both IPv4 and IPv6.  These are described here in detail.
+
+5.3.1.  IPv4
+
+   IPv4 address MUST be a global unicast address, as required by the
+   6to4 specification.  The disallowed addresses include those defined
+   in [14], and others widely used and known not to be global.  These
+   are
+
+   o  0.0.0.0/8 (the system has no address assigned yet)
+
+   o  10.0.0.0/8 (private)
+
+   o  127.0.0.0/8 (loopback)
+
+   o  172.16.0.0/12 (private)
+
+   o  192.168.0.0/16 (private)
+
+   o  169.254.0.0/16 (IANA Assigned DHCP link-local)
+
+   o  224.0.0.0/4 (multicast)
+
+   o  240.0.0.0/4 (reserved and broadcast)
+
+   In addition, the address MUST NOT be any of the system's broadcast
+   addresses.  This is especially important if the implementation is
+   made so that it can
+
+   o  receive and process encapsulated IPv4 packets arriving at its
+      broadcast addresses, or
+
+   o  send encapsulated IPv4 packets to one of its broadcast addresses.
+
+
+
+
+
+
+
+
+
+Savola & Patel               Informational                     [Page 32]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+5.3.2.  IPv6
+
+   IPv6 address MUST NOT be
+
+   o  0::/16 (compatible, mapped addresses, loopback, unspecified, ...)
+
+   o  fe80::/10 (link-local)
+
+   o  fec0::/10 (site-local)
+
+   o  ff00::/8 (any multicast)
+
+   Note: Only link-local multicast would be strictly required, but it is
+   believed that multicast with 6to4 will not be feasible, so it has
+   been disallowed as well.
+
+   In addition, it MUST be checked that equivalent 2002:V4ADDR::/48
+   checks, where V4ADDR is any of the above IPv4 addresses, will not be
+   passed.
+
+5.3.3.  Optional Ingress Filtering
+
+   In addition, the implementation in the 6to4 router may perform some
+   form of ingress filtering (e.g., Unicast Reverse Path Forwarding
+   checks).  For example, if the 6to4 router has multiple interfaces, of
+   which some are "internal", receiving either IPv4 or IPv6 packets with
+   source address belonging to any of these internal networks from the
+   Internet might be disallowed.
+
+   If these checks are implemented and enabled by default, it's
+   recommended that there be a toggle to disable them if needed.
+
+5.3.4.  Notes about the Checks
+
+   The rule "dst_v4 SHOULD be assigned to the router" is not needed if
+   the 6to4 router implementation only accepts and processes
+   encapsulated IPv4 packets arriving to its unicast IPv4 addresses, and
+   when the destination address is known to be a local broadcast
+   address, it does not try to encapsulate and send packets to it.  (See
+   Sections 4.1.4 and  4.2.4 about this threat.)
+
+   Some checks, especially the IPv4/IPv6 Sanity Checks, could be at
+   least partially implementable with system-level access lists, if one
+   would like to avoid placing too many restrictions in the 6to4
+   implementation itself.  This depends on how many hooks are in place
+   for the access lists.  In practice, it seems that this could not be
+   done effectively enough unless the access list mechanism is able to
+   parse the encapsulated packets.
+
+
+
+Savola & Patel               Informational                     [Page 33]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+6.  Issues in 6to4 Implementation and Use
+
+   This section tries to give an overview of some of the problems 6to4
+   implementations face, and the kind of generic problems the 6to4 users
+   could come up with.
+
+6.1.  Implementation Considerations with Automatic Tunnels
+
+   There is a problem with multiple transition mechanisms if strict
+   security checks are implemented.  This may vary a bit from
+   implementation to implementation.
+
+   Consider three mechanisms using automatic tunneling: 6to4, ISATAP
+   [15], and Automatic Tunneling using Compatible Addresses [4]
+   (currently removed [10] but typically still supported).  All of these
+   use IP-IP (protocol 41) [16] IPv4 encapsulation with, more or less, a
+   pseudo-interface.
+
+   When a router, which has any two of these enabled, receives an IPv4
+   encapsulated IPv6 packet
+
+   src_v6 = 2001:db8::1
+   dst_v6 = 2002:1010:1010::2
+   src_v4 = 10.0.0.1
+   dst_v4 = 20.20.20.20
+
+   What can it do?  How should it decide which transition mechanism this
+   belongs to; there is no "transition mechanism number" in the IPv6 or
+   IPv4 header to signify this.  (This can also be viewed as a
+   flexibility benefit.)
+
+   Without any kind of security checks (in any of the implemented
+   methods), these often just "work", as the mechanisms aren't
+   differentiated but handled in "one big lump".
+
+   Configured tunneling [4] does not suffer from this, as it is
+   point-to-point and based on src_v6/dst_v6 pairs of both IPv4 and IPv6
+   addresses, so the tunnel interface can be logically deduced.
+
+   Solutions for this include 1) not using more than one automatic
+   tunneling mechanism in a node and 2) binding different mechanisms to
+   different IPv4 addresses.
+
+
+
+
+
+
+
+
+
+Savola & Patel               Informational                     [Page 34]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+6.2.  A Different Model for 6to4 Deployment
+
+   Even though this was already discussed in Section 4.1.2, it bears
+   some additional elaboration, as it was the only problem that cannot
+   be even partially solved using the current deployment model.  There
+   are some mitigation methods.
+
+   6to4 routers receive traffic from non-6to4 ("native") sources via
+   6to4 relays.  6to4 routers have no way of matching the IPv4 source
+   address of the relay with the non-6to4 IPv6 address of the source.
+   Consequently, anyone can spoof any non-6to4 IPv6 address by sending
+   traffic, encapsulated, directly to 6to4 routers.
+
+   It could be possible to turn the deployment assumptions of 6to4
+   around a bit to eliminate some threats caused by untrusted 6to4
+   relays:
+
+   o  Every dual-stack site (or even ISP) would be required to have its
+      own 6to4 relay.  (This assumes that IPv6-only is so far away that
+      6to4 would be retired by that point.)  That is, there would not be
+      third-party relays, and 2002::/16 and 192.88.99.0/24 routes would
+      not need to be advertised globally.
+
+   o  The security implications of 6to4 use could be pushed back to the
+      level of trust inside the site or ISP (or their acceptable use
+      policies).  This is something that the sites and ISPs should
+      already be familiar with already.
+
+   However, this presents a number of problems:
+
+   This model would shift most of the burden of supporting 6to4 to IPv6
+   sites that don't employ or use 6to4 at all, i.e., "those who deploy
+   proper native dual-stack."  It could be argued that the deployment
+   pain should be borne by 6to4 users, not by the others.
+
+   The main advantage of 6to4 is easy deployment and free relays.  This
+   would require that everyone the 6to4 sites wish to communicate with
+   implement these measures.
+
+   The model would not fix the "relay spoofing problem", unless
+   everybody also deployed 6to4 addresses on the nodes (alongside with
+   native addresses, if necessary), which would in turn change 6to4 to
+   operate without relays completely.
+
+
+
+
+
+
+
+
+Savola & Patel               Informational                     [Page 35]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+7.  Security Considerations
+
+   This document discusses security considerations of 6to4.
+
+   Even if proper checks are implemented, there are a large number of
+   different security threats; these threats are analyzed in Section 4.
+
+   There are mainly four classes of potential problem sources:
+
+   1.  6to4 routers not being able to identify whether relays are
+       legitimate
+
+   2.  Wrong or impartially implemented 6to4 router or relay security
+       checks
+
+   3.  6to4 architecture used to participate in DoS or reflected DoS
+       attacks or made to participate in "packet laundering", i.e.,
+       making another attack harder to trace
+
+   4.  6to4 relays being subject to "administrative abuse" e.g., theft
+       of service or being seen as a source of abuse.
+
+   The first is the toughest problem, still under research.  The second
+   can be fixed by ensuring the correctness of implementations; this is
+   important.  The third is also a very difficult problem, impossible to
+   solve completely; therefore it is important to be able to analyze
+   whether this results in a significant increase of threats.  The
+   fourth problem seems to have feasible solutions.
+
+   These are analyzed in detail in "Threat Analysis", in Section 4.
+
+8.  Acknowledgments
+
+   Some issues were first brought up by Itojun Hagino in [17], and Alain
+   Durand introduced one specific problem at IETF51 in August 2001
+   (though there was some discussion on the list prior to that); these
+   two gave the authors the push to start looking into the details of
+   securing 6to4.
+
+   Alexey Kuznetsov brought up the implementation problem with IPv6
+   martian checks.  Christian Huitema formulated the rules that rely on
+   6to4 relays using only anycast.  Keith Moore brought up the point
+   about reduced flexibility.  Brian Carpenter, Tony Hain, and Vladislav
+   Yasevich are acknowledged for lengthy discussions.  Alain Durand
+   reminded the authors about relay spoofing problems.  Brian Carpenter
+   reminded the authors about the BGP-based 6to4 router model.
+   Christian Huitema gave a push for a more complete threat analysis.
+   Itojun Hagino spelled out the operators' fears about 6to4 relay
+
+
+
+Savola & Patel               Informational                     [Page 36]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   abuse.  Rob Austein brought up the idea of a different 6to4
+   deployment model.
+
+   In the latter phase, discussions with Christian Huitema, Brian
+   Carpenter, and Alain Durand were helpful when improving the document.
+
+   David Malone, Iljitsch van Beijnum, and Tim Chown gave feedback on
+   the document.
+
+9.  References
+
+9.1.  Normative References
+
+   [1]  Carpenter, B. and K. Moore, "Connection of IPv6 Domains via IPv4
+        Clouds", RFC 3056, February 2001.
+
+   [2]  Bradner, S., "Key words for use in RFCs to Indicate Requirement
+        Levels", BCP 14, RFC 2119, March 1997.
+
+   [3]  Huitema, C., "An Anycast Prefix for 6to4 Relay Routers", RFC
+        3068, June 2001.
+
+9.2.  Informative References
+
+   [4]  Gilligan, R. and E. Nordmark, "Transition Mechanisms for IPv6
+        Hosts and Routers", RFC 2893, August 2000.
+
+   [5]  IANA, "Special-Use IPv4 Addresses", RFC 3330, September 2002.
+
+   [6]  Rekhter, Y. and T. Li, "A Border Gateway Protocol 4 (BGP-4)",
+        RFC 1771, March 1995.
+
+   [7]  Draves, R., "Default Address Selection for Internet Protocol
+        version 6 (IPv6)", RFC 3484, February 2003.
+
+   [8]  Nikander, P., Kempf, J., and E. Nordmark, "IPv6 Neighbor
+        Discovery (ND) Trust Models and Threats", RFC 3756, May 2004.
+
+   [9]  Arkko, J., Kempf, J., Sommerfeld, B., Zill, B., and P. Nikander,
+        "SEcure Neighbor Discovery (SEND)", Work in Progress, July 2004.
+
+   [10] Nordmark, E. and R. Gilligan, "Basic Transition Mechanisms for
+        IPv6 Hosts and Routers", Work in Progress, September 2004.
+
+   [11] Savola, P., "Security of IPv6 Routing Header and Home Address
+        Options", Work in Progress, March 2002.
+
+
+
+
+
+Savola & Patel               Informational                     [Page 37]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   [12] Ferguson, P. and D. Senie, "Network Ingress Filtering: Defeating
+        Denial of Service Attacks which employ IP Source Address
+        Spoofing", BCP 38, RFC 2827, May 2000.
+
+   [13] Bellovin, S., Leech, M. and T. Taylor, "ICMP Traceback
+        Messages", Work in Progress, February 2003.
+
+   [14] Baker, F., "Requirements for IP Version 4 Routers", RFC 1812,
+        June 1995.
+
+   [15] Templin, F., Gleeson, T., Talwar, M. and D. Thaler, "Intra-Site
+        Automatic Tunnel Addressing Protocol (ISATAP)", Work in
+        Progress, May 2004.
+
+   [16] Simpson, W., "IP in IP Tunneling", RFC 1853, October 1995.
+
+   [17] Hagino, J., "Possible abuse against IPv6 transition
+        technologies", Work in Progress, July 2000.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Savola & Patel               Informational                     [Page 38]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+Appendix A.  Some Trivial Attack Scenarios Outlined
+
+   Here, a few trivial attack scenarios are outlined -- ones that are
+   prevented by implementing checks listed in [1] or in section 6.
+
+   When two 6to4 routers send traffic to each others' domains, the
+   packet sent by RA to RB resembles the following:
+
+   src_v6 = 2002:0800:0001::aaaa
+   dst_v6 = 2002:0800:0002::bbbb
+   src_v4 = 8.0.0.1 (added when encapsulated to IPv4)
+   dst_v4 = 8.0.0.2 (added when encapsulated to IPv4)
+
+   When the packet is received by IPv4 stack on RB, it will be
+   decapsulated so that only src_v6 and dst_v6 remain, as originally
+   sent by RA:
+
+   src_v6 = 2002:0800:0001::aaaa
+   dst_v6 = 2002:0800:0002::bbbb
+
+   As every other node is just one hop away (IPv6-wise) and the
+   link-layer (IPv4) addresses are lost, this may open many
+   possibilities for misuse.
+
+   As an example, unidirectional IPv6 spoofing is made trivial because
+   nobody can check (without delving into IP-IP packets) whether the
+   encapsulated IPv6 addresses were authentic.  (With native IPv6, this
+   can be done by, e.g., RPF-like mechanisms or access lists in upstream
+   routers.)
+
+   src_v6 = 2002:1234:5678::aaaa (forged)
+   dst_v6 = 2002:0800:0002::bbbb
+   src_v4 = 8.0.0.1 (added when encapsulated to IPv4)
+   dst_v4 = 8.0.0.2 (added when encapsulated to IPv4)
+
+   A similar attack with "src" being the native address is made
+   possible, even with the security checks, by having the sender node
+   pretend to be a 6to4 relay router.
+
+   More worries come into the picture if, e.g.,
+
+   src_v6 = ::ffff:[some trusted IPv4 in a private network]
+   src_v6/dst_v6 = ::ffff:127.0.0.1
+   src_v6/dst_v6 = ::1
+   src_v6/dst_v6 = ...
+
+
+
+
+
+
+Savola & Patel               Informational                     [Page 39]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+   Some implementations might have been careful enough to design the
+   stack so as to avoid the incoming (or reply) packets going to IPv4
+   packet processing through special addresses (e.g., IPv4-mapped
+   addresses), but who can say for all ...
+
+Authors' Addresses
+
+   Pekka Savola
+   CSC/FUNET
+   Espoo
+   Finland
+
+   EMail: psavola@funet.fi
+
+
+   Chirayu Patel
+   All Play, No Work
+   185, Defence Colony
+   Bangalore, Karnataka  560038
+   India
+
+   Phone: +91-98452-88078
+   EMail: chirayu@chirayu.org
+   URI:   http://www.chirayu.org
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Savola & Patel               Informational                     [Page 40]
+
+RFC 3964            Security Considerations for 6to4       December 2004
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2004).
+
+   This document is subject to the rights, licenses and restrictions
+   contained in BCP 78, and except as set forth therein, the authors
+   retain all their rights.
+
+   This document and the information contained herein are provided on an
+   "AS IS" basis and THE CONTRIBUTOR, THE ORGANIZATION HE/SHE REPRESENTS
+   OR IS SPONSORED BY (IF ANY), THE INTERNET SOCIETY AND THE INTERNET
+   ENGINEERING TASK FORCE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED,
+   INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE
+   INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
+   WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Intellectual Property
+
+   The IETF takes no position regarding the validity or scope of any
+   Intellectual Property Rights or other rights that might be claimed to
+   pertain to the implementation or use of the technology described in
+   this document or the extent to which any license under such rights
+   might or might not be available; nor does it represent that it has
+   made any independent effort to identify any such rights.  Information
+   on the IETF's procedures with respect to rights in IETF Documents can
+   be found in BCP 78 and BCP 79.
+
+   Copies of IPR disclosures made to the IETF Secretariat and any
+   assurances of licenses to be made available, or the result of an
+   attempt made to obtain a general license or permission for the use of
+   such proprietary rights by implementers or users of this
+   specification can be obtained from the IETF on-line IPR repository at
+   http://www.ietf.org/ipr.
+
+   The IETF invites any interested party to bring to its attention any
+   copyrights, patents or patent applications, or other proprietary
+   rights that may cover technology that may be required to implement
+   this standard.  Please address the information to the IETF at ietf-
+   ipr@ietf.org.
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+Savola & Patel               Informational                     [Page 41]
+

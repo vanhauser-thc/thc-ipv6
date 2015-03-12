@@ -1,0 +1,283 @@
+
+
+
+
+
+
+Network Working Group                                         Y. Rekhter
+Request for Comments: 5701                              Juniper Networks
+Category: Standards Track                                  November 2009
+
+
+         IPv6 Address Specific BGP Extended Community Attribute
+
+Abstract
+
+   Current specifications of BGP Extended Communities (RFC 4360) support
+   the IPv4 Address Specific Extended Community, but do not support an
+   IPv6 Address Specific Extended Community.  The lack of an IPv6
+   Address Specific Extended Community may be a problem when an
+   application uses the IPv4 Address Specific Extended Community, and
+   one wants to use this application in a pure IPv6 environment.  This
+   document defines a new BGP attribute, the IPv6 Address Specific
+   Extended Community, that addresses this problem.  The IPv6 Address
+   Specific Extended Community is similar to the IPv4 Address Specific
+   Extended Community, except that it carries an IPv6 address rather
+   than an IPv4 address.
+
+Status of This Memo
+
+   This document specifies an Internet standards track protocol for the
+   Internet community, and requests discussion and suggestions for
+   improvements.  Please refer to the current edition of the "Internet
+   Official Protocol Standards" (STD 1) for the standardization state
+   and status of this protocol.  Distribution of this memo is unlimited.
+
+Copyright Notice
+
+   Copyright (c) 2009 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the BSD License.
+
+   This document may contain material from IETF Documents or IETF
+   Contributions published or made publicly available before November
+   10, 2008.  The person(s) controlling the copyright in some of this
+   material may not have granted the IETF Trust the right to allow
+
+
+
+Rekhter                     Standards Track                     [Page 1]
+
+RFC 5701       IPv6 Specific Extended Community Attribute  November 2009
+
+
+   modifications of such material outside the IETF Standards Process.
+   Without obtaining an adequate license from the person(s) controlling
+   the copyright in such materials, this document may not be modified
+   outside the IETF Standards Process, and derivative works of it may
+   not be created outside the IETF Standards Process, except to format
+   it for publication as an RFC or to translate it into languages other
+   than English.
+
+1.  Introduction
+
+   Current specifications of BGP Extended Communities [RFC4360] support
+   the IPv4 Address Specific Extended Community, but do not support an
+   IPv6 Address Specific Extended Community.  The lack of an IPv6
+   Address Specific Extended Community may be a problem when an
+   application uses IPv4 Address Specific Extended Community and one
+   wants to use this application in a pure IPv6 environment.
+
+   Because the BGP Extended Community attribute defines each BGP
+   Extended Community as being 8 octets long, it is not possible to
+   define the IPv6 Specific Extended Community using the existing BGP
+   Extended Community attribute [RFC4360].  Therefore, this document
+   defines a new BGP attribute, the IPv6 Address Specific Extended
+   Community, that has a structure similar to the IPv4 Address Specific
+   Extended Community, and thus could be used in a pure IPv6 environment
+   as a replacement of the IPv4 Address Specific Extended Community.
+
+2.  IPv6 Address Specific BGP Extended Community Attribute
+
+   The IPv6 Address Specific Extended Community Attribute is a
+   transitive, optional BGP attribute [BGP-4].  The attribute consists
+   of a set of "IPv6 Address Specific extended communities".  All routes
+   with the IPv6 Address Specific Extended Community attribute belong to
+   the communities listed in the attribute.
+
+   Just like all other BGP Extended Communities, the IPv6 Address
+   Specific Extended Community supports multiple sub-types.
+
+   Each IPv6 Address Specific extended community is encoded as a
+   20-octet quantity, as follows:
+
+
+
+
+
+
+
+
+
+
+
+
+Rekhter                     Standards Track                     [Page 2]
+
+RFC 5701       IPv6 Specific Extended Community Attribute  November 2009
+
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   | 0x00 or 0x40  |    Sub-Type   |    Global Administrator       |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |          Global Administrator (cont.)                         |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |          Global Administrator (cont.)                         |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |          Global Administrator (cont.)                         |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   | Global Administrator (cont.)  |    Local Administrator        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   The first high-order octet indicates whether a particular sub-type of
+   this community is transitive across Autonomous Systems (ASes) (0x00),
+   or not (0x40).  The second high-order octet of this extended type is
+   used to indicate sub-types.  The sub-types are the same as for the
+   IPv4 Address Specific Extended Community.
+
+   Global Administrator field: 16 octets
+
+      This field contains an IPv6 unicast address assigned by one of the
+      Internet registries.
+
+   Local Administrator field: 2 octets
+
+      The organization that has been assigned the IPv6 address in the
+      Global Administrator field can encode any information in this
+      field.  The format and meaning of the value encoded in this field
+      should be defined by the sub-type of the community.
+
+3.  IANA Considerations
+
+   This document defines a new BGP attribute, called the IPv6 Address
+   Specific Extended Community (value 25).
+
+   This document defines a class of extended communities, called the
+   IPv6 Address Specific Extended Community, for which the IANA has
+   created and will maintain a registry entitled "IPv6 Address Specific
+   Extended Community".  Future assignments are to be made using the
+   "First Come First Served" policy defined in [RFC5226].  The Type
+   values for the transitive communities of the IPv6 Address Specific
+   Extended Community class are 0x0000-0x00ff; for the non-transitive
+   communities of that class, they are 0x4000-0x40ff.  Assignments
+   consist of a name and the value.
+
+
+
+
+
+Rekhter                     Standards Track                     [Page 3]
+
+RFC 5701       IPv6 Specific Extended Community Attribute  November 2009
+
+
+   This document makes the following assignments for the IPv6 Address
+   Specific extended community types:
+
+      Name                                     Type Value
+      ----                                     --------------
+      IPv6 address specific Route Target       0x0002
+      IPv6 address specific Route Origin       0x0003
+
+4.  Security Considerations
+
+   This document does not add new security issues.  All the security
+   considerations for BGP Extended Communities apply here.  At the time
+   that this document was written, there were significant efforts
+   underway to improve the security properties of BGP.  For examples of
+   documents that have been produced up to this time of publication, see
+   [RFC4593] and [SIDR].
+
+   There is a potential serious issue if a malformed, optional,
+   transitive attribute is received.  This issue and the steps to avoid
+   it are discussed in [OPT_TRANS].
+
+5.  Acknowledgements
+
+   Many thanks to Michael Lundberg and Emre Ertekin for their review and
+   comments.
+
+6.  References
+
+6.1.  Normative References
+
+   [BGP-4]      Rekhter, Y., Ed., Li, T., Ed., and S. Hares, Ed., "A
+                Border Gateway Protocol 4 (BGP-4)", RFC 4271, January
+                2006.
+
+   [RFC5226]    Narten, T. and H. Alvestrand, "Guidelines for Writing an
+                IANA Considerations Section in RFCs", BCP 26, RFC 5226,
+                May 2008.
+
+   [RFC4360]    Sangli, S., Tappan, D., and Y. Rekhter, "BGP Extended
+                Communities Attribute", RFC 4360, February 2006.
+
+6.2.  Informative References
+
+   [OPT_TRANS]  Scudder, J. and E. Chen, "Error Handling for Optional
+                Transitive BGP Attributes", Work in Progress, April
+                2009.
+
+
+
+
+
+Rekhter                     Standards Track                     [Page 4]
+
+RFC 5701       IPv6 Specific Extended Community Attribute  November 2009
+
+
+   [RFC4593]    Barbir, A., Murphy, S., and Y. Yang, "Generic Threats to
+                Routing Protocols", RFC 4593, October 2006.
+
+   [SIDR]       Lepinski, M. and S. Kent, "An Infrastructure to Support
+                Secure Internet Routing", Work in Progress, July 2009.
+
+Author's Address
+
+   Yakov Rekhter
+   Juniper Networks, Inc.
+   EMail: yakov@juniper.net
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Rekhter                     Standards Track                     [Page 5]
+

@@ -1,0 +1,562 @@
+
+
+
+
+
+Network Working Group                                         S. Bradner
+Request for Comments: 2780                            Harvard University
+BCP: 37                                                        V. Paxson
+Category: Best Current Practice                                    ACIRI
+                                                              March 2000
+
+
+                IANA Allocation Guidelines For Values In
+               the Internet Protocol and Related Headers
+
+Status of this Memo
+
+   This document specifies an Internet Best Current Practices for the
+   Internet Community, and requests discussion and suggestions for
+   improvements.  Distribution of this memo is unlimited.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2000).  All Rights Reserved.
+
+Abstract
+
+   This memo provides guidance for the IANA to use in assigning
+   parameters for fields in the IPv4, IPv6, ICMP, UDP and TCP protocol
+   headers.
+
+1. Introduction
+
+   For many years the Internet Assigned Numbers Authority (IANA)
+   (www.iana.org) has allocated parameter values for fields in protocols
+   which have been created or are maintained by the Internet Engineering
+   Task Force (IETF).  Starting a few years ago the IETF began to
+   provide the IANA with guidance for the assignment of parameters for
+   fields in newly developed protocols.  Unfortunately this type of
+   guidance was not consistently provided for the fields in protocols
+   developed before 1998.  This memo attempts to codify existing IANA
+   practice used in the assignment of parameters in the specific case of
+   some of these protocols.  It is expected that additional memos will
+   be developed in the future to codify existing practice in other
+   cases.
+
+   This memo addresses the fields within the IPv4, IPv6, ICMP, UDP and
+   TCP protocol headers for which the IANA assigns values.
+
+   The terms "Specification Required", "Expert Review", "IESG Approval",
+   "IETF Consensus", and "Standards Action", are used in this memo to
+   refer to the processes described in [CONS].
+
+
+
+
+Bradner & Paxson         Best Current Practice                  [Page 1]
+
+RFC 2780                    IANA Assignments                  March 2000
+
+
+2. Temporary Assignments
+
+   From time to time temporary assignments are made in the values for
+   fields in these headers for use in experiments.  IESG Approval is
+   required for any such temporary assignments.
+
+3. Version field in the IP header.
+
+   The first field in the IP header of all current versions of IP is the
+   Version field.  New values in the Version field define new versions
+   of the IP protocol and are allocated only after an IETF Standards
+   Action.  It should be noted that some of the Version number bits are
+   used by TCP/IP header compression schemes. Specifically, the hi-order
+   bit of the Version field is also used by TCP/IP header compression
+   [HC], while the three hi-order bits are used by IP Header Compression
+   [IPHC].
+
+4. IANA Considerations for fields in the IPv4 header
+
+   The IPv4 header [V4] contains the following fields that carry values
+   assigned by the IANA: Version, Type of Service, Protocol, Source
+   Address, Destination Address, and Option Type.
+
+4.1 IPv4 IP Version field
+
+   The IPv4 Version field is always 4.
+
+4.2 IPv4 Type of Service field
+
+   The Type of Service field described in [V4] has been superseded[DIFF]
+   by the 6-bit Differentiated Services (DS) field and a 2-bit field
+   which is currently reserved.  The IANA allocates values in the DS
+   field following the IANA Considerations section in [DIFF].  [ECN]
+   describes an experimental use of the 2-bit "currently unused" field.
+   Other experimental uses of this field may be assigned after IESG
+   Approval processes.  Permanent values in this field are allocated
+   following a Standards Action process.
+
+4.3 IPv4 Protocol field
+
+   IANA allocates values from the IPv4 Protocol name space following an
+   Expert Review, IESG Approval or Standards Action process.  The Expert
+   Review process should only be used in those special cases where non-
+   disclosure information is involved.  In these cases the expert(s)
+   should be designated by the IESG.
+
+
+
+
+
+
+Bradner & Paxson         Best Current Practice                  [Page 2]
+
+RFC 2780                    IANA Assignments                  March 2000
+
+
+4.4 IPv4 Source and Destination addresses
+
+   The IPv4 source and destination addresses use the same namespace but
+   do not necessarily use the same values.  Values in these fields fall
+   into a number of ranges defined in [V4] and [MULT].
+
+4.4.1 IPv4 Unicast addresses
+
+   The Internet Corporation for Assigned Names and Numbers (ICANN)
+   recently accepted responsibility for the formulation of specific
+   guidelines for the allocation of the values from the IPv4 unicast
+   address space (values 0.0.0.0 through 223.255.255.255 ) other than
+   values from the ranges 0/8 (which was reserved in [AN80]) and 127/8
+   (from which the loopback address has been taken) along with other
+   values already assigned by the IETF for special functions or
+   purposes. (For example, the private addresses defined in RFC 1918.)
+   Further assignments in the 0/8 and 127/8 ranges require a Standards
+   Action process since current IP implementations may break if this is
+   done.
+
+4.4.2 IPv4 Multicast addresses
+
+   IPv4 addresses that fall in the range from 224.0.0.0 through
+   239.255.255.255 are known as multicast addresses.  The IETF through
+   its normal processes has assigned a number of IPv4 multicast
+   addresses for special purposes. For example, [ADSCP] assigned a
+   number of IPv4 multicast address to correspond to IPv6 scoped
+   multicast addresses.  Also, the values in the range from 224.0.0.0 to
+   224.0.0.255 , inclusive, are reserved by the IANA for the use of
+   routing protocols and other low-level topology discovery or
+   maintenance protocols, such as gateway discovery and group membership
+   reporting. (See the IANA web page) New values in this range are
+   assigned following an IESG Approval or Standards Action process.
+   Assignments of individual multicast address follow an Expert Review,
+   IESG Approval or Standards Action process.  Until further work is
+   done on multicast protocols, large-scale assignments of IPv4
+   multicast addresses is not recommended.
+
+   From time to time, there are requests for temporary assignment of
+   multicast space for experimental purposes.  These will originate in
+   an IESG Approval process and should be for a limited duration such as
+   one year.
+
+4.4.3 IPv4 Reserved addresses
+
+   IPv4 addresses in the range from 240.0.0.0 through 255.255.255.254
+   are reserved [AN81, MULT] and compliant IPv4 implementations will
+   discard any packets that make use of them.  Addresses in this range
+
+
+
+Bradner & Paxson         Best Current Practice                  [Page 3]
+
+RFC 2780                    IANA Assignments                  March 2000
+
+
+   are not to be assigned unless an IETF Standards Action modifies the
+   IPv4 protocol in such a way as to make these addresses valid.
+   Address 255.255.255.255 is the limited broadcast address.
+
+4.5 IPv4 Option Type field
+
+   The IANA allocates values from the IPv4 Option Type name space
+   following an IESG Approval, IETF Consensus or Standards Action
+   process.
+
+5. IANA Considerations for fields in the IPv6 header
+
+   The IPv6 header [V6] contains the following fields that carry values
+   assigned from IANA-managed name spaces: Version (by definition always
+   6 in IPv6), Traffic Class, Next Header, Source and Destination
+   Address.  In addition, the IPv6 Hop-by-Hop Options and Destination
+   Options extension headers include an Option Type field with values
+   assigned from an IANA-managed name space.
+
+5.1 IPv6 Version field
+
+   The IPv6 Version field is always 6.
+
+5.2 IPv6 Traffic Class field
+
+   The IPv6 Traffic Class field is described in [DIFF] as a 6- bit
+   Differentiated Services (DS) field and a 2-bit field which is
+   currently reserved.  See Section 4.2 for assignment guidelines for
+   these fields.
+
+5.3 IPv6 Next Header field
+
+   The IPv6 Next Header field carries values from the same name space as
+   the IPv4 Protocol name space. These values are allocated as discussed
+   in Section 4.3.
+
+5.4 IPv6 Source and Destination Unicast Addresses
+
+   The IPv6 Source and Destination address fields both use the same
+   values and are described in [V6AD].  The addresses are divided into
+   ranges defined by a variable length Format Prefix (FP).
+
+5.4.1 IPv6 Aggregatable Global Unicast Addresses
+
+   The IANA was given responsibility for all IPv6 address space by the
+   IAB in [V6AA]. Recently the IANA agreed to specific guidelines for
+   the assignment of values in the Aggregatable Global Unicast Addresses
+   FP (FP 001) formulated by the Regional Internet Registries.
+
+
+
+Bradner & Paxson         Best Current Practice                  [Page 4]
+
+RFC 2780                    IANA Assignments                  March 2000
+
+
+5.4.2 IPv6 Anycast Addresses
+
+   IPv6 anycast addresses are defined in [V6AD].  Anycast addresses are
+   allocated from the unicast address space and anycast addresses are
+   syntactically indistinguishable from unicast addresses.  Assignment
+   of IPv6 Anycast subnet addresses follows the process described in
+   [V6AD].  Assignment of other IPv6 Anycast addresses follows the
+   process used for IPv6 Aggregatable Global Unicast Addresses.
+   (section 5.4.1)
+
+5.4.3 IPv6 Multicast Addresses
+
+   IPv6 multicast addresses are defined in [V6AD]. They are identified
+   by a FP of 0xFF.  Assignment guidelines for IPv6 multicast addresses
+   are described in [MASGN].
+
+5.4.4 IPv6 Unassigned and Reserved IPv6 Format Prefixes
+
+   The responsibility for assigning values in each of the "unassigned"
+   and "reserved" Format Prefixes is delegated by IESG Approval or
+   Standards Action processes since the rules for processing these
+   Format Prefixes in IPv6 implementations have not been defined.
+
+5.5 IPv6 Hop-by-Hop and Destination Option Fields
+
+   Values for the IPv6 Hop-by-Hop Options and Destination Options fields
+   are allocated using an IESG Approval, IETF Consensus or Standards
+   Action processes.
+
+5.6 IPv6 Neighbor Discovery Fields
+
+   The IPv6 Neighbor Discovery header [NDV6] contains the following
+   fields that carry values assigned from IANA- managed name spaces:
+   Type, Code and Option Type.
+
+   Values for the IPv6 Neighbor Discovery Type, Code, and Option Type
+   fields are allocated using an IESG Approval or Standards Action
+   process.
+
+6. IANA Considerations for fields in the IPv4 ICMP header
+
+   The IPv4 ICMP header [ICMP] contains the following fields that carry
+   values assigned from IANA-managed name spaces: Type and Code. Code
+   field values are defined relative to a specific Type value.
+
+   Values for the IPv4 ICMP Type fields are allocated using an IESG
+   Approval or Standards Action processes. Code Values for existing IPv4
+   ICMP Type fields are allocated using IESG Approval or Standards
+
+
+
+Bradner & Paxson         Best Current Practice                  [Page 5]
+
+RFC 2780                    IANA Assignments                  March 2000
+
+
+   Action processes. The policy for assigning Code values for new IPv4
+   ICMP Types should be defined in the document defining the new Type
+   value.
+
+7. IANA Considerations for fields in the IPv6 ICMP header
+
+   The IPv6 ICMP header [ICMPV6] contains the following fields that
+   carry values assigned from IANA-managed name spaces: Type and Code.
+   Code field values are defined relative to a specific Type value.
+
+   Values for the IPv6 ICMP Type fields are allocated using an IESG
+   Approval or Standards Action processes. Code Values for existing IPv6
+   ICMP Type fields are allocated using IESG Approval or Standards
+   Action processes. The policy for assigning Code values for new IPv6
+   ICMP Types should be defined in the document defining the new Type
+   value.
+
+8. IANA Considerations for fields in the UDP header
+
+   The UDP header [UDP] contains the following fields that carry values
+   assigned from IANA-managed name spaces: Source and Destination Port.
+
+   Both the Source and Destination Port fields use the same namespace.
+   Values in this namespace are assigned following a Specification
+   Required, Expert Review, IESG Approval, IETF Consensus, or Standards
+   Action process.  Note that some assignments may involve non-
+   disclosure information.
+
+9. IANA Considerations for fields in the TCP header
+
+   The TCP header [TCP] contains the following fields that carry values
+   assigned from IANA-managed name spaces: Source and Destination Port,
+   Reserved Bits, and Option Kind.
+
+9.1 TCP Source and Destination Port fields
+
+   Both the Source and Destination Port fields use the same namespace.
+   Values in this namespace are assigned following a Specification
+   Required, Expert Review, IESG Approval, IETF Consensus, or Standards
+   Action process.  Note that some assignments may involve non-
+   disclosure information.
+
+9.2 Reserved Bits in TCP Header
+
+   The reserved bits in the TCP header are assigned following a
+   Standards Action process.
+
+
+
+
+
+Bradner & Paxson         Best Current Practice                  [Page 6]
+
+RFC 2780                    IANA Assignments                  March 2000
+
+
+9.3 TCP Option Kind field
+
+   Values in the Option Kind field are assigned following an IESG
+   Approval or Standards Action process.
+
+10. Security Considerations
+
+   Security analyzers such as firewalls and network intrusion detection
+   monitors often rely on unambiguous interpretations of the fields
+   described in this memo.  As new values for the fields are assigned,
+   existing security analyzers that do not understand the new values may
+   fail, resulting in either loss of connectivity if the analyzer
+   declines to forward the unrecognized traffic, or loss of security if
+   it does forward the traffic and the new values are used as part of an
+   attack.  This vulnerability argues for high visibility (which the
+   Standards Action and IETF Consensus processes ensure) for the
+   assignments whenever possible.
+
+11. References
+
+   [ADSCP]  Meyer, D., "Administratively Scoped IP Multicast", RFC 2365,
+            July 1998.
+
+   [AN80]   Postel, J., "Assigned Numbers", RFC 758, August 1979.
+
+   [AN81]   Postel, J., "Assigned Numbers", RFC 790, September 1981.
+
+   [CONS]   Narten, T. and H. Alvestrand, "Guidelines for Writing an
+            IANA Considerations Section in RFCs", BCP 26, RFC 2434,
+            October 1998.
+
+   [DIFF]   Nichols, K., Blake, S., Baker, F. and D. Black, "Definition
+            of the Differentiated Services Field (DS Field) in the IPv4
+            and IPv6 Headers", RFC 2474, December 1998.
+
+   [ECN]    Ramakrishnan, K. and S. Floyd, "A Proposal to add Explicit
+            Congestion Notification (ECN) to IP", RFC 2481, January
+            1999.
+
+   [HC]     Jacobson, V., "Compressing TCP/IP headers for low-speed
+            serial links", RFC 1144, February 1990.
+
+   [ICMP]   Postel, J., "Internet Control Message Protocol", STD 5, RFC
+            792, September 1981.
+
+   [ICMPV6] Conta, A. and S. Deering, "Internet Control Message Protocol
+            (ICMPv6) for the Internet Protocol Version 6 (IPv6)", RFC
+            2463, December 1998.
+
+
+
+Bradner & Paxson         Best Current Practice                  [Page 7]
+
+RFC 2780                    IANA Assignments                  March 2000
+
+
+   [IPHC]   Degermark, M., Nordgren, S. and B. Pink, "IP Header
+            Compression", RFC 2507, February 1999.
+
+   [MASGN]  Hinden, R. and S. Deering, "IPv6 Multicast Address
+            Assignments", RFC 2375, July 1998.
+
+   [MULT]   Deering, S., "Host extensions for IP multicasting", RFC 988,
+            July 1986.
+
+   [NDV6]   Narten, T., Nordmark, E. and W. Simpson, "Neighbor Discovery
+            for IP Version 6 (IPv6)", RFC 2461, December 1998.
+
+   [TCP]    Postel, J., "Transmission Control Protocol", STD 7, RFC 793,
+            September 1981.
+
+   [UDP]    Postel, J., "User Datagram Protocol", STD 6, RFC 768, August
+            1980.
+
+   [V4]     Postel, J., "Internet Protocol", STD 5, RFC 791, September,
+            1981.
+
+   [V6]     Deering, S. and R. Hinden, "Internet Protocol, Version 6
+            (IPv6) Specification", RFC 2460, December 1998.
+
+   [V6AA]   IAB, IESG, "IPv6 Address Allocation Management", RFC 1881,
+            December 1995.
+
+   [V6AD]   Hinden, R. and S. Deering, "IP Version 6 Addressing
+            Architecture", RFC 2373, July 1998.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bradner & Paxson         Best Current Practice                  [Page 8]
+
+RFC 2780                    IANA Assignments                  March 2000
+
+
+12. Authors' Addresses
+
+   Scott Bradner
+   Harvard University
+   Cambridge MA - USA
+   02138
+
+   Phone: +1 617 495 3864
+   EMail: sob@harvard.edu
+
+
+   Vern Paxson
+   ACIRI / ICSI
+   1947 Center Street, Suite 600
+   Berkeley, CA - USA
+   94704-1198
+
+   Phone: +1 510 666 2882
+   EMail: vern@aciri.org
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bradner & Paxson         Best Current Practice                  [Page 9]
+
+RFC 2780                    IANA Assignments                  March 2000
+
+
+13. Full Copyright Statement
+
+   Copyright (C) The Internet Society (2000).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bradner & Paxson         Best Current Practice                 [Page 10]
+

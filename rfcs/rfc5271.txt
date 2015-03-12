@@ -1,0 +1,1235 @@
+
+
+
+
+
+
+Network Working Group                                          H. Yokota
+Request for Comments: 5271                                      KDDI Lab
+Category: Informational                                       G. Dommety
+                                                     Cisco Systems, Inc.
+                                                               June 2008
+
+
+            Mobile IPv6 Fast Handovers for 3G CDMA Networks
+
+Status of This Memo
+
+   This memo provides information for the Internet community.  It does
+   not specify an Internet standard of any kind.  Distribution of this
+   memo is unlimited.
+
+Abstract
+
+   Mobile IPv6 is designed to maintain its connectivity while moving
+   from one network to another.  It is adopted in 3G CDMA networks as a
+   way to maintain connectivity when the mobile node (MN) moves between
+   access routers.  However, this handover procedure requires not only
+   movement detection by the MN, but also the acquisition of a new
+   Care-of Address and Mobile IPv6 registration with the new care-of
+   address before the traffic can be sent or received in the target
+   network.  During this period, packets destined for the mobile node
+   may be lost, which may not be acceptable for a real-time application
+   such as Voice over IP (VoIP) or video telephony.  This document
+   specifies fast handover methods in the 3G CDMA networks in order to
+   reduce latency and packet loss during handover.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Yokota & Dommety             Informational                      [Page 1]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+Table of Contents
+
+   1. Introduction ....................................................2
+   2. Requirements Notation ...........................................3
+   3. Terminology .....................................................3
+   4. Network Reference Model for Mobile IPv6 over 3G CDMA Networks ...4
+   5. Fast Handover Procedures ........................................6
+      5.1. Predictive Fast Handover ...................................7
+      5.2. Reactive Fast Handover ....................................12
+      5.3. Considerations on the Link Indications ....................15
+   6. Message Format .................................................15
+      6.1. Handover Assist Information Option ........................15
+      6.2. Mobile Node Identifier Option .............................16
+      6.3. New Flag Extension to FBU Message .........................17
+      6.4. New Flag Extension to PrRtAdv Message .....................17
+   7. Security Considerations ........................................18
+   8. IANA Considerations ............................................18
+   9. Acknowledgements ...............................................19
+   10. References ....................................................19
+      10.1. Normative References .....................................19
+      10.2. Informative References ...................................19
+
+1.  Introduction
+
+   Mobile IPv6 [2] allows mobile nodes (MNs) to maintain persistent IP
+   connectivity while the MN moves around in the IPv6 network.  It is
+   adopted in 3G CDMA networks for handling host-based mobility
+   management [12].  During handover, however, the mobile node (MN)
+   needs to switch the radio link to obtain a new Care-of Address (CoA)
+   and to re-register with the home agent (HA), which may cause a
+   communication disruption.  This is not desirable for real-time
+   applications such as VoIP and video telephony.  To reduce this
+   disruption time or latency, a fast handover protocol for Mobile IPv6
+   [3] is proposed.  RFC 4260 [7] further describes how this Mobile IPv6
+   Fast Handover could be implemented on link layers conforming to the
+   IEEE 802.11 suite of specifications.  However, 3G CDMA and IEEE
+   802.11 networks are substantially different in the radio access, the
+   representations of the network nodes or parameters, and the network
+   attachment procedures; for example, the beacon scanning or New Access
+   Router (NAR) discovery based on [Access Point Identifier, Access
+   Router-info (AP-ID, AR-info)] tuples specified in RFC 4260 can not be
+   directly applied to 3G CDMA networks.  This document therefore
+   specifies how Mobile IPv6 fast handovers can be applied in the 3G
+   CDMA networks.
+
+
+
+
+
+
+
+Yokota & Dommety             Informational                      [Page 2]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+2.  Requirements Notation
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [1].
+
+3.  Terminology
+
+   This document refers to [3] for Mobile IPv6 fast handover
+   terminology.  Terms that first appear in this document are defined
+   below:
+
+   Access Network Identifier (ANID): An identifier that is used by the
+      Packet Data Serving Node (PDSN) to determine whether the MN is
+      being handed off from the access network that was not previously
+      using this PDSN.  Anytime the MN crosses into a new region, which
+      is defined by the ANID, it must re-register with that access
+      network.  The ANID is further composed of the System ID (SID),
+      Network ID (NID), and Packet Zone ID (PZID) and these values are
+      administered by the operator.  The lengths of the SID, NID, and
+      PZID are 2 octets, 2 octets, and 1 octet, respectively.  Thus,
+      that of the ANID occupies 5 octets [11].
+
+   Forward Pilot Channel:  A portion of the Forward Channel that carries
+      the pilot.  The Forward Channel is a portion of the physical layer
+      channels transmitted from the 3G CDMA access network to the MN.
+      Further, several sets of pilots (e.g., the active set or neighbor
+      set) are defined to determine when and where to handover.
+
+   Home Link Prefix (HLP):  The prefix address assigned to the home link
+      where the MN should send the binding update message.  This is also
+      called Home Network Prefix (HNP) and one of the bootstrap
+      parameters for the MN.
+
+   International Mobile Subscriber Identity (IMSI):  The IMSI is a
+      string of decimal digits, up to a maximum of 15 digits, that
+      identifies a unique mobile terminal or mobile subscriber
+      internationally.  The IMSI consists of three fields:  the Mobile
+      Country Code (MCC), the Mobile Network Code (MNC), and the Mobile
+      Subscriber Identification Number (MSIN).  An example of the IMSI
+      is "440701234567890", where "440" is the MCC, "70" is the MNC, and
+      "1234567890" is the MSIN.  The IMSI conforms to the ITU-T E.212
+      numbering standard [6].  In this specification, IMSI is an ASCII
+      string that consists of not more than 15 decimal digits (ASCII
+      values between 30 and 39 hexadecimal), one character per IMSI
+      digit.  The above example would therefore be encoded as "34 34 30
+      37 30 31 32 33 34 35 36 37 38 39 30" in hexadecimal notation.
+
+
+
+
+Yokota & Dommety             Informational                      [Page 3]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+   Mobile Identity (MN ID):  An identifier of the Mobile Node that is
+      used by the access network.  The value (e.g., IMSI) is unique
+      within the operator's network.
+
+   Packet Data Serving Node (PDSN):  An entity that routes MN originated
+      or MN terminated packet data traffic.  A PDSN establishes,
+      maintains, and terminates link-layer sessions to MNs.  A PDSN is
+      the access router in the visited access provider network.
+
+   Sector Address Identifier (SectorID):  A typical cell divides its
+      coverage area into several sectors.  In 3G CDMA systems, each
+      sector uses a different PN (Pseudo Noise) code offset and is
+      associated with SectorID.  The SectorID is 128 bits long and can
+      be represented in the IPv6 address format [8].
+
+4.  Network Reference Model for Mobile IPv6 over 3G CDMA Networks
+
+   Figure 1 shows a simplified reference model of the Mobile IP enabled
+   3G CDMA networks.  The home agent (HA) and Authentication,
+   Authorization, and Accounting (AAA) server of the mobile node (MN)
+   reside in the home IP network, and the MN roams within or between the
+   access provider network(s).  Usually, the home IP network is not
+   populated by the MNs, which are instead connected only to the access
+   provider networks.  Prior to the Mobile IPv6 registration, the MN
+   establishes a 3G CDMA access technology specific link-layer
+   connection with the access router (AR).  When the MN moves from one
+   AR to another, the link-layer connection is re-established, and a
+   Mobile IPv6 handover is performed.  Those ARs reside in either the
+   same or different access provider network(s).  The figure shows the
+   situation, where the MN moves from the Previous Access Router (PAR)
+   to the New Access Router (NAR) via the radio access network (RAN).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Yokota & Dommety             Informational                      [Page 4]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+                          Home IP Network
+                     +........................+
+                     . +--------+  +--------+ .
+                     . |   HA   |--|  AAA   | .
+                     . +--------+  +--------+ .
+                     +../......\..............+
+                       /        \
+                 Access Provider Network(s)
+          +.............+      +.............+
+          . +---------+ .      . +---------+ .
+          . |   PAR   | .      . |   NAR   | .
+          . +---------+ .      . +---------+ .
+          .      |:     .      .     :|      .
+          .      |:L2link      L2link:|      .
+          .      |:     .      .     :|      .
+          . +----+:---+ .      . +---:+----+ .
+          . |   RAN   | .      . |   RAN   | .
+          . +----+:---+ .      . +---:+----+ .
+          .      |:     .      .     :|      .
+          .    +----+   .      .   +----+    .
+          .    | MN |  --------->  | MN |    .
+          .    +----+   .      .   +----+    .
+          +.............+      +.............+
+
+        Figure 1: Reference Model for Mobile IP
+
+   In 3G CDMA networks, pilot channels transmitted by base stations
+   allow the MN to obtain a rapid and accurate C/I (carrier to
+   interference) estimate.  This estimate is based on measuring the
+   strength of the Forward Pilot Channel or the pilot, which is
+   associated with a sector of a base station (BS).  The MN searches for
+   the pilots and maintains those with sufficient signal strength in the
+   pilot sets.  The MN sends measurement results, which include the
+   offsets of the PN code in use and the C/Is in the pilot sets, to
+   provide the radio access network (RAN) with the estimate of sectors
+   in its neighborhood.  There are several triggers for the MN to send
+   those estimates, e.g., when the strength of a pilot in the pilot sets
+   exceeds that of the current pilot, the MN sends the estimates to the
+   access network.  As long as the sector to which the MN is going to
+   move belongs to the same access network, the mobility within that
+   access network is handled by the access-specific interfaces [10] and
+   the link-layer connection between the MN and AR can be maintained
+   without a re-establishment.  The MN can continually search for pilots
+   without disrupting the data communication and a timely handover is
+   assisted by the network.  If, however, the serving access network
+   finds that the sector associated with the highest pilot strength
+   belongs to a different AR, it attempts to close the connection with
+   the MN.  The MN then attempts to get a new traffic channel assigned
+
+
+
+Yokota & Dommety             Informational                      [Page 5]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+   in the new access network, which is followed by establishing a new
+   connection with the new AR.  This could cause a noticeable
+   communication disruption and lead to a serious degradation of the
+   user experience.  In order to minimize the service degradation,
+   during the handover between ARs, an IP-level fast handover approach
+   as defined in RFC 5268 needs to be involved.  If the air interface
+   information can be used as a trigger for the handover between access
+   routers, fast and smooth handover of Mobile IPv6 can be realized in
+   3G CDMA networks.  The MN can continually search for pilots without
+   disrupting the data communication and a timely handover is assisted
+   by the network.
+
+   To assist the handover of the MN to the new AR, various types of
+   information can be considered: the pilot sets, which include the
+   candidates of the target sectors or BSs, the cell information where
+   the MN resides, the serving nodes in the radio access network, and
+   the location of the MN, if available.  To identify the access network
+   that the MN moves to or from, the Access Network Identifiers (ANID)
+   or the subnet information can be used [9][10].  In this document, a
+   collection of such information is called "handover assist
+   information".  In 3G CDMA networks, the Link-Layer Address of the New
+   Access Point (AP) defined in [3] may not be available.  If this is
+   the case, the Handover Assist Information option defined in this
+   document SHOULD be used instead.
+
+5.  Fast Handover Procedures
+
+   There are two modes defined in [3] according to the time of sending
+   the FBU (Fast Binding Update); one is called "predictive mode", where
+   the MN sends the FBU and receives the FBAck (Fast Binding
+   Acknowledgment) on the PAR's (Previous Access Router's) link and the
+   other is called "reactive mode", where the MN sends the FBU from the
+   NAR's (New Access Router's) link.  In the predictive mode, the time
+   and place the MN hands off must be indicated sufficiently before the
+   time it actually happens.  In cellular systems, since handovers are
+   controlled by the network, the predictive mode is well applied.
+   However, if the network is not configured to be able to identify the
+   new AR, to which the MN is moving next, in a timely manner, the
+   reactive mode is better applied.
+
+   Section 2 of RFC 4907 [20] suggests architectural principles on the
+   link indication and the effectiveness of the optimization.  The link
+   indication of this document relies on 3G CDMA networks and the
+   effectiveness of the optimization is attributed to RFC 5268.  The
+   above principles are thus considered by the related specifications
+   referenced in this document.
+
+
+
+
+
+Yokota & Dommety             Informational                      [Page 6]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+5.1.  Predictive Fast Handover
+
+   Figure 2 shows the predictive mode of MIPv6 fast handover operation.
+   When the MN finds a sector or a BS whose pilot signal is sufficiently
+   strong, it initiates handover according to the following sequence:
+
+   (a)  A router solicitation for proxy router advertisement is sent to
+        the PAR.  Handover assist information for the target 3G CDMA
+        network is attached to this message.
+
+   (b)  Based on the received handover assist information, the NAR is
+        determined and a proxy router advertisement (PrRtAdv) containing
+        the prefix of the NAR is sent back to the MN.  The MN also
+        checks that the R flag is not set in the PrRtAdv message, which
+        indicates the network supports the predictive fast handover mode
+        (defined later).
+
+   (c)  The MN creates an NCoA (new CoA) and sends the Fast Binding
+        Update (FBU) with the NCoA to the PAR, which in turn sends the
+        Handover Initiate (HI) to the NAR.
+
+   (d)  The NAR sends the Handover Acknowledge (HAck) back to the PAR,
+        which in turn sends the FBU acknowledgment (FBAck) to the MN.
+
+   (e)  The PAR starts forwarding packets toward the NCoA and the NAR
+        captures and buffers them.
+
+   (f)  The link-layer connection associated with the PAR is closed and
+        a new traffic channel is assigned in the new access network.
+
+   (g)  The MN attaches to the new access network.  The attachment
+        procedure is access technology specific and that for 3G CDMA
+        network including the PPP transactions is described later.
+
+   (h)  The MN sends the Unsolicited Neighbor Advertisement (UNA).
+
+   (i)  The NAR starts delivering packets to the MN.
+
+   (j)  The MN sends the Binding Update (BU) to the HA to update the
+        Binding Cache Entry (BCE) with the NCoA, and the HA sends back
+        the Binding Acknowledgment (BA) to the MN.
+
+
+
+
+
+
+
+
+
+
+Yokota & Dommety             Informational                      [Page 7]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+        MN            PAR             NAR            HA             AAA
+        |    RtSolPr   |               |              |              |
+   (a)  |------------->|               |              |              |
+        |    PrRtAdv   |               |              |              |
+   (b)  |<-------------|               |              |              |
+        |      FBU     |      Hl       |              |              |
+   (c)  |------------->|-------------->|              |              |
+        |     FBack    |     HAck      |              |              |
+   (d)  |<-------------|<--------------|              |              |
+        |              |forward packets|              |              |
+   (e)  |              |==============>|(buffering)   |              |
+        |              |               |              |              |
+   (f) handover        |               |              |              |
+        |              |               |              |              |
+       +--------------------------------------------------------------+
+   (g) |                     Attachment procedure                     |
+       +--------------------------------------------------------------+
+        |             UNA              |              |              |
+   (h)  |----------------------------->|              |              |
+        |       deliver packets        |              |              |
+   (i)  |<=============================|              |              |
+        |              |        BU/BA  |              |              |
+   (j)  |<------------------------------------------->|              |
+        |              |               |              |              |
+
+        Figure 2: MIPv6 Fast Handover Operation (Predictive Mode)
+
+   It is assumed that the NAR can be identified by the PAR leveraging
+   the handover assist information from the MN.  To perform the
+   predictive mode, the MN MUST send the FBU before the connection with
+   the current access network is closed.  If the MN fails to send the
+   FBU before handover, it SHOULD fall back to the reactive mode.  Even
+   if the MN successfully sends the FBU, its reception by the PAR may be
+   delayed for various reasons such as congestion.  If the NAR receives
+   the HI triggered by the delayed FBU after the reception of the UNA
+   ((c) comes after (h)), then the NAR SHOULD send the HAck with
+   handover not accepted and behave as the reactive mode.
+
+   In (a), Router Solicitation for Proxy Advertisement (RtSolPr) is
+   supposed to include the New Access Point and the MN Link-Layer
+   Address (LLA) options (Option Code=1 and 2, respectively) according
+   to [3].  The New AP-LLA option MAY be replaced by the handover assist
+   information option in 3G CDMA networks.  As for the MN-LLA option, if
+   the LLA for the MN is not available, 3G specific IDs such as IMSI[11]
+   MAY be used.  If this is the case, the MN ID option defined in
+   Section 6.2, which can support other types of IDs and a length that
+   is not necessarily multiples of 8 octets, SHOULD be used instead of
+   the MN-LLA option.
+
+
+
+Yokota & Dommety             Informational                      [Page 8]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+   In (b), PrRtAdv MUST include options for the IP address of the NAR,
+   which may be the link-local address, and the prefix for the MN.  The
+   PAR SHOULD be able to identify the NAR from the handover assist
+   information provided by the MN.
+
+   Figure 3 shows the call flow for the initial attachment in the 3G
+   CDMA network [12].  After the traffic channel is assigned, the MN
+   first establishes a link-layer connection between itself and the
+   access router.  As a link-layer protocol, PPP is considered in this
+   figure, and a PPP handshake is depicted as an example.  After a
+   link-layer connection is established, the MN registers with the HA by
+   sending a Binding Update message.  There are several parameters for
+   using Mobile IPv6 such as the home address (HoA), the Care-of Address
+   (CoA), the home agent address (HA), and the home link prefix (HLP).
+   In [12], obtaining these values is called bootstrapping, and the
+   bootstrapping information can be obtained during the link-layer
+   establishment phase and/or the mobility binding phase [13].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Yokota & Dommety             Informational                      [Page 9]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+              MN            PAR         NAR         HA          AAA
+       /       |     (serving PDSN) (target PDSN)    |           |
+       |       |        LCP  |           |           |           |
+       | (1)   |<----------------------->|           |           |
+       |       |        CHAP/PAP         | Access-Request/Accept |
+       | (2)   |<----------------------->|<-------------|------->|
+       |       |             |        +------+       |  |        |
+       | (3)   |             |        |  HA  |<---------+        |
+       |       |             |        +------+       |           |
+       |+........................................+   |           |
+       |.      |                         |       .   |           |
+       |.      |    IPv6CP(IF-ID)        |       .   |           |
+       |.(4)*  |<---------|------------->|       .   |           |
+   (g)< .    +---------+  |  |           |       .   |           |
+       |.(5)*| LL-addr |<-+  |           |       .   |           |
+       |.    +---------+     |           |       .   |           |
+       |.      |                         |       .   |           |
+       |.      |       RA(prefix)        |       .   |           |
+       |.(6)*  |<---------|--------------|       .   |           |
+       |.    +-----+      |  |           |       .   |           |
+       |.(7)*| CoA |<-----+  |           |       .   |           |
+       |.    +-----+         |           |       .   |           |
+       |+........................................+   |           |
+       |       |      DHCPv6(HA)         |           |           |
+       | (8)   |<---------------+------->|           |           |
+       |     +-----+         |  |        |           |           |
+       | (9) | HA  |<-----------+        |           |           |
+       |     +-----+         |           |           |           |
+       |       |             |           |           |           |
+       \       |             |           |           |           |
+
+          Figure 3: Attachment Procedure in 3G CDMA Network
+
+   The procedure for the initial attachment is as follows:
+
+   (g)    The link-layer connection establishment and the bootstrapping
+          phase.
+
+   (g-1)  The LCP (Link Control Protocol) configure-request/response
+          messages are exchanged.
+
+   (g-2)  User authentication (e.g., Challenge Handshake Authentication
+          Protocol (CHAP) or Password Authentication Protocol (PAP)) is
+          conducted.
+
+
+
+
+
+
+
+Yokota & Dommety             Informational                     [Page 10]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+   (g-3)  The static bootstrapping information is conveyed from the AAA
+          and stored in the NAR (target PDSN).  The HoA and HLP can be
+          dynamically assigned by the HA in the mobility binding phase.
+          This step can be skipped in the handover case.
+
+   (g-4)  Unique interface IDs are negotiated in IPv6 Control Protocol
+          (IPv6CP).
+
+   (g-5)  The MN configures its link-local address based on the obtained
+          interface ID.
+
+   (g-6)  A router advertisement containing the prefix is received by
+          the MN.
+
+   (g-7)  The MN configures its CoA based on the obtained prefix.
+
+   (g-8)  DHCPv6 is used to obtain the static bootstrap information
+          (e.g., the HA address).  This step is performed in the initial
+          attachment and can be skipped once the MN obtains those
+          parameters.
+
+   (g-9)  The MN installs the bootstrap information for further
+          procedures (e.g., the mobility binding).
+
+   As is shown in Figure 3, it takes a considerable amount of time to
+   establish a link-layer connection and almost all of the above
+   sequences run every time the MN attaches to a new access network.  It
+   is therefore beneficial if packets in transit to the MN are saved not
+   only during the time period when the MN switches to the new radio
+   channel but also during the time period when the MN establishes the
+   link-layer connection.
+
+   There are several ways to configure a unique IP address for the MN.
+   If a globally unique prefix is assigned per link as introduced in
+   [12], the MN can use any interface ID except that of the other peer
+   (the AR to which the MN is attached) to create a unique IP address.
+   If this is the case, however, the PAR cannot provide the MN with a
+   correct prefix for the new network in the PrRtAdv since such a prefix
+   is selected by the NAR and provided in the router advertisement.  The
+   MN therefore configures a temporary NCoA with the prefix provided by
+   the PAR and the correct NCoA MUST be assigned by the NAR.  Therefore,
+   in 3G CDMA network, the PAR MUST send the HI with the S flag set when
+   it receives the FBU from the MN at step (c) in Figure 2.
+
+
+
+
+
+
+
+
+Yokota & Dommety             Informational                     [Page 11]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+   The UNA is supposed to include the MN-LLA [3], but the point-to-point
+   link-layer connection may be able to uniquely identify the MN.  The
+   most required information by the UNA is the NCoA to check if there is
+   a corresponding buffer.  Therefore, in (h), the function of the UNA
+   can be realized in several ways:
+
+   o  Since the establishment of the link-layer connection in (g)
+      indicates readiness of data communication on the MN side, the NAR
+      immediately checks if there is a buffer that has packets destined
+      for the NCoA, which was configured at steps (c) - (d), and starts
+      delivering, if any (substitution of UNA).
+
+   o  The MN sends the UNA as defined in [3].  Instead of the MN-LLA in
+      the LLA option, the MN ID MAY be included in the MN ID option
+      (standard implementation of UNA).
+
+   The primary benefit of the predictive fast handover mode is that the
+   packets destined for the MN can be buffered at the NAR, and packet
+   loss due to handover will be much lower than that of the normal MIPv6
+   operation.  Regarding the bootstrapping, the following benefit can be
+   obtained, too:
+
+   o  Since the NCoA can be configured via the fast handover procedures,
+      a router advertisement is not required.
+
+   Therefore, the procedures (g-4) to (g-7) can be skipped from the
+   standard MIPv6 operation in Figure 3.
+
+5.2.  Reactive Fast Handover
+
+   When the network does not support the predictive fast handover mode,
+   the reactive fast handover is applied.  In this document, a new flag
+   is defined in PrRtAdv to inform the MN about the capability of the
+   network (see Section 6.4).  To minimize packet loss in this
+   situation, the PAR instead of the NAR can buffer packets for the MN
+   until the MN regains connectivity with the NAR.  The NAR obtains the
+   information of the PAR from the MN on the NAR's link and receives
+   packets buffered at the PAR.  In this case, the PAR does not need to
+   know the IP address of the NAR or the NCoA and just waits for the NAR
+   to contact the PAR.  However, since the PAR needs to know when to
+   buffer packets for the MN, the PAR obtains the timing of buffering
+   from the MN via the FBU or the lower-layer signaling, e.g., an
+   indication of the release of the connection with the MN.  Details of
+   the procedure are as follows:
+
+   (a)  A router solicitation for proxy router advertisement MAY be sent
+        to the PAR.
+
+
+
+
+Yokota & Dommety             Informational                     [Page 12]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+   (b)  The proxy router advertisement MAY be sent to the MN.  If the
+        information on the NAR is not available by the PAR, "0::0" MUST
+        be used for the options related to the NAR (e.g., IP address of
+        the NAR).
+
+   (c)  The MN sends the FBU or the access network indicates the close
+        of the connection with the MN by the lower-layer signaling.  If
+        the MN cannot formulate the NCoA, "0::0", MUST be used for the
+        NCoA in the FBU.  If the B flag is set in the FBU, the PAR
+        SHOULD start buffering packets destined for the PCoA.
+
+   (d)  The link-layer connection associated with the PAR is closed and
+        a new traffic channel is assigned in the new access network.
+
+   (e)  The MN attaches to the new access network.  This part is the
+        same as described in Section 5.1 and illustrated in Figure 3.
+
+   (f)  The MN sends the UNA to the NAR.
+
+   (g)  The MN sends the Fast Binding Update (FBU) to the PAR via the
+        NAR.
+
+   (h)  The NAR forwards the FBU from the MN to the PAR.
+
+   (i)  The PAR sends the Handover Initiate (HI) to the NAR with the
+        Code set to 1.
+
+   (j)  The NAR sends the Handover Acknowledge (HAck) back to the PAR.
+
+   (k)  The PAR sends the FBAck to the NAR.
+
+   (l)  If the PAR is buffering packets destined for the PCoA, it starts
+        forwarding them as well as newly arriving ones to the NAR.
+
+   (m)  The NAR delivers the packets to the MN.
+
+   (n)  The MN sends the BU to the HA to update the BCE with the NCoA
+        and the HA sends back the BA to the MN.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Yokota & Dommety             Informational                     [Page 13]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+        MN            PAR             NAR             HA            AAA
+        |   RtSolPr    |               |              |              |
+   (a)  |------------->|               |              |              |
+        |   PrRtAdv    |               |              |              |
+   (b)  |<-------------|               |              |              |
+        |     FBU      |               |              |              |
+   (c)  |- - - - - - ->|(buffering)    |              |              |
+        |              |               |              |              |
+   (d) handover        |               |              |              |
+        |              |               |              |              |
+       +--------------------------------------------------------------+
+   (e) |                    Attachment procedure                      |
+       +--------------------------------------------------------------+
+        |             UNA              |              |              |
+   (f)  |----------------------------->|              |              |
+        |             FBU              |              |              |
+   (g)  |----------------------------->|              |              |
+        |              |     FBU       |              |              |
+   (h)  |              |<--------------|              |              |
+        |              |      HI       |              |              |
+   (i)  |              |-------------->|              |              |
+        |              |     HAck      |              |              |
+   (j)  |              |<--------------|              |              |
+        |              |     FBack     |              |              |
+   (k)  |              |-------------->|              |              |
+        |              |forward packets|              |              |
+   (l)  |              |==============>|              |              |
+        |        deliver packets       |              |              |
+   (m)  |<=============================|              |              |
+        |              |        BU/BA  |              |              |
+   (n)  |<------------------------------------------->|              |
+        |              |               |              |              |
+
+        Figure 4: MIPv6 Fast Handover Operation (Reactive Mode)
+
+   To indicate the PAR to buffer packets destined for the PCoA, in step
+   (c), a new flag 'B' is defined in the FBU.  When the PAR receives the
+   FBU with this flag set, it SHOULD buffer packets for the MN.  The PAR
+   MAY also start buffering packets for the MN based on lower layer
+   signal during handover.  Since the packets are buffered at the PAR in
+   this scenario, the UNA, which is received and processed by the NAR,
+   can not be used to trigger to forward the buffered packets at the
+   PAR.  In Figure 4, the HAck from the NAR is used as the trigger for
+   the forwarding of any buffered packets.
+
+   The handover indication from the lower layer of 3G CDMA system is
+   reasonably reliable by the periodical reports from the MN; however,
+   there are several situations where the target link is not available
+
+
+
+Yokota & Dommety             Informational                     [Page 14]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+   after the handover (step (d)) and the MN comes back to the PAR, or
+   the MN is not able to move to the target link for some reason after
+   the connection was closed.  If this is the case, the attachment
+   procedure is performed on the previous link.  The packets buffered at
+   the PAR SHOULD be delivered to the MN after the connection is
+   re-established.
+
+5.3.  Considerations on the Link Indications
+
+   This section discusses if the link indications assumed in this
+   document meet the principles defined in Section 2 of RFC 4907[20],
+   which suggests 11 architectural principles on the link indication and
+   the effectiveness of the optimization.  This document relies on the
+   3G CDMA network regarding the link indication, which is precisely
+   specified by 3GPP2.  Therefore, principles (1) to (5), (7), (8), and
+   (11), that is, "Model Validation", "Clear Definition", "Robustness",
+   "Recovery from Invalid Indications", "Congestion Control",
+   "Interoperability", "Race Condition", and "Transport of Link
+   Indications" are considered by those specs.  Principle (6)
+   "Effectiveness" mentions the effectiveness of the optimization.  This
+   document bases its effectiveness on RFC 5268.  Therefore, this
+   principle is dealt by that RFC.  Principle (9) "Metric Consistency"
+   mentions inconsistencies between link and routing layer metrics.  The
+   spec of this document does not change the routing metrics and
+   multi-homing is not considered.  Finally, principle (10) "Layer
+   Compression", mentions an overhead reduction scheme and
+   interoperability.  This document does not deal with overhead
+   reduction and therefore this principle does not apply.
+
+6.  Message Format
+
+6.1.  Handover Assist Information Option
+
+   If the lower layer information of the new point of attachment is not
+   represented as the link-layer address, the following option SHOULD be
+   used.  The primary purpose of this option is to convey the handover
+   assist information described in Section 4.
+
+   0                   1                   2                   3
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |    Type       |    Length     |  Option-Code  |   HAI-Length  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                HAI-Value...
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+
+
+
+
+
+Yokota & Dommety             Informational                     [Page 15]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+   Type           29
+
+   Length         The size of this option in 8 octets including the
+                  Type, Length, Option-Code, and HAI-Length (Handover
+                  Assist Information-Length) fields.
+
+   Option-Code
+                  1: Access Network Identifier (AN ID)
+                  2: Sector ID
+
+   HAI-Length     The size of the HAI-Value field in octets.
+
+   HAI-Value      The value specified by the Option-Code.
+
+   If those that received this message do not support this option, they
+   SHOULD treat this option as opaque and MUST NOT drop it.
+
+   Option-Code indicates the particular type of handover assist
+   information.  Currently, two types of information are defined to
+   assist the discovery of the NAR (see Section 3).
+
+   Depending on the size of the HAI-Value field, appropriate padding
+   MUST be used to ensure that the entire option size is a multiple of 8
+   octets.  The HAI-Length is used to disambiguate the size of the
+   HAI-Value.
+
+   The handover assist information MAY replace the New Access Point
+   Link-Layer Address in 3G CDMA networks.
+
+6.2.  Mobile Node Identifier Option
+
+   This option is used to transfer the Identifier of the MN, which is
+   not its link-layer address.
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +---------------+---------------+---------------+---------------+
+   |      Type     |     Length    |   Option-Code |  MN ID-Length |
+   +---------------------------------------------------------------+
+   |               MN ID ...
+   +-----------------------------
+
+   Type           30
+
+   Length         The size of this option is in 8 octets including the
+                  Type, Length, and Option-Code.
+
+
+
+
+
+Yokota & Dommety             Informational                     [Page 16]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+   Option-Code
+                  1: NAI [4]
+                  2: IMSI (See Section 3)
+
+   MN ID-Length   The length of the MN ID in octets.
+
+   MN ID          MN ID value
+
+   The MN ID MAY replace the MN Link-Layer Address in 3G CDMA networks.
+
+6.3.  New Flag Extension to FBU Message
+
+   The MN MUST send the FBU to the PAR with the following new (B) flag
+   set in the previous network to indicate the PAR to buffer packets
+   destined for the PCoA.  The rest of the Binding Update message format
+   remains the same as defined in [2] and with the additional (M), (R),
+   and (P) flags as specified in [14], [15], and [16], respectively.
+
+                                   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                                   |          Sequence #           |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |A|H|L|K|M|R|P|B|   Reserved    |            Lifetime           |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   .                                                               .
+   .                        Mobility options                       .
+   .                                                               .
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   B flag:        If the 'B' flag is set, the PAR SHOULD start buffering
+                  the packets destined for the MN as specified in
+                  Section 5.2.
+
+6.4.  New Flag Extension to PrRtAdv Message
+
+   A new flag 'R' is defined in the PrRtAdv to inform the MN about the
+   fast handover mode that the network supports.
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |      Type     |      Code     |           Checksum            |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |    Subtype    |R|  Reserved   |           Identifier          |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |    Options ...
+   +-+-+-+-+-+-+-+-+-+-+-+-
+
+
+
+Yokota & Dommety             Informational                     [Page 17]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+   R flag:        If the 'R' flag is set, the network supports only the
+                  reactive handover mode.  Otherwise, the network
+                  supports both the predictive and reactive fast
+                  handover mode.
+
+7.  Security Considerations
+
+   The security considerations for Mobile IPv6 fast handover are
+   described in [3].  When a 3G CDMA network is considered, it can be
+   assumed that the PAR and the NAR have a trust relationship and the
+   links between them and those between the ARs and the MN are secured.
+   The MN is authenticated every time it attaches to the new link;
+   therefore, the AR can securely identify the MN.  Depending on the
+   operator's policy, however, SEcure Neighbor Discovery (SEND) [18] and
+   the shared handover key defined in [17] can also be applied.
+
+8.  IANA Considerations
+
+   This document defines two new IPv6 Neighbor Discovery options that
+   have been assigned from the same space as the IPv6 Neighbor Discovery
+   Options defined in [19].
+
+      29: Handover Assist Information Option (Section 6.1)
+
+      30: Mobile Node Identifier Option (Section 6.2)
+
+   This document creates two new registries for the Option-Code field in
+   the Handover Assist Information Option and that in the Mobile Node
+   Identifier Option.  The values for the Option-Code must be within the
+   range 0-255.  New values for both registries can be allocated by
+   Standards Action or IESG approval [5].
+
+   The Option-Code values that have been assigned by IANA are as
+   follows:
+
+    Option-Code for Handover Assist Information Option
+    Value Description                   Reference
+    ----- ----------------------------  ----------
+      0   Reserved
+      1   ANID                          Section 6.1
+      2   Sector ID                     Section 6.1
+
+
+
+
+
+
+
+
+
+
+Yokota & Dommety             Informational                     [Page 18]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+    Option-Code for Mobile Node Identifier Option
+    Value Description                   Reference
+    ----- ----------------------------  ----------
+      0   Reserved
+      1   NAI                           Section 6.2
+      2   IMSI                          Section 6.2
+
+9.  Acknowledgements
+
+   The authors would like to thank Kuntal Chowdhury, Ashutosh Dutta, Ved
+   Kafle, and Vijay Devarapalli for providing feedback and support for
+   this work.  The authors would also thank Sebastian Thalanany for
+   3GPP2 expert review.
+
+10.  References
+
+10.1.  Normative References
+
+   [1]   Bradner, S., "Key words for use in RFCs to Indicate Requirement
+         Levels", BCP 14, RFC 2119, March 1997.
+
+   [2]   Johnson, D., Perkins, C., and J. Arkko, "Mobility Support in
+         IPv6", RFC 3775, June 2004.
+
+   [3]   Koodli, R., Ed., "Mobile IPv6 Fast Handovers", RFC 5268, June
+         2008.
+
+   [4]   Aboba, B., Beadles, M., Arkko, J., and P. Eronen, "The Network
+         Access Identifier", RFC 4282, December 2005.
+
+   [5]   Narten, T. and H. Alvestrand, "Guidelines for Writing an IANA
+         Considerations Section in RFCs", BCP 26, RFC 5226, May 2008.
+
+   [6]   ITU-T Recommendation, "The international identification plan
+         for mobile terminals and mobile users", ITU-T E.212, May 2004.
+
+10.2.  Informative References
+
+   [7]   McCann, P., "Mobile IPv6 Fast Handovers for 802.11 Networks",
+         RFC 4260, November 2005.
+
+   [8]   3GPP2 TSG-C, "cdma2000 High Rate Packet Data Air Interface
+         Specification", C.S0024-A v.2.0, July 2005.
+
+   [9]   3GPP2 TSG-A, "3GPP2 Access Network Interfaces Interoperability
+         Specification", A.S0001-A v.2.0, June 2001.
+
+
+
+
+
+Yokota & Dommety             Informational                     [Page 19]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+   [10]  3GPP2 TSG-A, "Interoperability Specification for High Rate
+         Packet 1 2 Data (HRPD) Access Network Interfaces - Rev A.",
+         A.S0007-A v.2.0, May 2003.
+
+   [11]  3GPP2 TSG-A, "Interoperability Specification (IOS) for High
+         Rate Packet Data (HRPD) Access Network Interfaces", 3GPP2
+         A.S0008-0 v3.0, May 2003.
+
+   [12]  3GPP2 TSG-X, "cdma2000 Wireless IP Network Standard: Simple IP
+         and Mobile IP services", X.S0011-002-D v.1.0, February 2006.
+
+   [13]  Devarapalli, V., Patel, A., Keung, K., and K. Chowdhury,
+         "Mobile IPv6 Bootstrapping for the Authentication Option
+         Protocol", Work in Progress, September 2007.
+
+   [14]  Soliman, H., Castelluccia, C., El Malki, K., and L. Bellier,
+         "Hierarchical Mobile IPv6 Mobility Management (HMIPv6)", RFC
+         4140, August 2005.
+
+   [15]  Devarapalli, V., Wakikawa, R., Petrescu, A., and P. Thubert,
+         "Network Mobility (NEMO) Basic Support Protocol", RFC 3963,
+         January 2005.
+
+   [16]  Gundavell, S., Ed., Leung, K., Devarapalli, V., Chowdhury, K.,
+         and B. Patil, "Proxy Mobile IPv6", Work in Progress, February
+         2008.
+
+   [17]  Kempf, J., Ed. and R. Koodli, "Distributing a Symmetric FMIPv6
+         Handover Key using SEND", RFC 5269, June 2008.
+
+   [18]  Arkko, J., Ed., Kempf, J., Zill, B., and P. Nikander, "SEcure
+         Neighbor Discovery (SEND)", RFC 3971, March 2005.
+
+   [19]  Narten, T., Nordmark, E., Simpson, W., and H. Soliman,
+         "Neighbor Discovery for IP version 6 (IPv6)", RFC 4861,
+         September 2007.
+
+   [20]  Aboba, B., Ed., "Architectural Implications of Link
+         Indications", RFC 4907, June 2007.
+
+
+
+
+
+
+
+
+
+
+
+
+Yokota & Dommety             Informational                     [Page 20]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+Authors' Addresses
+
+   Hidetoshi Yokota
+   KDDI Lab
+   2-1-15 Ohara, Fujimino
+   Saitama,  356-8502
+   JP
+
+   Phone: +81 49 278 7894
+   Fax:   +81 49 278 7510
+   EMail: yokota@kddilabs.jp
+
+   Gopal Dommety
+   Cisco Systems, Inc.
+   170 West Tasman Drive
+   San Jose, CA  95134
+   US
+
+   Phone: +1 408 525 1404
+   EMail: gdommety@cisco.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Yokota & Dommety             Informational                     [Page 21]
+
+RFC 5271                 3G CDMA Fast Handover                 June 2008
+
+
+Full Copyright Statement
+
+   Copyright (C) The IETF Trust (2008).
+
+   This document is subject to the rights, licenses and restrictions
+   contained in BCP 78, and except as set forth therein, the authors
+   retain all their rights.
+
+   This document and the information contained herein are provided on an
+   "AS IS" basis and THE CONTRIBUTOR, THE ORGANIZATION HE/SHE REPRESENTS
+   OR IS SPONSORED BY (IF ANY), THE INTERNET SOCIETY, THE IETF TRUST AND
+   THE INTERNET ENGINEERING TASK FORCE DISCLAIM ALL WARRANTIES, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF
+   THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
+   WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Intellectual Property
+
+   The IETF takes no position regarding the validity or scope of any
+   Intellectual Property Rights or other rights that might be claimed to
+   pertain to the implementation or use of the technology described in
+   this document or the extent to which any license under such rights
+   might or might not be available; nor does it represent that it has
+   made any independent effort to identify any such rights.  Information
+   on the procedures with respect to rights in RFC documents can be
+   found in BCP 78 and BCP 79.
+
+   Copies of IPR disclosures made to the IETF Secretariat and any
+   assurances of licenses to be made available, or the result of an
+   attempt made to obtain a general license or permission for the use of
+   such proprietary rights by implementers or users of this
+   specification can be obtained from the IETF on-line IPR repository at
+   http://www.ietf.org/ipr.
+
+   The IETF invites any interested party to bring to its attention any
+   copyrights, patents or patent applications, or other proprietary
+   rights that may cover technology that may be required to implement
+   this standard.  Please address the information to the IETF at
+   ietf-ipr@ietf.org.
+
+
+
+
+
+
+
+
+
+
+
+
+Yokota & Dommety             Informational                     [Page 22]
+

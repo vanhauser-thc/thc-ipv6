@@ -1,0 +1,406 @@
+HTTP/1.1 200 OK
+Date: Sat, 08 May 2010 15:14:50 GMT
+Server: Apache/2.2.4 (Linux/SUSE) mod_ssl/2.2.4 OpenSSL/0.9.8e PHP/5.2.6 with Suhosin-Patch mod_python/3.3.1 Python/2.5.1 mod_perl/2.0.3 Perl/v5.8.8
+Last-Modified: Thu, 28 Sep 2000 18:19:18 GMT
+ETag: "1caf082-2e6a-2d9db580"
+Accept-Ranges: bytes
+Content-Length: 11882
+Vary: Accept-Encoding
+Connection: close
+Content-Type: text/plain
+
+
+
+
+
+
+
+Network Working Group                                          R. Hinden
+Request for Comments: 2928                                         Nokia
+Category: Informational                                       S. Deering
+                                                                   Cisco
+                                                                 R. Fink
+                                                                    LBNL
+                                                                 T. Hain
+                                                               Microsoft
+                                                          September 2000
+
+
+                  Initial IPv6 Sub-TLA ID Assignments
+
+Status of this Memo
+
+   This memo provides information for the Internet community.  It does
+   not specify an Internet standard of any kind.  Distribution of this
+   memo is unlimited.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2000).  All Rights Reserved.
+
+Abstract
+
+   This document defines initial assignments of IPv6 Sub-Top-Level
+   Aggregation Identifiers (Sub-TLA ID) to the Address Registries.  It
+   is intended as technical input to the Internet Assigned Numbers
+   Authority (IANA) from the Internet Engineering Task Force (IETF)
+   Internet Protocol Next Generation (IPNG) and Next Generation
+   Transition (NGTRANS) working groups, as an input to the process of
+   developing guidelines for the allocation of IPv6 addresses.
+
+   This document was originally developed to provide advice to IANA in
+   the fall of 1998 and is being published at this time for the
+   historical record.  The Internet Architecture Board (IAB)
+   subsequently requested that the IANA delegate these assignments to
+   the Address Registries.  The IANA did this and the Address Registries
+   are now using them to assign IPv6 addresses.
+
+1. Introduction
+
+   This document was originally developed to provide advice to IANA in
+   the fall of 1998 and is being published at this time for the
+   historical record.  The IAB subsequently requested that the IANA
+   delegate these assignments to the Address Registries.  The IANA did
+   this and the Address Registries are now using them to assign IPv6
+   addresses.
+
+
+
+Hinden, et al.               Informational                      [Page 1]
+
+RFC 2928          Initial IPv6 Sub-TLA ID Assignments     September 2000
+
+
+   This document defines initial assignments of IPv6 Sub-TLA Aggregation
+   Identifiers (Sub-TLA ID) to the Address Registries.  It is intended
+   as technical input to the IANA from the IETF IP Next Generation
+   (IPNG) and Next Generation Transition (NGTRANS) working groups, as an
+   input to the process of developing guidelines for the allocation of
+   IPv6 addresses.
+
+   The IAB and IESG have authorized the Internet Assigned Numbers
+   Authority (IANA) as the appropriate entity to have the responsibility
+   for the management of the IPv6 address space as defined in [ALLOC].
+
+   The proposed initial assignment described in the document is
+   consistent with:
+
+      - RFC 2373,"IP Version 6 Addressing Architecture" [ARCH]
+      - RFC 2374 "An Aggregatable Global Unicast Address Format" [AGGR]
+      - RFC 2450 "Proposed TLA and NLA Assignment Rules" [TLA-RULES]
+
+2. Background
+
+   [TLA-RULES] specifies that TLA assignments will be done in two
+   stages.  The first stage is to allocate a Sub-TLA ID.  This document
+   specifies the initial assignments of Sub-TLA ID's to the Registries.
+
+   As defined in [TLA-RULES] Section 5.1:
+
+     "Sub-TLA ID's are assigned out of TLA ID 0x0001 as follows.  Note
+      that use of the Reserved field to create the Sub-TLA field is
+      specific to TLA ID 0x0001.  It does not affect any other TLA.
+
+         | 3  |    13    |    13   |       19      |
+         +----+----------+---------+---------------+
+         | FP |   TLA    | Sub-TLA |       NLA     |
+         |    |   ID     |         |       ID      |
+         +----+----------+---------+---------------+
+
+      where:
+
+       FP = 001 = Format Prefix
+
+          This is the Format Prefix used to identify aggregatable global
+          unicast addresses.
+
+       TLA ID = 0x0001 = Top-Level Aggregation Identifier
+
+          This is the TLA ID assigned by the IANA for Sub-TLA
+          allocation.
+
+
+
+
+Hinden, et al.               Informational                      [Page 2]
+
+RFC 2928          Initial IPv6 Sub-TLA ID Assignments     September 2000
+
+
+       Sub-TLA ID = Sub-TLA Aggregation Identifier
+
+          The Sub-TLA ID field is used by the registries for initial
+          allocations to organizations meeting the requirements in
+          Section 5.2 of this document.  The IANA will assign small
+          blocks (e.g., few hundred) of Sub-TLA ID's to registries.  The
+          registries will assign the Sub-TLA ID's to organizations
+          meeting the requirements specified in Section 5.2.  When the
+          registries have assigned all of their Sub-TLA ID's they can
+          request that the IANA give them another block.  The blocks do
+          not have to be contiguous.  The IANA may also assign Sub-TLA
+          ID's to organizations directly.  This includes the temporary
+          TLA assignment for testing and experimental usage for
+          activities such as the 6bone or new approaches like exchanges.
+
+       NLA ID = Next-Level Aggregation Identifier
+
+          Next-Level Aggregation ID's are used by organizations assigned
+          a TLA ID to create an addressing hierarchy and to identify
+          sites.  The organization can assign the top part of the NLA ID
+          in a manner to create an addressing hierarchy appropriate to
+          its network."
+
+   Note: In the above quote from [TLA-RULES] the references to "Section
+   5.2" refer to section 5.2 in [TLA-RULES].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Hinden, et al.               Informational                      [Page 3]
+
+RFC 2928          Initial IPv6 Sub-TLA ID Assignments     September 2000
+
+
+3. Initial Assignments
+
+   As specified in [TLA-RULES], Sub-TLA ID assignments are made in
+   blocks.  The initial Sub-TLA ID assignments to IP address registries
+   are in blocks of 64 Sub-TLA IDs.  These assignments are listed below.
+
+ Binary Value      IPv6 Prefix Range                 Assignment
+ ----------------  -------------------------------   -------------------
+ 0000 000X XXXX X  2001:0000::/29 - 2001:01F8::/29   IANA
+ 0000 001X XXXX X  2001:0200::/29 - 2001:03F8::/29   APNIC
+ 0000 010X XXXX X  2001:0400::/29 - 2001:05F8::/29   ARIN
+ 0000 011X XXXX X  2001:0600::/29 - 2001:07F8::/29   RIPE NCC
+ 0000 100X XXXX X  2001:0800::/29 - 2001:09F8::/29   (future assignment)
+ 0000 101X XXXX X  2001:0A00::/29 - 2001:0BF8::/29   (future assignment)
+ 0000 110X XXXX X  2001:0C00::/29 - 2001:0DF8::/29   (future assignment)
+ 0000 111X XXXX X  2001:0E00::/29 - 2001:0FF8::/29   (future assignment)
+ 0001 000X XXXX X  2001:1000::/29 - 2001:11F8::/29   (future assignment)
+   .   .    .
+   .   .    .
+   .   .    .
+ 1111 111X XXXX X  2001:FE00::/29 - 2001:FFF8::/29   (future assignment)
+
+ Where "X" indicates "0" or "1".
+
+   All other Sub-TLA ID values not listed above are reserved.
+
+   When a registry has assigned all of the Sub-TLA IDs in their block
+   they can request that the IANA provide another block.  The blocks
+   assigned to a registry do not have to be contiguous.
+
+   The block of Sub-TLA IDs assigned to the IANA (i.e., 2001:0000::/29 -
+   2001:01F8::/29) is for assignment for testing and experimental usage
+   to support activities such as the 6bone, and for new approaches like
+   exchanges.
+
+4. Acknowledgments
+
+   The authors would like to express their thanks to Joyce K. Reynolds,
+   Thomas Narten, Kim Hubbard, Mirjam Kuehne, and Brian Carpenter for
+   their help with this document.
+
+5. Security Considerations
+
+   IPv6 addressing documents do not have any direct impact on Internet
+   infrastructure security.  Authentication of IPv6 packets is defined
+   in [AUTH].  Authentication of the ownership of prefixes to avoid
+   "prefix stealing" is a related security issue but is beyond the scope
+   of this document.
+
+
+
+Hinden, et al.               Informational                      [Page 4]
+
+RFC 2928          Initial IPv6 Sub-TLA ID Assignments     September 2000
+
+
+6. References
+
+   [AGGR]      Hinden, R., Deering, S. and M. O'Dell, "An Aggregatable
+               Global Unicast Address Format", RFC 2374, July 1998.
+
+   [ALLOC]     IAB and IESG, "IPv6 Address Allocation Management", RFC
+               1881, December 1995.
+
+   [ARCH]      Hinden, R., "IP Version 6 Addressing Architecture", RFC
+               2373, July 1998.
+
+   [AUTH]      Kent, S. and R. Atkinson, "IP Authentication Header", RFC
+               2402, November 1998.
+
+   [IPV6]      Deering, S. and R. Hinden, "Internet Protocol, Version 6
+               (IPv6) Specification", RFC 2460, December 1998.
+
+   [RFC2026]   Bradner, S., "The Internet Standards Process -- Revision
+               3", BCP 9, RFC 2026, October 1996.
+
+   [TLA-RULES] Hinden, R., "Proposed TLA and NLA Assignment Rules", RFC
+               2450, December 1998.
+
+   [TST-ALLOC] Hinden, R., Fink R. and J. Postel, "IPv6 Testing Address
+               Allocation", RFC 2471, December 1998.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Hinden, et al.               Informational                      [Page 5]
+
+RFC 2928          Initial IPv6 Sub-TLA ID Assignments     September 2000
+
+
+7. Authors' Addresses
+
+   Robert M. Hinden
+   Nokia
+   313 Fairchild Drive
+   Mountain View, CA 94043
+   USA
+
+   Phone: +1 650 625-2004
+   EMail: hinden@iprg.nokia.com
+
+
+   Stephen E. Deering
+   Cisco Systems, Inc.
+   170 West Tasman Drive
+   San Jose, CA 95134-1706
+   USA
+
+   Phone: +1 408 527-8213
+   EMail: deering@cisco.com
+
+
+   Robert L. Fink
+   Lawrence Berkeley National Lab
+   1 Cyclotron Rd.
+   Bldg 50A, Room 3111
+   Berkeley, CA 94720
+   USA
+
+   Phone: +1 510 486-5692
+   EMail: rlfink@lbl.gov
+
+
+   Tony Hain
+   Microsoft
+
+   Phone: +1 425 703-6619
+   EMail: tonyhain@microsoft.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+Hinden, et al.               Informational                      [Page 6]
+
+RFC 2928          Initial IPv6 Sub-TLA ID Assignments     September 2000
+
+
+8.  Full Copyright Statement
+
+   Copyright (C) The Internet Society (2000).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Hinden, et al.               Informational                      [Page 7]
+

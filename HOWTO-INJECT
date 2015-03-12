@@ -1,0 +1,133 @@
+INTRODUCTION
+============
+
+Since v1.91 the THC-IPv6 toolkit has injection support for PPPoE, 6in4
+and VLAN-Q tunnels.
+
+For this to work, you must be on the network path where the PPPoE, 6in4
+or VLAN-Q tunnel is traversing over.
+
+This is activated via environment variables.
+
+
+VLAN-Q
+======
+
+For VLAN-Q injection you have to set the environment variable THC_IPV6_VLAN
+with the necessary information in the following format:
+  srcmac,dstmac,vlan-id
+
+To get this information, you must sniff the necessary information on the
+Ethernet you are injection from. This tcpdump command will help you:
+  tcpdump -i eth0 -n -vvv -e ether proto 0x8100
+you will need the source mac address, destination mac address and the VLAN ID.
+Be sure to set the source and destination mac address right :-)
+
+with this information you can set up the environment, e.g.:
+  export THC_IPV6_VLAN=01:01:01:01:01:01,02:02:02:02:02:02,1
+Note: the VLAN ID must be in decimal form.
+
+Also note that VLAN injection can be done additionally to PPPoE and 6in4
+if required, just set the other environment variable as well!
+
+
+PPPoE
+=====
+
+For PPPoE injection you have to set the environment variable THC_IPV6_PPPOE
+with the necessary information in the following format:
+  srcmac,dstmac,ppp-sessionid
+
+To get this information, you must sniff the necessary information on the
+Ethernet you are injection from. This tcpdump command will help you:
+  tcpdump -i eth0 -n -vvv -e ether proto 0x8864
+you will need the source mac address, destination mac address and the PPP
+sessionID. Be sure to set the source and destination mac address right :-)
+
+with this information you can set up the environment, e.g.:
+  export THC_IPV6_PPPOE=01:01:01:01:01:01,02:02:02:02:02:02,0f2b
+Note: the PPP SessionID must be in hexadecimal form, with leading zeros and
+no 0x, \x or similar in front.
+
+
+6in4
+====
+
+For 6in4 injection you have to set the environment variable THC_IPV6_6IN4
+with the necessary information in the following format:
+  srcmac,dstmac,src-ipv4,dst-ipv4
+
+To get this information, you must sniff the necessary information on the
+Ethernet you are injection from. This tcpdump command will help you:
+  tcpdump -i eth0 -n -e ip proto 41
+you will need the source mac address, destination mac address, the source
+IPv4 address and the destination IPv4 address.
+Be sure to set the source and destination mac/IPv4 addresses right :-)
+
+with this information you can set up the environment, e.g.:
+  export THC_IPV6_6IN4=01:01:01:01:01:01,02:02:02:02:02:02,1.1.1.1,2.2.2.2
+
+
+KEEPING THE SESSION ALIVE
+=========================
+
+In case you have to disconnect the client tunnel endpoint to perform your
+tests, usually this will terminate the tunnel after some time as the server
+side often sends keep-alive packets.
+
+There is a tool in the package you can run to answer these keep-alive
+packets called inject_alive. Just run it with the proper environment
+variable and the interface:
+
+  inject_alive eth0
+
+If you tunnel type is PPPoE, it will even warn if the PPPoE session ID seen
+is different to the one you specified in the environment (and uses the one
+seen on the wire).
+
+
+RUNNING THE TOOLS
+=================
+
+running the tools is then simple as a piece of cake: you just run them
+normally, and the injection is all done in the background.
+
+All tools will print one of the following messages when run in injection
+mode:
+
+Information: PPPoE injection/sniffin activated
+  or
+Information: 6in4 injection/sniffin activated
+
+By this you see that the injection is active. In case you run the tools in
+the wrong shell that do not have the environment variable set, you will not
+see the message and therefore have an indicator what the problem is :-)
+
+If the tool does not support injection you will see the following message:
+WARNING: ./tool6 is not working with injection!
+
+One important thing to note!!
+You might need to set a specific source ipv6 address with the tools to make
+them work if global addresses (non-link-local addresses) are used.
+
+e.g. when the source IPv6 to use is 2003::1 and the target is
+ipv6.google.com =>
+  thcping6 eth0 2003::1 ipv6.google.com
+  alive26 -I 2003::1 eth0 ipv6.google.com
+  trace6 -s 2003::1 eth0 ipv6.google.com
+But of course it is easier to just configure that as you only global
+IPv6 addresses so that everything works, e.g.
+  ip -6 addr add 2003::1/64 dev eth0
+
+The following tools do not work with injection or are pointless to use there:
+  parasite6 fake_solicitate6 fake_advertise6 connect6 detect_sniffer6
+  flood_advertise6 flood_solicitate6 inverse_lookup6 dnsdict6 dnsrevenum6
+  fake_dnsupdate6 fake_dhcps6 flood_dhcpc6
+
+
+HELP?
+=====
+
+email me at vh@thc.org
+
+feedback is always appreciated!

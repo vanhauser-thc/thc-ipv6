@@ -1,0 +1,16 @@
+INSTALLATION
+============
+
+THC-IPV6 requires libpcap development files being installed, also the
+libopenssl development files are a good idea.
+
+For Debian/Ubunut/Kali/Backtrack, you can install them by:
+ $ sudo apt-get install libpcap-dev libssl-dev
+
+To compile simply type
+ $ make
+
+All tools are installed to /usr/local/bin if you type
+ $ sudo make install
+
+You need to be root to run most tools

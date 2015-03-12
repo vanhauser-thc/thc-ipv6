@@ -1,0 +1,451 @@
+
+
+
+
+
+
+Network Working Group                                        B. Haberman
+Request for Comments: 3307                                    Consultant
+Category: Standards Track                                    August 2002
+
+
+          Allocation Guidelines for IPv6 Multicast Addresses
+
+Status of this Memo
+
+   This document specifies an Internet standards track protocol for the
+   Internet community, and requests discussion and suggestions for
+   improvements.  Please refer to the current edition of the "Internet
+   Official Protocol Standards" (STD 1) for the standardization state
+   and status of this protocol.  Distribution of this memo is unlimited.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2002).  All Rights Reserved.
+
+Abstract
+
+   This document specifies guidelines that must be implemented by any
+   entity responsible for allocating IPv6 multicast addresses.  This
+   includes, but is not limited to, any documents or entities wishing to
+   assign permanent IPv6 multicast addresses, allocate dynamic IPv6
+   multicast addresses, and define permanent IPv6 multicast group
+   identifiers.  The purpose of these guidelines is to reduce the
+   probability of IPv6 multicast address collision, not only at the IPv6
+   layer, but also at the link-layer of media that encode portions of
+   the IP layer address into the MAC layer address.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Haberman                    Standards Track                     [Page 1]
+
+RFC 3307          IPv6 Multicast Addresses Guidelines        August 2002
+
+
+Table of Contents
+
+   1. Terminology.....................................................2
+   2. Introduction....................................................2
+   3. Applicability...................................................3
+   4. Group ID Selection Guidelines...................................3
+   4.1  Permanent IPv6 Multicast Addresses............................4
+   4.2  Permanent IPv6 Multicast Group Identifiers....................4
+   4.3  Dynamic IPv6 Multicast Addresses..............................4
+   4.3.1 Server Allocation............................................5
+   4.3.2 Host Allocation..............................................5
+   5. IANA Considerations.............................................5
+   6. Security Considerations.........................................6
+   7. Acknowledgements................................................6
+   8. References......................................................6
+   Author's Address...................................................7
+   Full Copyright Statement...........................................8
+
+1. Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC 2119].
+
+   The term "group ID", throughout this document, conforms to the
+   definition contained in [UNIMCAST], that is, the low-order 32 bits of
+   the IPv6 multicast address.
+
+2. Introduction
+
+   This document specifies guidelines that MUST be implemented by any
+   entity responsible for allocating IPv6 multicast addresses.  This
+   includes, but is not limited to, any documents or entities wishing to
+   assign permanent IPv6 multicast addresses, allocate dynamic IPv6
+   multicast addresses, and define permanent IPv6 multicast group
+   identifiers.  The purpose of these guidelines is to reduce the
+   probability of IPv6 multicast address collision, not only at the IPv6
+   layer, but also at the link-layer of media that encode portions of
+   the IP layer address into the link-layer address.
+
+   With the current IPv6 address architecture [ADDRARCH] and the
+   extension to the multicast address architecture specified in
+   [UNIMCAST], a set of guidelines is needed for entities assigning any
+   flavor of IPv6 multicast addresses.
+
+   The current approach of several physical media [RFC 2464][RFC 2467]
+   is to map a portion of the IPv6 multicast address into a link-layer
+   destination address.  This is accomplished by taking the low order 32
+
+
+
+Haberman                    Standards Track                     [Page 2]
+
+RFC 3307          IPv6 Multicast Addresses Guidelines        August 2002
+
+
+   bits (henceforth called the group ID) of the IPv6 multicast address
+   and including them in the link-layer destination address.  Group IDs,
+   less than or equal to, 32 bits long will generate unique link-layer
+   addresses within a given multicast scope.
+
+   These guidelines specify how the group ID of the IPv6 multicast
+   address are chosen and assigned.  The guidelines specify several
+   mechanisms that can be used to determine the group ID of the
+   multicast address, based on the type of allocation being done.
+
+3. Applicability
+
+   These guidelines are designed to be used in any environment in which
+   IPv6 multicast addresses are delegated, assigned, or selected.  These
+   guidelines are not limited to use by MADCAP [RFC 2730] servers.  The
+   following is a non-exhaustive list of applications of these
+   guidelines:
+
+      -  Source-specific multicast application servers can generate an
+         SSM group address by generating a 96-bit multicast prefix, as
+         defined in [UNIMCAST] (i.e. FF3x::/96) and concatenating that
+         with a group ID, as defined in this document.
+
+      -  A MADCAP server allocates IPv6 multicast addresses conforming
+         to section 2.7 of [ADDRARCH], creating the group ID using the
+         rules defined in this document.
+
+      -  Nodes supplying multicast services in a zeroconf environment
+         generate multicast addresses without the need of centralized
+         control.
+
+      -  IANA can assign permanent multicast addresses to fulfill
+         requests via the protocol standardization process.
+
+4. Group ID Selection Guidelines
+
+   The Group ID selection process allows for three types of multicast
+   address assignments.  These are permanent IPv6 multicast addresses,
+   dynamic IPv6 multicast addresses, and permanent IPv6 multicast group
+   IDs.  The following guidelines assume that the prefix of the
+   multicast address has been initialized according to [ADDRARCH] or
+   [UNIMCAST].
+
+
+
+
+
+
+
+
+
+Haberman                    Standards Track                     [Page 3]
+
+RFC 3307          IPv6 Multicast Addresses Guidelines        August 2002
+
+
+4.1  Permanent IPv6 Multicast Addresses
+
+   Permanent multicast addresses, like those defined in [RFC 2375], are
+   allocated by IANA.  These addresses will be assigned with group ID's,
+   in the range of 0x00000001 to 0x3FFFFFFF, on an Expert Review basis.
+
+   Multicast addresses assigned by IANA MUST have the T bit set to 0 and
+   the P bit set to 0.
+
+4.2  Permanent IPv6 Multicast Group Identifiers
+
+   Permanent group IDs allow for a global identifier of a particular
+   service (e.g. Network Time Protocol (NTP) being assigned the group ID
+   0x40404040).  The use of permanent group IDs differs from permanent
+   multicast addresses in that a permanent group ID offers a global
+   identifier for a service being offered by numerous servers.
+
+   As an example, consider the NTP example group ID of 0x40404040.  An
+   NTP client would be able to access multiple servers and multiple
+   scopes.  That is, the NTP client will know that the group ID
+   0x40404040 identifies an NTP multicast stream regardless of the upper
+   96 bits of the multicast address.
+
+   Permanent group IDs are allocated on an Expert Review basis, in the
+   range 0x40000000 to 0x7FFFFFFF.  These permanent group IDs are meant
+   to be used in IPv6 multicast addresses, defined in [UNIMCAST].
+
+4.3  Dynamic IPv6 Multicast Addresses
+
+   Dynamic IPv6 multicast addresses can be allocated by an allocation
+   server or by an end-host.  Regardless of the allocation mechanism,
+   all dynamically allocated IPv6 multicast addresses MUST have the T
+   bit set to 1.  This will distinguish the dynamically allocated
+   addresses from the permanently assigned multicast addresses, defined
+   in [RFC 2375], at the link-layer on any media that maps the lower
+   portion of the IPv6 multicast address into a link-layer address.  It
+   should be noted that the high-order bit of the Group ID will be the
+   same value as the T flag.
+
+   As an example, the permanent IPv6 multicast address FF02::9 maps to
+   an Ethernet group address of 33-33-00-00-00-09.  A dynamically
+   allocated IPv6 multicast address of FF32::8000:9 would map to the
+   Ethernet group address 33-33-80-00-00-09.
+
+
+
+
+
+
+
+
+Haberman                    Standards Track                     [Page 4]
+
+RFC 3307          IPv6 Multicast Addresses Guidelines        August 2002
+
+
+4.3.1 Server Allocation
+
+   The allocation of IPv6 multicast addresses, by a server, is defined
+   in [RFC 2730].  Address management is the responsibility of the
+   allocation protocol and outside the scope of this document.
+   Allocation servers MUST use the group ID range 0x80000000 to
+   0xFFFFFFFF.
+
+4.3.2 Host Allocation
+
+   Host-based allocation allows hosts to self-select IPv6 multicast
+   addresses.  One example of host-based allocation is the Zeroconf
+   Multicast Address Allocation Protocol [ZMAAPDOC].  Issues with
+   collision detection, claim notification, etc. are outside the scope
+   of this document and the responsibility of the protocol being used,
+   such as [ZMAAPDOC].
+
+   The group ID portion of the address is created using either a
+   pseudo-random 32-bit number or a 32-bit number created using the
+   guidelines in [RFC 1750].  The generated group ID MUST fall in the
+   range 0x80000000 to 0xFFFFFFFF.  This can be accomplished by setting
+   the high-order bit of the generated number to 1.
+
+5. IANA Considerations
+
+   This document requests the creation of a new registry maintained by
+   IANA.  This new registry will maintain permanent group ID values. The
+   premise of this new registry is to allow for permanent group IDs to
+   be used across multiple domains utilizing the multicast address
+   architecture defined in [UNIMCAST].  The permanent group IDs will
+   fall in the range 0x40000000 to 0x7FFFFFFF.
+
+   In addition, this document also defines rules for the allocation of
+   permanent IPv6 multicast addresses by IANA.  These rules specify
+   different ranges for multicast addresses that are IPv6-only and for
+   IPv6 multicast addresses that have corresponding IPv4 multicast
+   addresses.
+
+   Following the policies outlined in [RFC 2434]:
+
+      -  Permanent IPv6 multicast addresses with corresponding IPv4
+         multicast addresses, like those defined in [RFC 2375], are
+         allocated with group ID's in the range of 1 to 0x3FFFFFFF on an
+         Expert Review basis, see Section 4.1.
+
+
+
+
+
+
+
+Haberman                    Standards Track                     [Page 5]
+
+RFC 3307          IPv6 Multicast Addresses Guidelines        August 2002
+
+
+      -  Permanent IPv6-only multicast addresses are allocated with
+         group ID's in the range 0x100 to 0x3FFFFFFF on an Expert Review
+         basis.
+      -  Permanent group ID's are allocated on an Expert Review basis in
+         the range 0x40000000 to 0x7FFFFFFF, see Section 4.2.
+      -  The range 0x80000000 to 0xFFFFFFFF is reserved for use by
+         dynamic multicast address allocation mechanisms, see Section
+         4.3.
+
+   All approved requests for a permanent IPv6 multicast address will
+   result in the assignment of a unique group ID which shall be reserved
+   in all valid IPv6 multicast scopes.
+
+6. Security Considerations
+
+   The allocation mechanisms described in this document do not alter the
+   security properties of either the Any Source or Source Specific
+   multicast service models of IPv4 and IPv6.
+
+   The potential to allocate large blocks of addresses can lead to
+   Denial-of-Service attacks.  A more in-depth discussion of the
+   security issues surrounding dynamic allocation of multicast addresses
+   can be found in [RFC 2908].
+
+7. Acknowledgements
+
+   The author would like to thank Dave Thaler, Steve Deering, Allison
+   Mankin, Thomas Narten, and Erik Nordmark for their thorough review of
+   this document.
+
+8. References
+
+   [RFC 2026] Bradner, S., "The Internet Standards Process -- Revision
+              3", BCP 9, RFC 2026, October 1996.
+
+   [UNIMCAST] Haberman, B. and D. Thaler, "Unicast Prefix-based IPv6
+              Multicast Addresses", RFC 3306, June 2002.
+
+   [ADDRARCH] Hinden, R. and S. Deering, "IP Version 6 Addressing
+              Architecture", RFC 2373, July 1998.
+
+   [RFC 2119] Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1999.
+
+   [RFC 2730] Hanna, S., Patel, B. and M. Shah, "Multicast Address
+              Dynamic Client Allocation Protocol (MADCAP)", RFC 2730,
+              December 1999.
+
+
+
+
+Haberman                    Standards Track                     [Page 6]
+
+RFC 3307          IPv6 Multicast Addresses Guidelines        August 2002
+
+
+   [RFC 2464] Crawford, M., "Transmission of IPv6 Packets over Ethernet
+              Networks", RFC 2464, December 1998.
+
+   [RFC 2467] Crawford, M., "Transmission of IPv6 over FDDI Networks",
+              RFC 2467, December 1998.
+
+   [RFC 1750] Eastlake, D., Crocker, S. and J. Schiller, "Randomness
+              Recommendations for Security", RFC 1750, December 1994.
+
+   [RFC 2375] Hinden, R. and S. Deering, "IPv6 Multicast Address
+              Assignments", RFC 2375, July 1998.
+
+   [RFC 2908] Thaler, D., Handley, M. and D. Estrin, "The Internet
+              Multicast Address Allocation Architecture", RFC 2908,
+              September 2000.
+
+   [ZMAAPDOC] Catrina, et al, "Zeroconf Multicast Address Allocation
+              Protocol (ZMAAP)", Work In Progress.
+
+Author's Address
+
+   Brian Haberman
+   Consultant
+   Phone: 1-919-949-4828
+   EMail: bkhabs@nc.rr.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Haberman                    Standards Track                     [Page 7]
+
+RFC 3307          IPv6 Multicast Addresses Guidelines        August 2002
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2002).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Haberman                    Standards Track                     [Page 8]
+
