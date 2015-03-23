@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
     buf2[0 + i * 36] = 3;       // CHANGE_TO_INCLUDE_MODE
     buf2[3 + i * 36] = 1;
     buf2[4 + i * 36] = 0xff;
-    buf2[5 + i * 36] = 0x02;
+    buf2[5 + i * 36] = 0x0d;
     memcpy(buf2 + 20 + i * 36, ip6, 16);
   }
 
