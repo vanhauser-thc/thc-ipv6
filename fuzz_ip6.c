@@ -126,11 +126,12 @@ unsigned int dwords[] = { 0x00000000, 0x00000001, 0x000000fe, 0x000000ff,
   0xffffff00, 0xffffff01, 0xfffffffe, 0xffffffff
 };                              // 256
 
-#define COUNT_FLAG     11
-#define COUNT_BYTE      4
-#define COUNT_WORD     16
-#define COUNT_XOR       2
-#define COUNT_EXTEND  256
+#define arraysize(a)   (sizeof (a) / sizeof (a[0]))
+#define COUNT_FLAG     arraysize(flags)
+#define COUNT_BYTE     arraysize(bytes)
+#define COUNT_WORD     arraysize(words)
+#define COUNT_XOR      arraysize(xors)
+#define COUNT_EXTEND   arraysize(extends)
 
 #define NEVER 2000000000
 #define TEST_MAX (NEVER - 1)
@@ -824,7 +825,7 @@ int main(int argc, char *argv[]) {
           do_it = 0;
       } else {
         i = 0;
-        while (i < COUNT_FLAG && do_it) {
+        while (i < COUNT_BYTE && do_it) {
           if (bytes[i] == pkt_bak[test_pos])    // yes, bytes[] is the right one even for flags
             do_it = 0;
           i++;
