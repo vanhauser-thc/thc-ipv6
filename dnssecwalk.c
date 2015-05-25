@@ -112,6 +112,11 @@ int main(int argc, char **argv) {
     }
   }
   
+  if (optind + 2 > argc) {
+    fprintf(stderr, "Error: you must specify the DNS server to query and the domain\n");
+    exit(-1);
+  }
+
   dst = argv[optind];
   sock = dnssocket(dst);
   

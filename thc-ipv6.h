@@ -17,7 +17,7 @@
   #include <openssl/rsa.h>
 #endif
 
-#define VERSION 	"v2.7"
+#define VERSION 	"v2.8-dev"
 #define AUTHOR 		"van Hauser / THC <vh@thc.org>"
 #define RESOURCE	"www.thc.org"
 

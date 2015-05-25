@@ -7,14 +7,15 @@
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <signal.h>
 #include <pcap.h>
 #include "thc-ipv6.h"
 
 #define MAX_ENTRIES 16
 
 int plife = 99999, rlife = 4096, llife = 2048, reach = 0, trans = 0, dlife = 4096, cnt, to_send = 256, flags = 0, myoff = 14;
-char *frbuf, *frbuf2, *frint, buf3[1232];
-int frbuflen, frbuf2len, do_overlap = 0, do_hop = 0, do_frag = 0, do_dst = 0, type = NXT_ICMP6, prio = 2, interval = 5;
+char *interface = NULL, *frbuf, *frbuf2, *frint, buf3[1232];
+int frbuflen, frbuf2len, do_overlap = 0, do_hop = 0, do_frag = 0, do_dst = 0, type = NXT_ICMP6, prio = 2, interval = 5, do_cleanup = 0;
 unsigned char *frip6, *frmac;
 thc_ipv6_hdr *frhdr = NULL;
 
@@ -37,17 +38,18 @@ void help(char *prg) {
   printf(" -t ms              retrans timer (defaults to %d)\n", trans);
   printf(" -p priority        priority \"low\", \"medium\", \"high\" (default), \"reserved\"\n");
   printf(" -F flags           Set one or more of the following flags: managed, other,\n");
-  printf("                   homeagent, proxy, reserved; separate by comma\n");
+  printf("                    homeagent, proxy, reserved; separate by comma\n");
   printf(" -E type            Router Advertisement Guard Evasion option. Types: \n");
-  printf("     H             simple hop-by-hop header\n");
-  printf("     1             simple one-shot fragmentation header (can add multiple)\n");
-  printf("     D             insert a large destination header so that it fragments\n");
-  printf("     O             overlapping fragments for keep-first targets (Win, BSD, Mac)\n");
-  printf("     o             overlapping fragments for keep-last targets (Linux, Solaris)\n");
+  printf("     H              simple hop-by-hop header\n");
+  printf("     1              simple one-shot fragmentation header (can add multiple)\n");
+  printf("     D              insert a large destination header so that it fragments\n");
+  printf("     O              overlapping fragments for keep-first targets (Win, BSD, Mac)\n");
+  printf("     o              overlapping fragments for keep-last targets (Linux, Solaris)\n");
   printf("                    Examples: -E H111, -E D\n");      //, -E O, -E o (the last two are best)\n");
-  printf(" -m mac-address    if only one machine should receive the RAs (not with -E DoO)\n");
-  printf(" -i interval       time between RA packets (default: %d)\n", interval);
-  printf(" -n number         number of RAs to send (default: unlimited)\n");
+  printf(" -m mac-address     if only one machine should receive the RAs (not with -E DoO)\n");
+  printf(" -i interval        time between RA packets (default: %d)\n", interval);
+  printf(" -n number          number of RAs to send (default: unlimited)\n");
+  printf(" -X                 clean up by de-announcing fake router (default: disabled)\n");
   printf("\nAnnounce yourself as a router and try to become the default router.\n");
   printf("If a non-existing link-local or mac address is supplied, this results in a DOS.\n");
 //  printf("Use -r to use raw mode.\n\n");
@@ -93,9 +95,26 @@ void send_rs_reply(u_char *foo, const struct pcap_pkthdr *header, const unsigned
   pkt = thc_destroy_packet(pkt);
 }
 
+void exit_cleanup(int dummy) {
+  (void) (dummy); // suppress "unused variable" message
+  char *prefix = NULL;
+
+  if (do_cleanup == 1) {
+    prefix = thc_resolve6("2001:db8::");
+    printf("cleaning up...\n");
+    thc_routeradv6(interface, NULL, NULL, NULL, 0, 0, prefix, 0, 0, 0);
+    sleep(3);
+    thc_routeradv6(interface, NULL, NULL, NULL, 0, 0, prefix, 0, 0, 0);
+    sleep(3);
+    thc_routeradv6(interface, NULL, NULL, NULL, 0, 0, prefix, 0, 0, 0);
+    if (prefix)
+        free(prefix);
+  }
+  exit(0);
+}
 
 int main(int argc, char *argv[]) {
-  char *interface, mac[16] = "", dmac[16] = "";
+  char mac[16] = "", dmac[16] = "";
   unsigned char *routerip6, *mac6 = NULL, *ip6 = NULL;
   unsigned char buf[512], *ptr, buf2[6], string[] = "ip6 and icmp6 and dst ff02::2";
   unsigned char rbuf[MAX_ENTRIES + 1][17], pbuf[MAX_ENTRIES + 1][17], *dbuf[MAX_ENTRIES + 1];
@@ -112,7 +131,7 @@ int main(int argc, char *argv[]) {
   memset(rbuf, 0, sizeof(rbuf));
   memset(mac, 0, sizeof(mac));
 
-  while ((i = getopt(argc, argv, "i:r:E:R:M:m:S:s:D:L:A:a:r:d:t:T:p:n:l:F:")) >= 0) {
+  while ((i = getopt(argc, argv, "i:r:E:R:M:m:S:s:D:L:A:a:r:d:t:T:p:n:l:F:X")) >= 0) {
     switch (i) {
     case 'i':
       interval = atoi(optarg);
@@ -305,6 +324,9 @@ int main(int argc, char *argv[]) {
           }
           ptr = strtok(NULL, ",");
         }
+      break;
+    case 'X':
+      do_cleanup = 1;
       break;
     default:
       fprintf(stderr, "Error: invalid option %c\n", i);
@@ -524,6 +546,7 @@ int main(int argc, char *argv[]) {
     exit(-1);
   }
 
+  signal(SIGINT, exit_cleanup);
   printf("Starting to advertise router (Press Control-C to end) ...\n");
   while (sent < to_send || to_send > 255) {
     if (do_dst) {
@@ -541,5 +564,6 @@ int main(int argc, char *argv[]) {
     if (sent != to_send || to_send > 255)
       sleep(interval);
   }
+  exit_cleanup(0);
   return 0; // never reached
 }

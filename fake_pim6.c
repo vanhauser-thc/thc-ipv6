@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
       buf[49] = 128;
       memcpy(buf + 50, target6, 16);
       len = 66;
-      mode = 3;
+//      mode = 3;
   }
 
   if (thc_add_pim(pkt1, &pkt1_len, mode, buf, len) < 0)

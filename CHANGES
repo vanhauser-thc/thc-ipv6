@@ -7,14 +7,31 @@ thc-ipv6 toolkit development. If this matches *you* send me an
 email to vh (at) thc (dot) org , with "thc-ipv6 antispam" in the
 subject line.
 
+
+v2.8 private release
+ * fake_router26:
+   - option -X removes router entry from targets on exit (patch from Dan Luedtke, thanks)
+ * flood_router26:
+   - Fix - the source mac was always null bytes without evasion, thank to Christopher Werny for reporting
+ * ndpexaust26:
+   - option -m generates maximum size packets
+ * dump_router6:
+   - fixed route option parsing
+ * Renamed dos_mld.sh to dos_mld6.sh and local_discovery.sh to local_discovery6.sh
+
+
 v2.7 public release (31C3)
+
+
+v2.6 private release
  * All flood_* tools:
    - changed destination so that targets can be remote.
      Yes this should not work, but sometimes it does :-)
+ * New tool: fragrouter6 - IDS evasion plus script fragrouter6.sh
  * New tool: fuzz_dhcpc6 - DHCPv6 client fuzzer, submitted by Darrell Ambro, thanks a lot!
- * Added new script: six2four.sh - send an IPv6 packet via a 6to4 gateway
- * Added new script: grep6.pl - extracts an IPv6 in all possible notations from a file (from Eric Vyncke)
- * alive6:
+ * Added new script: alive2map.sh for magic network map generation :-)
+ * copied alive26 from v2.4 to alive6 prior to the changes below
+ * alive26:
    - setting -C twice increases the common address search space significantly
    - fixed from-to definition implementation
    - added "-y step" option, to define the step range when performing from-to
@@ -66,16 +83,16 @@ v2.7 public release (31C3)
    - fixed a bug in IPv4 CRC calculation function
  * cppcheck and Coverity issues checked and fixed
  * added spelling fixes by Debian maintainers
- 
 
-v2.5 public release (30C3)
- => see 2.4
+
+v2.5 public release
+
 
 v2.4 private release
  * Moved the license from GPLv3 to AGPLv3 (see LICENSE file)
  * Support for big endian processors added
  * Added new tool: fuzz_dhcps6 - DHCPv6 server fuzzer. Submitted by Brandon
-   Hutcheson and Graeme Neilson - great job, thanks!
+   Hutcheson, Graeme Neilson and Ryan Ko - great job, thanks!
  * Added new tool: flood_redir6 - flooding with ICMPv6 redirects
  * Added new tool: flood_rs6 - flooding with ICMPv6 Router Soliciations
  * Added new tool: four2six - send an IPv4 packet via a 4to6 gateway
@@ -84,8 +101,7 @@ v2.4 private release
  * All flooding tools:
    - support now a specific target instead of all local nodes
    - printing a dot for each 1000 packets sent (before: 100)
- * alive6:
-   - renamed option -D to -C (common address scan), -D still works too
+ * alive26:
    - added -4 IPv6address/range option
    - added -H option to print the hop count value of received packets
    - added -L option to only report local alive systems
@@ -100,6 +116,8 @@ v2.4 private release
    - added -G gigantic packet option (64kb, fragmented)
    - increased number of route/prefix entries in normal (non -G option) packets
    - rewrote the help screen
+ * flood_advertise6 + fake_advertise6
+   - added -k and -m option to specify source MAC address
  * thcsyn6:
    - changed to also allow syn flooding on link local
  * parasite6:
@@ -116,6 +134,7 @@ v2.4 private release
  * dnsdict6:
    - enhanced and updated the dictionaries
    - added additonal "u"ber large dictionary with -u option
+   - added -e optiont to ignore "no NS for domain" errors
  * fragmentation6:
    - added multi-level-fragment tests
    - no screen flooding in flooding mode anymore
