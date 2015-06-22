@@ -8,7 +8,7 @@ email to vh (at) thc (dot) org , with "thc-ipv6 antispam" in the
 subject line.
 
 
-v2.8 private release
+v2.8-dev
  * fake_router26:
    - option -X removes router entry from targets on exit (patch from Dan Luedtke, thanks)
  * flood_router26:
@@ -17,6 +17,12 @@ v2.8 private release
    - option -m generates maximum size packets
  * dump_router6:
    - fixed route option parsing
+ * thcping6:
+   - added -O TCP Fast Open cookie request option
+ * thcsyn6
+   - added -O TCP Fast Open fake cookie sending option
+ * connect6:
+   - will now print the known MTU path to the destination upon succesful connect
  * Renamed dos_mld.sh to dos_mld6.sh and local_discovery.sh to local_discovery6.sh
 
 
@@ -26,12 +32,11 @@ v2.7 public release (31C3)
 v2.6 private release
  * All flood_* tools:
    - changed destination so that targets can be remote.
-     Yes this should not work, but sometimes it does :-)
+     Yes this *should* have no impact, but sometimes it does :-)
  * New tool: fragrouter6 - IDS evasion plus script fragrouter6.sh
  * New tool: fuzz_dhcpc6 - DHCPv6 client fuzzer, submitted by Darrell Ambro, thanks a lot!
  * Added new script: alive2map.sh for magic network map generation :-)
- * copied alive26 from v2.4 to alive6 prior to the changes below
- * alive26:
+ * alive6:
    - setting -C twice increases the common address search space significantly
    - fixed from-to definition implementation
    - added "-y step" option, to define the step range when performing from-to
@@ -101,7 +106,7 @@ v2.4 private release
  * All flooding tools:
    - support now a specific target instead of all local nodes
    - printing a dot for each 1000 packets sent (before: 100)
- * alive26:
+ * alive6:
    - added -4 IPv6address/range option
    - added -H option to print the hop count value of received packets
    - added -L option to only report local alive systems
@@ -183,8 +188,7 @@ v2.2 private release
     - fixed address selection bug if both global and ULA addresses were present
     - changed NDP to use ff02::1:ffxx:xxx limited multicast addresses
     - thc_resolve6 ignores now anything after a "/" or in before/after "[]"
- * copied alive26 to alive6
- * in new alive26:
+ * in new alive6:
     - hidden portscan option (-s "portscan") to be able to TCP-SYN
       portscan in injection environments
     - new option -x to define the source port for tcp and udp packets
@@ -192,7 +196,7 @@ v2.2 private release
 
 
 v2.1
- * alive6 + alive26: ranges are now supported in the input file too
+ * alive6: ranges are now supported in the input file too
  * added dnssecwalk to the thc-ipv6 package and included IPv6+IPv4 resolving
  * parasite6: enhancements to make it way more effective
  * fake_router26: added overlap RA guard evasion type (-E o, -E O)
@@ -224,7 +228,7 @@ v2.0 - PUBLIC
    ICMP error toobig messages but can send many types of packets
  * added new tool: firewall6 - various TCP/UDP ACL bypass test cases
  * added new tool: fake_pim6 - send fake hello and join/prune pim messages
- * alive26:
+ * alive6:
      - added support for replies with fragmentation header
      - -s/-a/-u options would send also bad dst hdr packets, fixed
      - having a '-' in the dns name was not working
@@ -267,9 +271,9 @@ v1.9 - PUBLIC
    entries in each packet
  * added new tool: passive_discovery6 which detects all sending systems
      and includes DAD detection
- * alive26:
+ * alive6:
      - new -I srcip6 option to allow choosing the source IPv6 address to use
-     - fixed a bug in alive26 for hop-by-hop option
+     - fixed a bug in alive6 for hop-by-hop option
      - expanded waiting time for link local scans
      - now returns 0 when hosts were found alive, 1 when not (for alive scripting)
  * parasite6:
@@ -323,7 +327,7 @@ v1.7 - PRIVATE
      - added -R option to also inject the reverse route
      - added one more ND Security bypass (-D)
  * flood_router6: one more RA guard bypass (-D)
- * alive26:
+ * alive6:
      - important fix for hopbyhop/dst header packet types (ff02::1)!
      - expanded dictionary by results from the ipv6 world day scanning
  * dnsdict6:
@@ -371,7 +375,7 @@ v1.5 - PRIVATE
      - added tunnel detection and identification mode (-t)
      - only up to the 13th hop was reported, fixed
      - added patch by Phillipe Langlois for -s sourceipv6 option
- * alive26:
+ * alive6:
      - print original dst ports for packet replies
      - print original dst ipv6 for icmp errors
      - if -p was specified, sending dst opt error pkt was not disabled

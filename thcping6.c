@@ -13,7 +13,7 @@
 #include "thc-ipv6.h"
 
 struct timespec ts, ts2;
-int dlen = 8, port = 0, done = 0, resp_type = -1, type = NXT_ICMP6;
+int dlen = -1, port = 0, done = 0, resp_type = -1, type = NXT_ICMP6, fastopen = 0, client = 0;
 
 extern int do_pppoe;
 extern int do_hdr_off;
@@ -22,7 +22,7 @@ extern int do_hdr_vlan;
 
 void help(char *prg, int help) {
   printf("%s %s (c) 2015 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
-  printf("Syntax: %s [-Eafqx] [-e ethertype] [-H t:l:v] [-D t:l:v] [-F dst] [-e ethertype] [-L length] [-N nextheader] [-V version] [-t ttl] [-c class] [-l label] [-d size] [-S port|-U port|-T type -C code] interface src6 dst6 [srcmac [dstmac [data]]]\n\n", prg);
+  printf("Syntax: %s [-EafqxO] [-e ethertype] [-H t:l:v] [-D t:l:v] [-F dst] [-e ethertype] [-L length] [-N nextheader] [-V version] [-t ttl] [-c class] [-l label] [-d size] [-S port|-U port|-T type -C code] interface src6 dst6 [srcmac [dstmac [data]]]\n\n", prg);
   printf("Options:\n");
   if (help) {
     printf("  -x              flood mode (doesnt check for replies)\n");
@@ -42,6 +42,7 @@ void help(char *prg, int help) {
     printf("  -N nextheader   set fake next header (0-255)\n");
     printf("  -V version      set IP version (0-15)\n");
     printf("  -d data_size    define the size of the ping data buffer\n");
+    printf("  -O              send TCP Fast Open cookie request option (needs -S)\n");
   }
   printf("  -T number       ICMPv6 type to send (default: 128 = ping)\n");
   printf("  -C number       ICMPv6 code to send (default: 0)\n");
@@ -66,7 +67,7 @@ void alarming() {
 }
 
 void check_packets(u_char *pingdata, const struct pcap_pkthdr *header, const unsigned char *data) {
-  int len = header->caplen - 14, min = 0, ok = 0, nxt = 6, offset = 0;
+  int len = header->caplen - 14, min = 0, ok = 0, nxt = 6, offset = 0, olen, i;
   long usec, fragid;
   unsigned int mtu = 0;
   unsigned char *ptr = (unsigned char *) (data + 14), frag[64] = "";
@@ -168,6 +169,17 @@ void check_packets(u_char *pingdata, const struct pcap_pkthdr *header, const uns
         resp_type = 1;
         break;
       }
+      if (fastopen && len > 62 + offset) {
+        if (ptr[60 + offset] == 23) {
+          olen = ptr[61 + offset];
+          if (len < olen + 62 + offset)
+            olen = len - 62 - offset;
+          printf(" TCP Fast Open cookie: ");
+          for (i = 0; i < olen; i++)
+            printf("%02x", (unsigned char) ptr[62 + offset + i]);
+        } else
+          printf(" (no fast open reply)");
+      }
     } else
       if (type == NXT_UDP && ptr[nxt] == NXT_UDP)
         printf("%04u.%04ld \tudp", (int) (ts2.tv_sec - ts.tv_sec - min), usec);
@@ -181,10 +193,10 @@ void check_packets(u_char *pingdata, const struct pcap_pkthdr *header, const uns
 }
 
 int main(int argc, char *argv[]) {
-  unsigned char *pkt1 = NULL, buf[2096] = "thcping6", *routers[2], buf2[1300];
+  unsigned char *pkt1 = NULL, buf[2096] = "thcping6", *routers[2], buf2[1300] = "";
   unsigned char *src6 = NULL, *dst6 = NULL, smac[16] = "", dmac[16] = "", *srcmac = smac, *dstmac = dmac;
   char string[255] = "ip6 and dst ", *interface, *d_opt = NULL, *h_opt = NULL, *oo, *ol, *ov;
-  int pkt1_len = 0, flags = 0, frag = 0, alert = 0, quick = 0, route = 0, ttl = 255, label = 0, class = 0, i, j, k, ether = -1, xl = 0, frag_type = NXT_ICMP6, offset = 14, count = 1, icmptype = ICMP6_PINGREQUEST, icmpcode = 0, flood = 0, fake_len = -1, fake_ver = 0, fake_nxt = -1;
+  int pkt1_len = 0, flags = 0, frag = 0, alert = 0, quick = 0, route = 0, ttl = 255, label = 0, class = 0, i, j, k, ether = -1, xl = 0, frag_type = NXT_ICMP6, offset = 14, count = 1, icmptype = ICMP6_PINGREQUEST, icmpcode = 0, flood = 0, fake_len = -1, fake_ver = 0, fake_nxt = -1, olen = 0;
   pcap_t *p;
   thc_ipv6_hdr *hdr;
 
@@ -197,13 +209,16 @@ int main(int argc, char *argv[]) {
     help(argv[0], 0);
 
   memset(buf, 0, sizeof(buf));
-  while ((i = getopt(argc, argv, "aqfd:D:H:xF:t:c:l:S:U:EXn:T:C:e:L:N:V:")) >= 0) {
+  while ((i = getopt(argc, argv, "aqfd:D:H:xF:t:c:l:OS:U:EXn:T:C:e:L:N:V:")) >= 0) {
     switch (i) {
     case 'e':
       if (strncmp(optarg, "0x", 2) == 0)
         sscanf(optarg + 2, "%x", (int *) &ether);
       else
         sscanf(optarg, "%x", (int *) &ether);
+      break;
+    case 'O':
+      fastopen = 1;
       break;
     case 'L':
       fake_len = atoi(optarg);
@@ -284,9 +299,24 @@ int main(int argc, char *argv[]) {
       exit(-1);
     }
   }
-
+  
   if (argc - optind < 2)
     help(argv[0], 0);
+
+  if (dlen == -1) {
+    if (type == NXT_TCP)
+      dlen = 0;
+    else
+      dlen = 8;
+  }
+
+  if (port < 1024 && (type == NXT_TCP || type == NXT_UDP))
+    client = 1024;
+
+  if (fastopen && type != NXT_TCP) {
+    fprintf(stderr, "Error: TCP Fast Open option (-O) requires sendig TCP SYN packets (-S)\n");
+    exit(-1);
+  }
 
   if (do_hdr_size)
     offset = do_hdr_size;
@@ -462,9 +492,16 @@ int main(int argc, char *argv[]) {
       if (thc_add_icmp6(pkt1, &pkt1_len, icmptype, icmpcode, flags, (unsigned char *) &buf, dlen, 0) < 0)
         return -1;
     } else if (type == NXT_TCP) {
-      if (thc_add_tcp(pkt1, &pkt1_len, port + flood, port, (port << 16) + port, 0, TCP_SYN, 5760, 0, NULL, 0, (unsigned char *) &buf, dlen) < 0)
+      memset(buf2, 0, sizeof(buf2));
+      if (fastopen) {
+        memset(buf2, 0, sizeof(buf2));
+        olen = 4;
+        buf2[0] = 34;
+        buf2[1] = 2;
+      }
+      if (thc_add_tcp(pkt1, &pkt1_len, port + flood + client, port, (port << 16) + port, 0, TCP_SYN, 5760, 0, (unsigned char *) &buf2, olen, (unsigned char *) &buf, dlen) < 0)
         return -1;
-    } else if (thc_add_udp(pkt1, &pkt1_len, port + flood, port, 0, (unsigned char *) &buf, dlen) < 0)
+    } else if (thc_add_udp(pkt1, &pkt1_len, port + flood + client, port, 0, (unsigned char *) &buf, dlen) < 0)
       return -1;
 
     if (thc_generate_pkt(interface, srcmac, dstmac, pkt1, &pkt1_len) < 0) {
@@ -526,7 +563,7 @@ int main(int argc, char *argv[]) {
           usleep(1);
     clock_gettime(CLOCK_REALTIME, &ts);
     if (flood < 2) {
-      printf("0000.000 \t%s packet sent to %s\n", port == 0 ? "ping" : type == NXT_TCP ? "tcp-syn" : "udp", thc_ipv62notation(dst6));
+      printf("0000.0000 \t%s packet sent to %s\n", port == 0 ? "ping" : type == NXT_TCP ? "tcp-syn" : "udp", thc_ipv62notation(dst6));
       if (flood == 1 && type != NXT_TCP && type != NXT_UDP && frag == 0) {
         if (xl)
           for (i = 0; i < count; i++)
