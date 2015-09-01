@@ -92,7 +92,7 @@ int check_for_reply_n(pcap_t * p, unsigned char *src, unsigned char *dst) {
     (void) thc_pcap_check(p, (char *) check_packet_n, NULL);
     if (matched > 0)
       ret = 0;
-    if (time(NULL) > t + 4 && ret < 0)
+    if (time(NULL) > t + 3 && ret < 0)
       ret = 0;
   }
 
@@ -198,7 +198,7 @@ int check_for_reply(pcap_t *p, int type1, int type2, int type1a, int type2a, int
       ret = -1;
       matched = 0;
     }
-    if (time(NULL) > t + 4 && ret < 0)
+    if (time(NULL) > t + 3 && ret < 0)
       ret = 0;
   }
 
@@ -233,7 +233,7 @@ int check_alive(pcap_t * p, char *interface, unsigned char *src, unsigned char *
       thc_ping6(interface, src, dst, 16, 1);
       ret = -1;
     }
-    if (time(NULL) > t + 4 && ret < 0)
+    if (time(NULL) > t + 3 && ret < 0)
       ret = 0;
   }
 

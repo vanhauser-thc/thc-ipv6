@@ -2576,9 +2576,13 @@ int thc_generate_pkt(char *interface, unsigned char *srcmac, unsigned char *dstm
   thc_tcp_hdr *thdr;
   thc_udp_hdr *uhdr;
   char *next, *mysrcmac = NULL, *mydstmac = NULL, *last_type, *checksum_src;
-  int type, bufptr, do_checksum = 0, offset = 0, i, is_ip4 = 0;
+  int type, bufptr, do_checksum = 0, offset = 0, i, is_ip4 = 0, malloc_size;
 
-  if (pkt == NULL || hdr->pkt != NULL || (hdr->pkt = malloc(*pkt_len + 14 + do_hdr_size + 64)) == NULL)
+  malloc_size = *pkt_len + 14 + do_hdr_size + 64;
+  if (malloc_size < 2048)
+    malloc_size = 2048;
+
+  if (pkt == NULL || hdr->pkt != NULL || (hdr->pkt = malloc(malloc_size)) == NULL)
     return -1;
 
   hdr->pkt_len = *pkt_len;
