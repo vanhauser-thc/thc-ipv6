@@ -216,7 +216,7 @@ void help(char *prg) {
     printf("  -S         slow mode, get best router for each remote target or when proxy-NA\n");
     printf("  -I srcip6  use the specified IPv6 address as source\n");
     printf("  -l         use link-local address for multicast addresses instead of global\n");
-    printf("  -F         firewall mode: -p -e dst,hop -u 53 -s 22,25,80,443,9511 -a 9511\n");
+    printf("  -F         firewall mode: -p -e dst -u 53 -s 22,25,80,443,9511 -a 9511\n");
     printf("  -P         only print addresses that would be scanned, no packets are sent!\n");
     printf("  -v         verbose (twice: detailed, thrice: dumping packets)\n");
     if (do_help > 1) {
@@ -779,7 +779,6 @@ int main(int argc, char *argv[]) {
     case 'F':
       do_ping = 1;
       do_dst = 1;
-      do_hop = 1;
       udpports[0] = 53;
       ackports[0] = 9511;
       synports[0] = 22;
