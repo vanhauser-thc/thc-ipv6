@@ -674,7 +674,7 @@ int main(int argc, char *argv[]) {
   unsigned char *multicast6 = NULL, *src6 = NULL, *mac = NULL, *rmac = NULL, *routers[2];
   int pkt_len = 0, prefer = PREFER_GLOBAL, fromto = 0, dictptr = 0, offset = 14, step = 1;
   int enumerate_mac = 0, enumerate_dhcp = 0, i, j, k, l, cur_enum = 0, print_only = 0;
-  int no_vendid = 0, no_nets = 0, local = -1, no_send = 1, no_send_local = 1, no_send_remote = 2, nos = 0, renew = 1, errcnt, sendrc;
+  int no_vendid = 0, no_nets = 0, local = -1, no_send = 1, no_send_local = 1, no_send_remote = 2, nos = 0, renew = 0, errcnt, sendrc;
   char *interface = NULL, *input = NULL, *output = NULL, line[128], line2[128], *ptr, *ptr2, do_router = 0, ok;
   unsigned int four_from[MAX_FOUR], four_to[MAX_FOUR], addr_cur;
   unsigned char fcnt = 0, bh, bm, bl, restart, use_dmac = 0, dump_all = 0, inc_next = 0, inc_step = 1;

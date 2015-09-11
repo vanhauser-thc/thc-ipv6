@@ -9,6 +9,9 @@ subject line.
 
 
 v2.8-dev
+ * alive6:
+   - some minor fixes
+   - -r option was accidently always activated
  * fake_router26:
    - option -X removes router entry from targets on exit (patch from Dan Luedtke, thanks)
  * flood_router26:
