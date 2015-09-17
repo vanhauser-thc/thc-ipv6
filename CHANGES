@@ -1,13 +1,6 @@
 CHANGELOG
 =========
 
-NOTE: More tools exist, but are only handed out to specific people
-who develop ipv6 security/pentest tools themselves, or support the
-thc-ipv6 toolkit development. If this matches *you* send me an
-email to vh (at) thc (dot) org , with "thc-ipv6 antispam" in the
-subject line.
-
-
 v2.8-dev
  * alive6:
    - some minor fixes
@@ -25,8 +18,15 @@ v2.8-dev
    - added vendorid support for request
  * thcping6:
    - added -O TCP Fast Open cookie request option
+ * fuzz_dhcps6
+   - enhancements to the help output
+   - added -w sec wait between packets option
+   - added more options to the solicitate request to fuzz
+ * thcping6:
+   - added -O TCP Fast Open cookie request option
  * thcsyn6
    - added -O TCP Fast Open fake cookie sending option
+   - fixed memory leak
  * connect6:
    - will now print the known MTU path to the destination upon succesful connect
  * Renamed dos_mld.sh to dos_mld6.sh and local_discovery.sh to local_discovery6.sh

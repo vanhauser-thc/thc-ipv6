@@ -179,6 +179,8 @@ int main(int argc, char *argv[]) {
     while (thc_send_pkt(interface, pkt, &pkt_len) < 0)
       usleep(1);
 
+    pkt = thc_destroy_packet(pkt);
+
     count++;
     if (count % 1000 == 0)
       printf(".");

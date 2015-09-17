@@ -168,6 +168,7 @@ int main(int argc, char *argv[]) {
       thc_send_pkt(interface, pkt1, &pkt1_len);
       usleep(100);
     }
+    pkt1 = thc_destroy_packet(pkt1);
   }
   printf("All sent.\n");
   return 0;
