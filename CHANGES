@@ -20,6 +20,9 @@ v2.8-dev
    - option -m generates maximum size packets
  * dump_router6:
    - fixed route option parsing
+   - support for new RA options
+ * dump_dhcp6
+   - added vendorid support for request
  * thcping6:
    - added -O TCP Fast Open cookie request option
  * thcsyn6

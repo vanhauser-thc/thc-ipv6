@@ -119,13 +119,23 @@ void dump_ra_reply(u_char *foo, const struct pcap_pkthdr *header, const unsigned
           printf(" Autoconfig");
         else
           printf(" NOT-autoconfig");
-        if ((ptr[3] & 63) > 0)
+        if ((ptr[3] & 32) > 0)
+          printf(" Router-Address");
+        else
+          printf(" NOT-Router-Address");
+        if ((ptr[3] & 31) > 0)
           printf(" RESERVED-BITS-SET-%d", ptr[3] & 63);
         printf("\n");
       }
       break;
     case 5:
       printf("    MTU: %d\n", (ptr[4] << 24) + (ptr[5] << 16) + (ptr[6] << 8) + ptr[7]);
+      break;
+    case 7:
+      printf("    Advertisement Interval: %d\n", (ptr[4] << 24) + (ptr[5] << 16) + (ptr[6] << 8) + ptr[7]);
+      break;
+    case 8:
+      printf("    Home Agent Preference: %d %d\n", (ptr[4] << 8) + (ptr[5]), (ptr[6] << 8) + ptr[7]);
       break;
     case 24:
       if (ptr[1] != 3 && ptr[1] != 2)

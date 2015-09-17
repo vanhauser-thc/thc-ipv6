@@ -23,8 +23,17 @@ char solicit[] = {
   0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x10, 0x00, 0x15,
   0x00, 0x17, 0x00, 0x1f, 0x00, 0x38, 0x00, 0x40, 0x00, 0x63,
-  0x00, 0x7b, 0x00, 0xc7, 0x00, 0x14, 0x00, 0x00
+  0x00, 0x7b, 0x00, 0xc7, 0x00, 0x14, 0x00, 0x00,
+  0x00, 0x19, 0x00, 0x29, 0x00, 0x00, 0x00, 0x01, // prefix deleg req
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x1a, 0x00, 0x19, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00
 };
+
+
+
 char inforeq[] = {
   0x0b, 0x3a, 0x48, 0x79, 0x00, 0x08, 0x00, 0x02, 
   0x06, 0x40, 0x00, 0x01, 0x00, 0x0e, 0x00, 0x01, 
@@ -40,13 +49,17 @@ char dnsupdate2[] = { 0, 6, 0, 2, 0, 39 };
 
 void help(char *prg) {
   printf("%s %s (c) 2015 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
-  printf("Syntax: %s interface\n\n", prg);
-  printf("DHCPv6 information tool. Dumps the available servers and their setup.\n");
+  printf("Syntax: %s [-V vendorid] interface\n\n", prg);
+  printf("Options:\n");
+  printf("  -V vendorid  send vendorid number,string (e.g. 11,test)\n");
+  printf("  -N           use fe80:: as source\n");
+  printf("  -n           use empty mac as source\n");
+  printf("\nDHCPv6 information tool. Dumps the available servers and their setup.\n");
   exit(-1);
 }
 
 void clean_exit(int signo) {
-  printf("\n%d server%s found\n", counter, counter == 1 ? "" : "s");
+  printf("\n%d replies received\n", counter);
   exit(0);
 }
 
@@ -215,7 +228,7 @@ void check_packets(u_char *foo, const struct pcap_pkthdr *header, const unsigned
 int main(int argc, char *argv[]) {
   char mac[6] = { 0, 0x0c, 0, 0, 0, 0 }, *pkt = NULL, *pkt2 = NULL;
   char wdatabuf[1024], wdatabuf2[1024];
-  unsigned char *mac6 = mac, *src, *dst;
+  unsigned char *mac6 = mac, *src, *dst, *vendorid = NULL, *ptr;
   int i, s, len, len2, pkt_len = 0, pkt2_len = 0;
   unsigned long long int count = 0;
   pcap_t *p = NULL;
@@ -226,15 +239,18 @@ int main(int argc, char *argv[]) {
 
   if (getenv("THC_IPV6_PPPOE") != NULL || getenv("THC_IPV6_6IN4") != NULL) printf("WARNING: %s is not working with injection!\n", argv[0]);
 
-  while ((i = getopt(argc, argv, "dnNr1")) >= 0) {
+  while ((i = getopt(argc, argv, "V:dnNr1")) >= 0) {
     switch (i) {
     case 'N':
-      use_real_link = 1;        // no break
+      use_real_link = 0;        // no break
     case 'n':
-      use_real_mac = 1;
+      use_real_mac = 0;
       break;
     case '1':
       do_all = 0;
+      break;
+    case 'V':
+      vendorid = optarg;
       break;
     case 'r':
       i = 0;
@@ -291,6 +307,29 @@ int main(int argc, char *argv[]) {
   memcpy(wdatabuf + 1, (char *) &count + _TAKE3, 3);
   memcpy(wdatabuf2 + 1, (char *) &count + _TAKE3, 3);
 
+  if (vendorid != NULL) {
+    if ((ptr = index(vendorid, ',')) == NULL) {
+      fprintf(stderr, "Error: invalid vendorid syntax: %s\n", vendorid);
+      exit(-1);
+    }
+    *ptr++ = 0;
+    i = atoi(vendorid);
+    wdatabuf[len] = 0;
+    wdatabuf[len+1] = 0x10;
+    wdatabuf[len+2] = (4 + 2 + strlen(ptr)) / 256;
+    wdatabuf[len+3] = (4 + 2 + strlen(ptr)) % 256;
+    wdatabuf[len+4] = ((i & 0xff000000) >> 24);
+    wdatabuf[len+5] = ((i & 0x00ff0000) >> 16);
+    wdatabuf[len+6] = ((i & 0x0000ff00) >> 8);
+    wdatabuf[len+7] = i % 256;
+    wdatabuf[len+8] = strlen(ptr) / 256;
+    wdatabuf[len+9] = strlen(ptr) % 256;
+    memcpy(wdatabuf + len + 10, ptr, strlen(ptr));
+    memcpy(wdatabuf2 + len2, wdatabuf + len, 10 + strlen(ptr));
+    len += 10 + strlen(ptr);
+    len2 += 10 + strlen(ptr);
+  }
+
   if ((pkt = thc_create_ipv6_extended(interface, PREFER_LINK, &pkt_len, src, dst, 1, 0, 0, 0, 0)) == NULL)
     return -1;
   if (thc_add_udp(pkt, &pkt_len, 546, 547, 0, wdatabuf, len) < 0)
@@ -304,7 +343,7 @@ int main(int argc, char *argv[]) {
   if (thc_generate_and_send_pkt(interface, mac6, NULL, pkt2, &pkt2_len) < 0)
     printf("!");
   signal(SIGALRM, clean_exit);
-  alarm(3);
+  alarm(2);
 //  i = thc_send_pkt(interface, pkt, &pkt_len);
   pkt = thc_destroy_packet(pkt);
   while (1) {
