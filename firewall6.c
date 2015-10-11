@@ -1332,7 +1332,7 @@ int main(int argc, char *argv[]) {
 
     if ((pkt = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len, src, dst, 64, 0, count, 0, 0)) == NULL)
       return -1;
-    if (thc_add_hdr_hopbyhop(pkt, &pkt_len, buf, 14) == -1)
+    if (thc_add_hdr_dst(pkt, &pkt_len, buf, 14) == -1)
       return -1;
     if (thc_add_hdr_dst(pkt, &pkt_len, buf, 6) == -1)
       return -1;
@@ -1349,7 +1349,7 @@ int main(int argc, char *argv[]) {
 
     if ((pkt3 = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len3, src, dst, 64, 0, count, 0, 0)) == NULL)
       return -1;
-    if (thc_add_hdr_hopbyhop(pkt3, &pkt_len3, buf, 14) == -1)
+    if (thc_add_hdr_dst(pkt3, &pkt_len3, buf, 14) == -1)
       return -1;
     if (thc_add_hdr_dst(pkt3, &pkt_len3, buf, 6) == -1)
       return -1;
@@ -1363,8 +1363,6 @@ int main(int argc, char *argv[]) {
     
     if ((pkt2 = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len2, src, dst, 64, 0, count, 0, 0)) == NULL)
       return -1;
-    if (thc_add_hdr_hopbyhop(pkt2, &pkt_len2, buf, 512 - 2) == -1)
-      return -1;
     if (thc_add_hdr_fragment(pkt2, &pkt_len2, 0, 1, sport + count) == -1)
       return -1;
     if (thc_add_data6(pkt2, &pkt_len2, NXT_DST, hdr3->pkt + 40 + offset, 16) == -1)
@@ -1375,8 +1373,6 @@ int main(int argc, char *argv[]) {
 
     if ((pkt2 = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len2, src, dst, 64, 0, count, 0, 0)) == NULL)
       return -1;
-    if (thc_add_hdr_hopbyhop(pkt2, &pkt_len2, buf, 512 - 2) == -1)
-      return -1;
     if (thc_add_hdr_fragment(pkt2, &pkt_len2, 2, 0, sport + count) == -1)
       return -1;
     if (thc_add_data6(pkt2, &pkt_len2, NXT_DST, hdr->pkt + 40 + offset + 16, hdr->pkt_len - 40 - offset - 16) == -1)
@@ -1386,8 +1382,6 @@ int main(int argc, char *argv[]) {
     pkt2 = thc_destroy_packet(pkt2);
 
     if ((pkt2 = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len2, src, dst, 64, 0, count, 0, 0)) == NULL)
-      return -1;
-    if (thc_add_hdr_hopbyhop(pkt2, &pkt_len2, buf, 512 - 2) == -1)
       return -1;
     if (thc_add_hdr_fragment(pkt2, &pkt_len2, 8 / 8, 1, sport + count) == -1)
       return -1;
@@ -1414,7 +1408,7 @@ int main(int argc, char *argv[]) {
 
     if ((pkt = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len, src, dst, 64, 0, count, 0, 0)) == NULL)
       return -1;
-    if (thc_add_hdr_hopbyhop(pkt, &pkt_len, buf, 14) == -1)
+    if (thc_add_hdr_dst(pkt, &pkt_len, buf, 14) == -1)
       return -1;
     if (thc_add_hdr_dst(pkt, &pkt_len, buf, 6) == -1)
       return -1;
@@ -1431,7 +1425,7 @@ int main(int argc, char *argv[]) {
 
     if ((pkt3 = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len3, src, dst, 64, 0, count, 0, 0)) == NULL)
       return -1;
-    if (thc_add_hdr_hopbyhop(pkt3, &pkt_len3, buf, 14) == -1)
+    if (thc_add_hdr_dst(pkt3, &pkt_len3, buf, 14) == -1)
       return -1;
     if (thc_add_hdr_dst(pkt3, &pkt_len3, buf, 6) == -1)
       return -1;
@@ -1445,8 +1439,6 @@ int main(int argc, char *argv[]) {
     
     if ((pkt2 = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len2, src, dst, 64, 0, count, 0, 0)) == NULL)
       return -1;
-    if (thc_add_hdr_hopbyhop(pkt2, &pkt_len2, buf, 512 - 2) == -1)
-      return -1;
     if (thc_add_hdr_fragment(pkt2, &pkt_len2, 0, 1, sport + count) == -1)
       return -1;
     if (thc_add_data6(pkt2, &pkt_len2, NXT_DST, hdr3->pkt + 40 + offset, 16) == -1)
@@ -1457,8 +1449,6 @@ int main(int argc, char *argv[]) {
 
     if ((pkt2 = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len2, src, dst, 64, 0, count, 0, 0)) == NULL)
       return -1;
-    if (thc_add_hdr_hopbyhop(pkt2, &pkt_len2, buf, 512 - 2) == -1)
-      return -1;
     if (thc_add_hdr_fragment(pkt2, &pkt_len2, 8 / 8, 1, sport + count) == -1)
       return -1;
     if (thc_add_data6(pkt2, &pkt_len2, NXT_DST, hdr3->pkt + 40 + offset + 8, 24) == -1)
@@ -1468,8 +1458,6 @@ int main(int argc, char *argv[]) {
     pkt2 = thc_destroy_packet(pkt2);
 
     if ((pkt2 = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len2, src, dst, 64, 0, count, 0, 0)) == NULL)
-      return -1;
-    if (thc_add_hdr_hopbyhop(pkt2, &pkt_len2, buf, 512 - 2) == -1)
       return -1;
     if (thc_add_hdr_fragment(pkt2, &pkt_len2, 2, 0, sport + count) == -1)
       return -1;

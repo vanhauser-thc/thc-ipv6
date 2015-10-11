@@ -64,7 +64,9 @@ char fuzztype_IA_NA[] = "WWDDD"; //16 byte header
 char fuzztype_IA_Address[] = "WWXX..............DD";
 char fuzztype_FQDN[] = "WWF"; //5 byte header + length of domain string to be added in programatically
 char fuzztype_option_request[] = "WWW"; //6 byte header (add extra W for each additional option)
-
+char fuzztype_prefixdele[] = "WWDDDWWDDFW............W"; //45 bytes
+char fuzztype_reconfig[] = "WW"; // 4 bytes
+char fuzztype_option_options[] = "WWWXXXXXXXXXXXXXX"; // 20 bytes
 // //Matched solicit from RF manual
 // char fuzztype_solicit[] = ".......FFFFFFFFF................BBBXXXX";
 // //Still have to add in other types.
@@ -161,11 +163,19 @@ unsigned int dwords[] = { 0x00000000, 0x00000001, 0x000000fe, 0x000000ff,
   0xfffffe00, 0xfffffe01, 0xfffffefe, 0xfffffeff,
   0xffffff00, 0xffffff01, 0xfffffffe, 0xffffffff
 };                              // 256
-char solicit[] = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x02, 0x00, 0x00,
+char solicit[] = {
+  0x01, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x02, 0x00, 0x00,
   0x00, 0x01, 0x00, 0x0e, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03,
   0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x19, 0x00, 0x29, 0x00, 0x00,
+  0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x1a, 0x00, 0x19, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x14, 0x00, 0x00, 0x00, 0x06, 0x00, 0x10, 0x00, 0x15, 0x00,
+  0x17, 0x00, 0x1f, 0x00, 0x38, 0x00, 0x40, 0x00, 0x63, 0x00,
+  0x7b, 0x00, 0xc7
 };
 
 int port = -1;
@@ -173,7 +183,6 @@ int port = -1;
 void help(char *prg) {
   printf("%s %s (c) 2015 by %s %s\n\n", prg, VERSION, "Brandon Hutcheson, Graeme Neilson and Ryan Ko", RESOURCE);
   printf("Syntax: %s [-t number | -T number] [-e number | -T number] [-p number] [-md] [-1|-2|-3|-4|-5|-6|-7|-8] interface [domain-name]\n\n", prg);
-  printf("Fuzzes an DHCPv6 packet\n");
   printf("Options:\n");
   printf(" -1         fuzz DHCPv6 Solicit (default)\n");
   printf(" -2         fuzz DHCPv6 Request\n");
@@ -190,9 +199,11 @@ void help(char *prg) {
   printf(" -n number  how many times to send each packet (default: 1)\n");
   printf(" -f         spoof mac\n");
   printf(" -F         spoof link address\n");
+  printf(" -w sec     wait number of seconds between packets (default: 0)\n");
   printf(" -p number  perform an alive check every number of tests (default: none)\n");
   printf(" -d         Use -d to force DNS updates, you can specify a domain name on the commandline.\n");
-  printf("You can only define one of -0 ... -4, defaults to -1.\n");
+  printf("\nFuzzes a DHCPv6 packets to a server\n");
+  printf("You can only define one of -0 ... -4 types, defaults to -1.\n");
   printf("Returns -1 on error, 0 on tests done and targt alive or 1 on target crash.\n");
   exit(-1);
 }
@@ -200,7 +211,7 @@ void help(char *prg) {
 char dnsupdate1[] = { 0, 39, 0, 8, 1, 6, 122, 97, 97, 97, 97, 97 };
 char dnsupdate2[] = { 0, 6, 0, 2, 0, 39 };
 char dns_option_hdr[256];
-int dns_option_hdr_len = 0;
+int dns_option_hdr_len = 0, waittime = 0;
 char fuzzbuf[256];
 char *interface = NULL, *dns_name = NULL, elapsed[6] = { 0, 8, 0, 2, 0, 0 };
 int do_dns = 0, test_start = 0, test_end = TEST_MAX, ping = NEVER, no_send = 1, got_packet = 0;
@@ -226,6 +237,8 @@ int try_send_pkt(char *interface, char *pkt, int *pkt_len) {
     fprintf(stderr, "Timeout error: Unable to send check alive packet within timeout\n");
     exit(-1);
   }
+  if (waittime > 0)
+    sleep(waittime);
   return 0;
 }
 
@@ -472,6 +485,8 @@ int fuzz_loop(char* pkt, int* pkt_len) {
         for (k = 0; k < no_send; k++) {
           while(thc_send_pkt(interface, pkt, pkt_len) < 0)
             usleep(1);
+          if (waittime)
+            sleep(waittime);
         }
         // printf(".");
         usleep(250);
@@ -681,8 +696,11 @@ int main(int argc, char *argv[]) {
   if (getenv("THC_IPV6_PPPOE") != NULL || getenv("THC_IPV6_6IN4") != NULL) printf("WARNING: %s is not working with injection!\n", argv[0]);
 
   //Parse options
-  while ((i = getopt(argc, argv, "123456789mn:t:e:T:dFp:fr")) >= 0) {
+  while ((i = getopt(argc, argv, "123456789mn:t:e:T:dFp:frw:")) >= 0) {
     switch (i) {
+    case 'w':
+      waittime = atoi(optarg);
+      break;
     case '1':
       do_type = DO_SOL;
       break;
@@ -794,6 +812,9 @@ int main(int argc, char *argv[]) {
     strcat(fuzzbuf, fuzztype_elapsed_time);
     strcat(fuzzbuf, fuzztype_client_identifier);
     strcat(fuzzbuf, fuzztype_IA_NA);
+    strcat(fuzzbuf, fuzztype_prefixdele);
+    strcat(fuzzbuf, fuzztype_reconfig);
+    strcat(fuzzbuf, fuzztype_option_options);
     if (do_dns)
       strcat(fuzzbuf, fuzztype_FQDN);
   }
@@ -801,6 +822,7 @@ int main(int argc, char *argv[]) {
   /** Generate packet **/
   len = sizeof(solicit);
   memcpy(wdatabuf, solicit, len);
+  //printf("%d : %s\n", len, fuzzbuf);
 
   //Add dns option
   if (do_dns) {
