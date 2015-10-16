@@ -6,38 +6,47 @@ CC=gcc
 CFLAGS=-O2
 CFLAGS+=$(if $(HAVE_SSL),-D_HAVE_SSL,)
 LDFLAGS+=-lpcap $(if $(HAVE_SSL),-lssl -lcrypto,)
-PROGRAMS=parasite6 dos-new-ip6 detect-new-ip6 fake_router6 fake_advertise6 fake_solicitate6 fake_mld6 fake_mld26 fake_mldrouter6 flood_mldrouter6 fake_mipv6 redir6 smurf6 alive6 toobig6 rsmurf6 implementation6 implementation6d sendpees6 sendpeesmp6 randicmp6 fuzz_ip6 flood_mld6 flood_mld26 flood_router6 flood_advertise6 flood_solicitate6 trace6 exploit6 denial6 fake_dhcps6 flood_dhcpc6 fake_dns6d fragmentation6 kill_router6 fake_dnsupdate6 ndpexhaust6 detect_sniffer6 dump_router6 fake_router26 flood_router26 passive_discovery6 dnsrevenum6 inverse_lookup6 node_query6 address6 covert_send6 covert_send6d inject_alive6 firewall6 ndpexhaust26 fake_pim6 thcsyn6 redirsniff6 flood_redir6 four2six dump_dhcp6 fuzz_dhcps6 flood_rs6 fuzz_dhcpc6
+STATIC=
+#-static
+PROGRAMS=parasite6 dos-new-ip6 detect-new-ip6 fake_router6 fake_advertise6 fake_solicitate6 fake_mld6 fake_mld26 fake_mldrouter6 flood_mldrouter6 fake_mipv6 redir6 smurf6 alive6 toobig6 rsmurf6 implementation6 implementation6d sendpees6 sendpeesmp6 randicmp6 fuzz_ip6 flood_mld6 flood_mld26 flood_router6 flood_advertise6 flood_solicitate6 trace6 exploit6 denial6 fake_dhcps6 flood_dhcpc6 fake_dns6d fragmentation6 kill_router6 fake_dnsupdate6 ndpexhaust6 detect_sniffer6 dump_router6 fake_router26 flood_router26 passive_discovery6 dnsrevenum6 inverse_lookup6 node_query6 address6 covert_send6 covert_send6d inject_alive6 firewall6 ndpexhaust26 fake_pim6 thcsyn6 redirsniff6 flood_redir6 four2six dump_dhcp6 flood_rs6 fuzz_dhcps6 fuzz_dhcpc6
+EXTRA=dnssecwalk dnsdict6 thcping6 fragrouter6 connsplit6
 LIBS=thc-ipv6-lib.o
-STRIP=echo
+STRIP=strip
 
 PREFIX=/usr/local
 MANPREFIX=${PREFIX}/share/man
 
-all:	$(LIBS) $(PROGRAMS) dnssecwalk dnsdict6 thcping6
+all:	$(LIBS) $(PROGRAMS) $(EXTRA)
 
 dnssecwalk:	dnssecwalk.c
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) $(STATIC) -o $@ $^
 
 dnsdict6:	dnsdict6.c
-	$(CC) $(CFLAGS) -o $@ $^ -lpthread -lresolv
+	$(CC) $(CFLAGS) $(STATIC) -o $@ $^ -lpthread -lresolv
 
 thcping6:	thcping6.c $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) -lrt
+	$(CC) $(CFLAGS) $(STATIC) -o $@ $^ $(LDFLAGS) -lrt
+
+fragrouter6:	fragrouter6.c $(LIBS)
+	-$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) -lnetfilter_queue || /bin/echo -e "\nCompilation of fragrouter6 failed, you have to install libnetfilter-queue-dev for this!\n"
+
+connsplit6:	connsplit6.c $(LIBS)
+	-$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) -lnetfilter_queue || /bin/echo -e "\nCompilation of connsplit6 failed, you have to install libnetfilter-queue-dev for this!\n"
 
 %:	%.c $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) 
+	$(CC) $(CFLAGS) $(STATIC) -o $@ $^ $(LDFLAGS) 
 
 strip:	all
-	$(STRIP) $(PROGRAMS) dnssecwalk dnsdict6 thcping6
+	$(STRIP) $(PROGRAMS) $(EXTRA)
 
 install: all strip
 	install -m0755 -d ${DESTDIR}${PREFIX}/bin
-	install -m0755 $(PROGRAMS) dnsdict6 thcping6 dnssecwalk *.sh ${DESTDIR}${PREFIX}/bin
+	-install -m0755 $(PROGRAMS) $(EXTRA) grep6.pl *.sh ${DESTDIR}${PREFIX}/bin
 	install -m0755 -d ${DESTDIR}${MANPREFIX}/man8
 	install -m0644 -D thc-ipv6.8 ${DESTDIR}${MANPREFIX}/man8
 
 clean:
-	rm -f $(PROGRAMS) dnsdict6 thcping6 dnssecwalk $(LIBS) core DEADJOE *~
+	rm -f $(PROGRAMS) $(EXTRA) $(LIBS) core DEADJOE *~
 
 backup:	clean
 	tar czvf ../thc-ipv6-bak.tar.gz *

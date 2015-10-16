@@ -199,38 +199,45 @@ void help(char *prg) {
   printf("%s %s (c) 2015 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf ("Syntax: %s [-CFHLMPSdlpvV] [-I srcip6] [-i file] [-o file] [-e opt] [-s port,..] [-a port,..] [-u port,..] [-T tag] [-W TIME] interface [unicast-or-multicast-address [remote-router]]\n\n", prg);
   printf("Options:\n");
+  if (do_help) printf(" Output Options:\n");
   printf("  -i file    check systems from input file\n");
   printf("  -o file    write results to output file\n");
+  if (do_help) printf("  -v         verbose information (twice: detailed, thrice: dumping packets)\n");
+  if (do_help > 1) printf("  -V         enable debug output\n");
+  printf("  -d         DNS resolve alive IPv6 addresses\n");
+  if (do_help > 1) printf("  -H         print hop count of received packets\n");
+  if (do_help) printf(" Enumerate Options:\n");
   printf("  -M         enumerate hardware addresses (MAC) from input addresses (slow!)\n");
-  printf("  -C         enumerate common addresses of input networks, x2 for large scan\n");
-  printf("  -4 ipv4/range    test various IPv4 address encodings per network (1.2.3.4/24)\n");
+  printf("  -C         enumerate common addresses of input networks, -CC for large scan\n");
+  printf("  -4 ipv4/range  test various IPv4 address encodings per network (eg 1.2.3.4/24)\n");
+  if (do_help > 1) printf("  -y step    for range scans (2000::0-f), define the step range (default: 1)\n");
+  if (do_help) printf(" Alive Technique Options:\n");
   printf("  -p         send a ping packet for alive check (default)\n");
   printf("  -e dst,hop send an errornous packets: destination (default), hop-by-hop\n");
   printf("  -s port,port,..  TCP-SYN packet to ports for alive check or \"portscan\"\n");
   printf("  -a port,port,..  TCP-ACK packet to ports for alive check\n");
   printf("  -u port,port,..  UDP packet to ports for alive check\n");
-  printf("  -d         DNS resolve alive IPv6 addresses\n");
+  if (do_help) printf("  -F         firewall mode: -p -e dst -u 53 -s 22,25,80,443,9511 -a 9511\n");
+  if (do_help > 1) printf("  -R         do not consider TCP-RST as alive (good with firewalls, e.g. -F)\n");
+  if (do_help) printf(" Sending Options\n");
   if (do_help) {
     printf("  -n number  how often to send each packet (default: local 1, remote 2)\n");
     printf("  -W time    time in ms to wait after sending a packet (default: %d)\n", waittime);
     printf("  -S         slow mode, get best router for each remote target or when proxy-NA\n");
-    printf("  -I srcip6  use the specified IPv6 address as source\n");
+    printf("  -I src[/mask]  use the specified IPv6 address as source. Use mask for random.\n");
     printf("  -l         use link-local address for multicast addresses instead of global\n");
-    printf("  -F         firewall mode: -p -e dst -u 53 -s 22,25,80,443,9511 -a 9511\n");
     printf("  -P         only print addresses that would be scanned, no packets are sent!\n");
-    printf("  -v         verbose (twice: detailed, thrice: dumping packets)\n");
     if (do_help > 1) {
-      printf("  -r         renew IPv6 src address for every new target (waits if none there)\n");
       printf("  -L         local mode - perform only NDP and report local systems alive\n");
-      printf("  -R         do not consider TCP-RST as alive (good with firewalls, e.g. -F)\n");
-      printf("  -H         print hop count of received packets\n");
+      printf("  -r         renew IPv6 src address for every new target (waits if none there)\n");
       printf("  -T tag     put tag string in ICMP packets\n");
       printf("  -x port    TCP/UDP src port for -s, -a and -u\n");
-      printf("  -y step    for range scans (2000::0-f), define the step range (default: 1)\n");
       printf("  -Z mac     use given destination mac address\n");
-      printf("  -V         enable debug output\n");
-    } else
-      printf("  -hh        show more options\n");
+    }
+  }
+  if (do_help == 1) {
+    printf(" Help Options:\n");
+    printf("  -hh        show even more options\n");
   } else
     printf("  -h         to display more command line options and help (-hh: more options)\n");
   printf("\nTarget address on command line or in input file can include ranges in the form\n");
@@ -673,7 +680,7 @@ int main(int argc, char *argv[]) {
   unsigned char *pkt = NULL, *router6 = NULL, *cur_dst, *p2, *p3, *ptr3, *smac, buf2[6];
   unsigned char *multicast6 = NULL, *src6 = NULL, *mac = NULL, *rmac = NULL, *routers[2];
   int pkt_len = 0, prefer = PREFER_GLOBAL, fromto = 0, dictptr = 0, offset = 14, step = 1;
-  int enumerate_mac = 0, enumerate_dhcp = 0, i, j, k, l, cur_enum = 0, print_only = 0;
+  int enumerate_mac = 0, enumerate_dhcp = 0, i, j, k, l, cur_enum = 0, print_only = 0, rand_source = 0;
   int no_vendid = 0, no_nets = 0, local = -1, no_send = 1, no_send_local = 1, no_send_remote = 2, nos = 0, renew = 0, errcnt, sendrc;
   char *interface = NULL, *input = NULL, *output = NULL, line[128], line2[128], *ptr, *ptr2, do_router = 0, ok;
   unsigned int four_from[MAX_FOUR], four_to[MAX_FOUR], addr_cur;
@@ -814,6 +821,19 @@ int main(int argc, char *argv[]) {
       if ((src6 = thc_resolve6(optarg)) == NULL) {
         fprintf(stderr, "Error: unable to resolve IPv6 source address %s\n", optarg);
         exit(-1);
+      }
+      if (index(optarg, '/') != NULL) {
+        if ((p2 = strdup(optarg)) == NULL) {
+          fprintf(stderr, "Error: malloc()\n");
+          exit(-1);
+        }
+        p3 = index(p2, '/');
+        *p3++ = 0;
+        if ((i = atoi(p3)) < 8 || i > 120 || i % 8 != 0) {
+          fprintf(stderr, "Error: -I netmask parameter must be a multiple of 8\n");
+          exit(-1);
+        }
+        rand_source = 16 - (i / 8);
       }
       break;
     case 'i':
@@ -971,26 +991,24 @@ int main(int argc, char *argv[]) {
   }
   //strcat(string, thc_ipv62notation(src6));
   //thc_dump_data(src6, 16, "SRC6");
-  if (renew == 0) {
+  if (rand_source || renew != 0)
+    strcpy(string, "ip6");
+  else
     sprintf(string, "dst %s", thc_ipv62notation(src6));
-    if (dump_all == 0) {
-      if (renew == 0)
-        strcat(string, " and ");
-      if (portscan || synports[0] != -1 || udpports[0] != -1 || ackports[0] != -1) {
-        strcat(string, "( icmp6 or ");
-        if (udpports[0] != -1)
-          strcat(string, "udp ");
-        if (udpports[0] != -1 && (portscan || synports[0] != -1 || ackports[0] != -1))
-           strcat(string, "or ");
-        if (portscan || synports[0] != -1 || ackports[0] != -1)
-          strcat(string, "tcp ");
-        strcat(string, ")");
-      } else
-        strcat(string, "icmp6");
-    }
-  } else
-    if (renew)
-      strcpy(string, "ip6");
+  if (dump_all == 0) {
+    strcat(string, " and ");
+    if (portscan || synports[0] != -1 || udpports[0] != -1 || ackports[0] != -1) {
+      strcat(string, "( icmp6 or ");
+      if (udpports[0] != -1)
+        strcat(string, "udp ");
+      if (udpports[0] != -1 && (portscan || synports[0] != -1 || ackports[0] != -1))
+         strcat(string, "or ");
+      if (portscan || synports[0] != -1 || ackports[0] != -1)
+        strcat(string, "tcp ");
+      strcat(string, ")");
+    } else
+      strcat(string, "icmp6");
+  }
   
   if (multicast6 != NULL && (enumerate_mac || enumerate_dhcp) && input == NULL && multicast6[0] == 0xff) {
     fprintf(stderr, "Warning: -M/-C options make no sense for multicast addresses and are ignored for these\n");
@@ -1688,9 +1706,18 @@ int main(int argc, char *argv[]) {
         free(p2);
       }
       for (nos = 0; nos < no_send; nos++) {     // send -n defined times, default: 1
+        if (rand_source) {
+          for (i = rand_source; i < 16; i++)
+            src6[i] = rand() % 256;
+        }
         if (synports[0] != -1 || portscan) {
           i = 0;
           while ((portscan > 0 && portscan < 65536) || (synports[i] != -1 && i < MAX_PORTS)) {
+            if (portscan > 0)
+              if (rand_source) {
+                for (i = rand_source; i < 16; i++)
+                  src6[i] = rand() % 256;
+              }
             if ((pkt = thc_create_ipv6_extended(interface, prefer, &pkt_len, src6, cur_dst, 0, 0, 0, 0, 0)) == NULL)
               return -1;
             if (router6 != NULL)

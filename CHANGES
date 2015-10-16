@@ -1,21 +1,31 @@
 CHANGELOG
 =========
 
-v2.8-dev
+v3.0 release
+ * fragrouter6 (NEW TOOL)
+   - evade IDS easily and use all your favorite IPv6 attack tools
+ * connsplit6 (NEW TOOL)
+   - split up a connection so that replies are sent to a different IPv6 address
+ * *.sh
+   - added a lot of shell helper scripted for zone transfers, creating maps, etc.
+   - 6to4test.sh, create_network_map.sh, extract_hosts6.sh, six2four.sh, 
+     axfr-reverse.sh, axfr.sh, dnsrevenum6.sh, extract_networks6.sh,
+     thc-ipv6-setup.sh, dnssecwalk.sh, trace62list.sh, dos_mld6.sh, local_discovery6.sh
  * alive6:
-   - some minor fixes
-   - -r option was accidently always activated
+   - -r renew option was accidently always on by default
+   - added -I /mask random source option
+   - restructured the -h help output
  * fake_router26:
    - option -X removes router entry from targets on exit (patch from Dan Luedtke, thanks)
  * flood_router26:
-   - Fix - the source mac was always null bytes without evasion, thank to Christopher Werny for reporting
+   - fix: the source mac was always null bytes without evasion, thank to Christopher Werny for reporting
  * ndpexaust26:
    - option -m generates maximum size packets
  * dump_router6:
    - fixed route option parsing
    - support for new RA options
  * dump_dhcp6
-   - added vendorid support for request
+   - added vendorID support for request
  * thcping6:
    - added -O TCP Fast Open cookie request option
  * fuzz_dhcps6
@@ -27,8 +37,6 @@ v2.8-dev
  * thcsyn6
    - added -O TCP Fast Open fake cookie sending option
    - fixed memory leak
- * connect6:
-   - will now print the known MTU path to the destination upon succesful connect
  * Renamed dos_mld.sh to dos_mld6.sh and local_discovery.sh to local_discovery6.sh
 
 
