@@ -80,6 +80,7 @@ int main(int argc, char *argv[]) {
     if ((query6 = thc_resolve6(argv[3])) == NULL) {
       fprintf(stderr, "Error: Can not resolve %s\n", argv[2]);
       exit(-1);
+    } else {
       dstmac = thc_get_mac(interface, NULL, query6);
     }
     if (query6[0] < 0xfe && query6[0] >= 0x20)

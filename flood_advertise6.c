@@ -62,7 +62,9 @@ int main(int argc, char *argv[]) {
     if ((dst = thc_resolve6(argv[2])) == NULL) {
       fprintf(stderr, "Error: invalid target IPv6 address\n");
       exit(-1);
-    }
+    } else {
+      dstmac = thc_get_mac(interface, NULL, dst);
+  }
     if (dst[0] >= 0x20 && dst[0] <= 0xfd)
       prefer = PREFER_GLOBAL;
   }

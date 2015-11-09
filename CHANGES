@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+v3.1-dev
+ * small reliability patches by Benjamin Kellermann, thanks!
+
+
 v3.0 release
  * fragrouter6 (NEW TOOL)
    - evade IDS easily and use all your favorite IPv6 attack tools
