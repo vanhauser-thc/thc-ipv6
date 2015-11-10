@@ -3,6 +3,7 @@ CHANGELOG
 
 v3.1-dev
  * small reliability patches by Benjamin Kellermann, thanks!
+ * added man page auto generator by Benjamin Kellermann, thanks!
 
 
 v3.0 release

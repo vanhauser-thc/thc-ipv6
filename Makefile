@@ -15,8 +15,9 @@ STRIP=strip
 
 PREFIX=/usr/local
 MANPREFIX=${PREFIX}/share/man
+MANPAGES=$(foreach p, $(PROGRAMS) $(EXTRA), $(p).8)
 
-all:	$(LIBS) $(PROGRAMS) $(EXTRA)
+all:	$(LIBS) $(PROGRAMS) $(EXTRA) $(MANPAGES)
 
 dnssecwalk:	dnssecwalk.c
 	$(CC) $(CFLAGS) $(STATIC) -o $@ $^
@@ -44,12 +45,27 @@ install: all strip
 	-install -m0755 $(PROGRAMS) $(EXTRA) grep6.pl *.sh ${DESTDIR}${PREFIX}/bin
 	install -m0755 -d ${DESTDIR}${MANPREFIX}/man8
 	install -m0644 -D thc-ipv6.8 ${DESTDIR}${MANPREFIX}/man8
+	install -m0644 -D $(MANPAGES) ${DESTDIR}${MANPREFIX}/man8
 
 clean:
 	rm -f $(PROGRAMS) $(EXTRA) $(LIBS) core DEADJOE *~
+	rm -f $(MANPAGES)
 
 backup:	clean
 	tar czvf ../thc-ipv6-bak.tar.gz *
 	sync
 
-.PHONY: all install clean 
+%.8: %
+	echo .TH $* 8 `date --iso-8601` THC "IPv6 ATTACK TOOLKIT" > $@
+	echo .SH NAME >> $@
+	echo .B $* >> $@
+	./$*|tail -n +2|sed -e "s#\\./$*#$*#g" -e "s/^Syntax: \?/.SH SYNOPSIS\n/g" -e "s/Options:/.SH OPTIONS\n.nf\n/g" -e "s/^\(.*\):\$$/.SH \1\n/g" >> $@
+	echo .SH AUTHOR >> $@
+	echo "thc-ipv6 was written by van Hauser <vh@thc.org> / THC" >> $@
+	echo >> $@
+	echo  The homepage for this toolkit is: http://www.thc.org/thc-ipv6 >> $@
+	echo >> $@
+	echo .SH COPYRIGHT >> $@
+	./$* |head -n1|sed -e "s#^\./##g" >> $@
+
+.PHONY: all install clean man
