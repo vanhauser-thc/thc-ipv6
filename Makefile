@@ -56,16 +56,16 @@ backup:	clean
 	sync
 
 %.8: %
-	echo .TH $* 8 `date --iso-8601` THC "IPv6 ATTACK TOOLKIT" > $@
-	echo .SH NAME >> $@
-	echo .B $* >> $@
-	./$*|tail -n +2|sed -e "s#\\./$*#$*#g" -e "s/^Syntax: \?/.SH SYNOPSIS\n/g" -e "s/Options:/.SH OPTIONS\n.nf\n/g" -e "s/^\(.*\):\$$/.SH \1\n/g" >> $@
-	echo .SH AUTHOR >> $@
-	echo "thc-ipv6 was written by van Hauser <vh@thc.org> / THC" >> $@
-	echo >> $@
-	echo  The homepage for this toolkit is: http://www.thc.org/thc-ipv6 >> $@
-	echo >> $@
-	echo .SH COPYRIGHT >> $@
-	./$* |head -n1|sed -e "s#^\./##g" >> $@
+	@echo .TH $* 8 `date --iso-8601` THC "IPv6 ATTACK TOOLKIT" > $@
+	@echo .SH NAME >> $@
+	@echo .B $* >> $@
+	@./$*|tail -n +2|sed -e "s#\\./$*#$*#g" -e "s/^Syntax: \?/.SH SYNOPSIS\n/g" -e "s/Options:/.SH OPTIONS\n.nf\n/g" -e "s/^\(.*\):\$$/.SH \1\n/g" >> $@
+	@echo .SH AUTHOR >> $@
+	@echo "thc-ipv6 was written by van Hauser <vh@thc.org> / THC" >> $@
+	@echo >> $@
+	@echo  The homepage for this toolkit is: http://www.thc.org/thc-ipv6 >> $@
+	@echo >> $@
+	@echo .SH COPYRIGHT >> $@
+	@./$* |head -n1|sed -e "s#^\./##g" >> $@
 
 .PHONY: all install clean man
