@@ -154,6 +154,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Error: Can not generate packet, exiting ...\n");
     exit(-1);
   }
+/*
   if ((pkt2 = thc_create_ipv6_extended(interface, prefer, &pkt2_len, src6, dst6, 0, 0, 0, 0, 0)) == NULL)
     return -1;
   if (do_hop)
@@ -172,7 +173,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Error: Can not generate packet, exiting ...\n");
     exit(-1);
   }
-
+*/
   printf("Starting advertisement of %s (Press Control-C to end)\n", argv[optind + 1]);
   while (loop) {
     if (do_dst) {
@@ -182,7 +183,7 @@ int main(int argc, char *argv[]) {
       thc_send_as_fragment6(interface, src6, dst6, type, hdr->pkt + 40 + offset, hdr->pkt_len - 40 - offset, 1240);
     } else {
       thc_send_pkt(interface, pkt1, &pkt1_len);
-      thc_send_pkt(interface, pkt2, &pkt2_len);
+//      thc_send_pkt(interface, pkt2, &pkt2_len);
     }
     if (loop != -1)
       loop--;
