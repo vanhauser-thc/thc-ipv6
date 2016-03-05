@@ -363,7 +363,7 @@ void check_packets(u_char *foo, const struct pcap_pkthdr *header, const unsigned
     len -= do_hdr_size;
     if ((ptr[0] & 240) != 0x60)
       return;
-  } else {
+  } else if (_thc_ipv6_rawmode == 0) {
     ptr += 14;
     len -= 14;
   }
