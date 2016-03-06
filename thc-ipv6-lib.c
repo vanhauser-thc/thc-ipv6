@@ -88,8 +88,8 @@ int _thc_ipv6_rawmode = 0;
 
 void thc_ipv6_rawmode(int mode) {
   _thc_ipv6_rawmode = mode;
-  fprintf(stderr, "Error: raw mode is not working, use THC_IPV6_... injection!\n");
-  exit(-1);
+  if (mode != 0)
+    fprintf(stderr, "Warning: raw mode is not working in all tools\n");
 }
 
 void thc_ipv6_show_errors(int mode) {
@@ -2398,6 +2398,9 @@ int thc_open_ipv6() {
 
   if (thc_socket >= 0)
     return thc_socket;
+    
+  if ((getenv("THC_IPV6_RAW") != NULL || getenv("THC_IPV6_RAWMODE") != NULL)
+    thc_ipv6_rawmode(1);
 
   if ((ptr = getenv("THC_IPV6_VLAN")) != NULL && strlen(ptr) > 0) {
     ptr = strdup(ptr);

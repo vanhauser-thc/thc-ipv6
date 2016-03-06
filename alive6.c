@@ -234,6 +234,7 @@ void help(char *prg) {
       printf("  -x port    TCP/UDP src port for -s, -a and -u\n");
       printf("  -Z mac     use given destination mac address\n");
     }
+    printf("  -m         raw mode (for network adapters where you do not have Ethernet)\n");
   }
   if (do_help == 1) {
     printf(" Help Options:\n");
@@ -802,6 +803,9 @@ int main(int argc, char *argv[]) {
       break;
     case 'l':
       prefer = PREFER_LINK;
+      break;
+    case 'm':
+      thc_ipv6_rawmode(1);
       break;
     case 'M':
       enumerate_mac = 1;
