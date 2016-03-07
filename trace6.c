@@ -40,6 +40,7 @@ void help(char *prg) {
   printf("  -d       resolves the IPv6 addresses to DNS.\n");
   printf("  -t       enables tunnel detection\n");
   printf("  -u       use UDP instead of TCP if a port is supplied\n");
+  printf("  -r       raw mode (for adapters networks that have no ethernet)\n");
   printf("  -s src6  specifies the source IPv6 address\n");
   printf("Maximum hop reach: %d\n\n", INCREASE * (SENDS - 1) + MAX_SEND);
   printf("A basic but very fast traceroute6 program.\n");
