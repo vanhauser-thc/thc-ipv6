@@ -44,6 +44,8 @@
 #define RESP_OTHER  "TCP misc-options"
 #define RESP_UNKNOWN "unknown"
 
+extern int _thc_ipv6_rawmode;
+
 struct fingerprint {
   char OS[1024];
   char FP[200];
@@ -58,7 +60,6 @@ unsigned long int tcount = 0;
 FILE *out = NULL;
 struct hostent *he = NULL;
 short int si, sp, sp2;
-
 
 
 // all dict entries must start with a single from/to 0,0,0,0
