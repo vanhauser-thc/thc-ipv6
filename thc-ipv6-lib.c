@@ -2399,7 +2399,7 @@ int thc_open_ipv6() {
   if (thc_socket >= 0)
     return thc_socket;
     
-  if ((getenv("THC_IPV6_RAW") != NULL || getenv("THC_IPV6_RAWMODE") != NULL)
+  if (getenv("THC_IPV6_RAW") != NULL || getenv("THC_IPV6_RAWMODE") != NULL)
     thc_ipv6_rawmode(1);
 
   if ((ptr = getenv("THC_IPV6_VLAN")) != NULL && strlen(ptr) > 0) {
