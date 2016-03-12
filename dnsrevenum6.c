@@ -31,7 +31,7 @@
 // do not set below 2
 #define WAITTIME_START 2
 
-int sock, len, buf_len, waittime = WAITTIME_START, wait, found = 0;
+int sock, len, buf_len, waittime = WAITTIME_START, wait, found = 0, tcp = 0, tcp_offset = 0;
 unsigned char range[33], buf_start[12], buf_end[14], buf[512], buf2[1024], name[512], dst6[16], *prg, *dst, cnt = 0;
 
 int dnssocket(char *server) {
@@ -44,8 +44,13 @@ int dnssocket(char *server) {
   tv.tv_usec = 0;  // Not init'ing this can cause strange errors
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_DGRAM;
-  hints.ai_protocol = IPPROTO_UDP;
+  if (tcp) {
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+  } else {
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_protocol = IPPROTO_UDP;
+  }
   if (getaddrinfo(server, "53", &hints, &ai) != 0) {
     fprintf(stderr, "Error: unable to resolve dns server %s!\n", server);
     exit(-1);
@@ -87,16 +92,21 @@ void ignore(int signal) {
 }
 
 int send_range() {
-  int i;
+  int i, recv_len =  sizeof(buf2);
 
   for (i = 0; i < 32; i++) {
-    buf[sizeof(buf_start) + i * 2] = 1;
-    buf[sizeof(buf_start) + i * 2 + 1] = range[31 - i];
+    buf[tcp_offset + sizeof(buf_start) + i * 2] = 1;
+    buf[tcp_offset + sizeof(buf_start) + i * 2 + 1] = range[31 - i];
   }
-  memcpy(buf + sizeof(buf_start) + 64, buf_end, sizeof(buf_end));
+  memcpy(buf + tcp_offset + sizeof(buf_start) + 64, buf_end, sizeof(buf_end));
   buf_len = sizeof(buf_start) + 64 + sizeof(buf_end);
-  buf[0] = 254;
-  buf[1] = cnt++;
+  buf[tcp_offset + 0] = 254;
+  buf[tcp_offset + 1] = cnt++;
+  if (tcp) {
+    buf[0] = buf_len / 256;
+    buf[1] = buf_len % 256;
+    buf_len += 2;
+  }
 
   if (send(sock, buf, buf_len, 0) < 0) {
     fprintf(stderr, "Error: Can not send to network!\n");
@@ -104,8 +114,19 @@ int send_range() {
   } else
     usleep(5);
 
+  if (tcp) {
+    alarm(waittime + 1);
+    len = recv(sock, buf2, 2, 0);
+    alarm(0);
+    if (len != 2)
+      return -1;
+    recv_len = (buf2[0] << 8) + buf2[1];
+    if (recv_len > sizeof(buf2))
+      return -1;
+  }
+
   alarm(waittime + 1);
-  if ((len = recv(sock, buf2, sizeof(buf2), 0)) > 20) {
+  if ((len = recv(sock, buf2, recv_len, 0)) > 20) {
     alarm(0);
     if ((buf2[3] & 3) == 0 && buf2[7] == 1)
       return 0;
@@ -119,7 +140,7 @@ int send_range() {
 
 int deeper(int depth) {
   unsigned char r[16], *ptr2, *foo;
-  int i, j, ok = 0, rs = 0, len, clen, nlen;
+  int i, j, ok = 0, rs = 0, len, clen, nlen, recv_len = sizeof(buf2);
   
   if (depth > 31)
     return -1;
@@ -127,20 +148,26 @@ int deeper(int depth) {
   
   // generate base packet
   cnt++;
-  buf[1] = cnt;
+  buf[tcp_offset + 1] = cnt;
   for (i = 0; i < depth; i++) {
-    buf[sizeof(buf_start) + 2 + i * 2] = 1;
-    buf[sizeof(buf_start) + 2 + i * 2 + 1] = range[depth - i - 1];
+    buf[tcp_offset + sizeof(buf_start) + 2 + i * 2] = 1;
+    buf[tcp_offset + sizeof(buf_start) + 2 + i * 2 + 1] = range[depth - i - 1];
   }
-  memcpy(buf + sizeof(buf_start) + 2 + depth * 2, buf_end, sizeof(buf_end));
+  memcpy(buf + tcp_offset + sizeof(buf_start) + 2 + depth * 2, buf_end, sizeof(buf_end));
   buf_len = sizeof(buf_start) + 2 + depth * 2 + sizeof(buf_end);
   
   // loop to finish generation and send
 redo:
   for (i = 0; i < 16; i++) {
     if (r[i] == 0) {
-      buf[0] = i;
-      buf[13] = tohex(i);
+      buf[tcp_offset + 0] = i;
+      buf[tcp_offset + 13] = tohex(i);
+      
+      if (tcp) {
+        buf[0] = buf_len / 256;
+        buf[1] = buf_len % 256;
+        buf_len += 2;
+      }
 
       if (send(sock, buf, buf_len, 0) < 0) {
         fprintf(stderr, "Error: can not send to network!\n");
@@ -154,7 +181,16 @@ redo:
   wait = 1;
   alarm(waittime);
   while(ok == 0 && wait == 1) {
-    if ((len = recv(sock, buf2, sizeof(buf2), 0)) > 70 && buf2[1] == cnt) {
+    if (tcp) {
+      recv(sock, buf2, 2, 0);
+      recv_len = (buf2[0] << 8) + buf2[1];
+      if (recv_len > sizeof(buf2)) {
+        close(sock);
+        sock = dnssocket(dst);
+        goto redo;
+      }
+    }
+    if ((len = recv(sock, buf2, recv_len, 0)) > 70 && buf2[1] == cnt) {
       i = (buf2[0] & 15);
       if ((buf2[3] & 3) == 0) {
         if (depth == 31) {
@@ -234,6 +270,8 @@ redo:
       exit(-1);
     }
     fprintf(stderr, "Warning: packet loss, increasing response timeout to %d seconds\n", waittime);
+    close(sock);
+    sock = dnssocket(dst);
     goto redo;
   }
   
@@ -247,14 +285,20 @@ int main(int argc, char *argv[]) {
   setvbuf(stdout, NULL, _IONBF, 0);
   setvbuf(stderr, NULL, _IONBF, 0);
   prg = argv[0];
+  
+  if (argc > 1 && strncmp(argv[1], "-t", 2) == 0) {
+    tcp = 1; tcp_offset = 2;
+    argv++; argc--;
+  }
 
   if (argc < 3) {
     printf("%s %s (c) 2015 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
-    printf("Syntax: %s dns-server ipv6address\n\n", argv[0]);
+    printf("Syntax: %s [-t] dns-server ipv6address\n\n", argv[0]);
     printf("Performs a fast reverse DNS enumeration and is able to cope with slow servers.\n");
+    printf("Option -t enables TCP instead of UDP (use this if you get many timeouts)\n");
     printf("Examples:\n");
     printf("  %s dns.test.com 2001:db8:42a8::/48\n", argv[0]);
-    printf("  %s dns.test.com 8.a.2.4.8.b.d.0.1.0.0.2.ip6.arpa\n", argv[0]);
+    printf("  %s -t dns.test.com 8.a.2.4.8.b.d.0.1.0.0.2.ip6.arpa\n", argv[0]);
     exit(0);
   }
  
@@ -325,8 +369,8 @@ int main(int argc, char *argv[]) {
   memset(buf_end, 0, sizeof(buf_end));
   buf_start[2] = 1;
   buf_start[5] = 1;
-  memcpy(buf, buf_start, sizeof(buf_start));
-  buf[12] = 1;
+  memcpy(buf + tcp_offset, buf_start, sizeof(buf_start));
+  buf[tcp_offset + 12] = 1;
   buf_end[0] = 3;
   strcpy(buf_end + 1, "ip6");
   buf_end[4] = 4;
@@ -351,6 +395,8 @@ int main(int argc, char *argv[]) {
       break;
       case -1:
         k++;
+        close(sock);
+        sock = dnssocket(dst);
       break;
       default:
         i = 0; // ignored

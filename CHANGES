@@ -2,6 +2,7 @@ CHANGELOG
 =========
 
 v3.1-dev
+ * dnsrevenum6: added TCP mode (-t)
  * fake_advertise6: a second packet always was sent with no flags. fixed. thanks to Christopher Werny@ERNW for reporting
  * small reliability patches by Benjamin Kellermann, thanks!
  * added man page auto generator by Benjamin Kellermann, thanks!
