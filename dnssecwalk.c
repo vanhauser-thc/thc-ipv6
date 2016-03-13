@@ -24,7 +24,7 @@
 #include "thc-ipv6.h"
 
 #define RETRY 5
-int debug = 0, errcnt = 0, sock, ensure = 0, dores = -1;
+int debug = 0, errcnt = 0, sock, ensure = 0, dores = -1, tcp = 0, tcp_offset = 0;
 char *dst, first[256], beforesub[256], firstsub[256];
 
 int dnssocket(char *server) {
@@ -34,8 +34,13 @@ int dnssocket(char *server) {
 
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_DGRAM;
-  hints.ai_protocol = IPPROTO_UDP;
+  if (tcp) {
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+  } else {
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_protocol = IPPROTO_UDP;
+  }
   if (getaddrinfo(server, "53", &hints, &ai) != 0) {
     fprintf(stderr, "Error: unable to resolve dns server %s\n", dst);
     exit(-1);
@@ -71,7 +76,7 @@ int main(int argc, char **argv) {
   char *ptr, *ptr2, nexthost[256], domain[256];
   char b1[] = { 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
   char b2[] = { 0x00, 0x2f, 0x00, 0x01 };
-  int pid = getpid(), dlen = 0, i = 0, fixi, len, ok = 1, cnt = 0, errcntbak, sub = 0;
+  int pid = getpid(), dlen = 0, i = 0, fixi, len, ok = 1, cnt = 0, errcntbak, sub = 0, recv_len;
   struct addrinfo hints, *res, *p;
   struct sockaddr_in6 *ipv6, *q;
   struct sockaddr_in *ipv4, *q4;
@@ -83,16 +88,20 @@ int main(int argc, char **argv) {
 
   if (argc < 3) {
     printf("%s v1.2 (c) 2015 by Marc Heuse <mh@mh-sec.de> http://www.mh-sec.de\n\n", argv[0]);
-    printf("Syntax: %s [-e46] dns-server domain\n\n", argv[0]);
-    printf("Options:\n -e  ensure that the domain is present in found addresses, quit otherwise\n -4  resolve found entries to IPv4 addresses\n -6  resolve found entries to IPv6 addresses\n\n");
+    printf("Syntax: %s [-e46t] dns-server domain\n\n", argv[0]);
+    printf("Options:\n -e  ensure that the domain is present in found addresses, quit otherwise\n -4  resolve found entries to IPv4 addresses\n -6  resolve found entries to IPv6 addresses\n -t  use TCP instead of UDP\n\n");
     printf("Perform DNSSEC NSEC walking.\n\nExample: %s dns.test.com test.com\n", argv[0]);
     exit(0);
   }
 
-  while ((i = getopt(argc, argv, "e46")) >= 0) {
+  while ((i = getopt(argc, argv, "e46t")) >= 0) {
     switch(i) {
       case 'e':
         ensure = 1;
+        break;
+      case 't':
+        tcp = 1;
+        tcp_offset = 2;
         break;
       case '4':
         if (dores == -1)
@@ -136,9 +145,9 @@ int main(int argc, char **argv) {
   strncpy(nexthost, argv[optind + 1], sizeof(nexthost) - 1);
   nexthost[sizeof(nexthost) - 1] = 0;
 
-  memcpy(buf, (char *) &pid + _TAKE2, 2);
-  memcpy(buf + 2, b1, sizeof(b1));
-  i = 2 + sizeof(b1);
+  memcpy(buf + tcp_offset, (char *) &pid + _TAKE2, 2);
+  memcpy(buf + tcp_offset + 2, b1, sizeof(b1));
+  i = 2 + sizeof(b1) + tcp_offset;
   fixi = i;
 
   if (dores >= 0) {
@@ -147,7 +156,7 @@ int main(int argc, char **argv) {
   }
 
 
-  printf("Starting DNSSEC walking on server %s about %s\n", dst, domain);
+  printf("Starting DNSSEC walking on server %s about %s (%s)\n", dst, domain, tcp == 0 ? "UDP" : "TCP");
   while (ok == 1) {
     ptr = nexthost;
     i = fixi;
@@ -171,6 +180,12 @@ int main(int argc, char **argv) {
     memcpy(buf + i, b2, sizeof(b2));
     i += sizeof(b2);
     dlen = i;
+    
+    if (tcp) {
+      int data_len = dlen - 2;
+      buf[0] = data_len / 256;
+      buf[1] = data_len % 256;
+    }
 
   resend:
     if (send(sock, buf, dlen, 0) < 0) {
@@ -194,9 +209,29 @@ int main(int argc, char **argv) {
 
     errcntbak = errcnt;
     signal(SIGALRM, noreply);
-    alarm(5);
     memset(buf2, 0, sizeof(buf2));
-    len = recv(sock, buf2, sizeof(buf2), 0);
+    if (tcp) {
+      alarm(5);
+      len = recv(sock, buf2, 2, 0);
+      alarm(0);
+      if (len != 2) {
+        close(sock);
+        sock = dnssocket(dst);
+        recv_len = 0;
+        if (errcntbak == errcnt)
+          errcnt++;
+        if ((errcntbak != errcnt) && errcnt > 0 && errcnt <= RETRY)
+          goto resend;
+        if (RETRY < errcnt || len < 10)
+          noreply(0);
+      } else
+        recv_len = (unsigned int)((unsigned int)buf2[0] << 8) + (unsigned int) buf2[1];
+      if (sock == -1)
+        sock = dnssocket(dst);
+    } else
+      recv_len =  sizeof(buf2);
+    alarm(5);
+    len = recv(sock, buf2, recv_len, 0);
     alarm(0);
     if (sock == -1)
       sock = dnssocket(dst);
