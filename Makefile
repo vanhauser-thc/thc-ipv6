@@ -38,7 +38,7 @@ connsplit6:	connsplit6.c $(LIBS)
 	$(CC) $(CFLAGS) $(STATIC) -o $@ $^ $(LDFLAGS) 
 
 strip:	all
-	$(STRIP) $(PROGRAMS) $(EXTRA)
+	-$(STRIP) $(PROGRAMS) $(EXTRA)
 
 install: all strip
 	install -m0755 -d ${DESTDIR}${PREFIX}/bin
