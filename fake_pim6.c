@@ -11,7 +11,7 @@
 #include "thc-ipv6.h"
 
 void help(char *prg) {
-  printf("%s %s (c) 2015 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax:\n");
   printf("  %s [-t ttl] [-s src6] [-d dst6] interface hello [dr_priority]\n", prg);
   printf("  %s [-t ttl] [-s src6] [-d dst6] interface join|prune neighbor6 multicast6 target6\n\n", prg);

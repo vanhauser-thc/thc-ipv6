@@ -11,7 +11,7 @@
 #include "thc-ipv6.h"
 
 void help(char *prg) {
-  printf("%s %s (c) 2015 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-k | -m mac] interface [target]\n\n", prg);
   printf("Flood the local network with neighbor advertisements.\n");
   printf("Option -k sends with your real src mac, -m with a specified src mac, random for each packet otherwise.\n");

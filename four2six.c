@@ -14,7 +14,7 @@
 #include "thc-ipv6.h"
 
 void help(char *prg) {
-  printf("%s %s (c) 2015 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-FHD] [-m srcmac] [-s src6] [-p srcport] interface ipv6-to-ipv4-gateway ipv4-src ipv4-dst [port]\n\n", prg);
   printf("Options:\n");
   printf("  -F         insert atomic fragment header (can be set multiple times)\n");

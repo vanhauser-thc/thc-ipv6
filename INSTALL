@@ -7,6 +7,9 @@ libopenssl development files are a good idea.
 For Debian/Ubunut/Kali/Backtrack, you can install them by:
  $ sudo apt-get install libpcap-dev libssl-dev
 
+For a few optional, obscure tools you need a libnetfilter library:
+ $ sudo apt-get install libnetfilter-queue-dev
+
 To compile simply type
  $ make
 

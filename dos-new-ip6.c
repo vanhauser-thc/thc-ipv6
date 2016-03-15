@@ -19,7 +19,7 @@ char *ptr3, *ptr4;
 int i;
 
 void help(char *prg) {
-  printf("%s %s (c) 2015 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s interface\n\n", prg);
   printf("This tools prevents new IPv6 interfaces to come up, by sending answers to\n");
   printf("duplicate ip6 checks (DAD). This results in a DOS for new IPv6 devices.\n\n");

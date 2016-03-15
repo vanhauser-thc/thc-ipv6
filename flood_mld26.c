@@ -13,7 +13,7 @@
 #define RECORD_NUMBER     8
 
 void help(char *prg) {
-  printf("%s %s (c) 2015 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s interface [target]\n\n", prg);
   printf("Flood the local network with MLDv2 reports.\n");
 //  printf("Use -r to use raw mode.\n\n");

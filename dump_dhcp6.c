@@ -48,7 +48,7 @@ char dnsupdate1[] = { 0, 39, 0, 8, 1, 6, 122, 97, 97, 97, 97, 97 };
 char dnsupdate2[] = { 0, 6, 0, 2, 0, 39 };
 
 void help(char *prg) {
-  printf("%s %s (c) 2015 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-V vendorid] interface\n\n", prg);
   printf("Options:\n");
   printf("  -V vendorid  send vendorid number,string (e.g. 11,test)\n");

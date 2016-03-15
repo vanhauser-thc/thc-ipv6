@@ -12,7 +12,7 @@
 #include "thc-ipv6.h"
 
 void help(char *prg) {
-  printf("%s %s (c) 2015 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-DHF] interface ip-address-solicitated [target-address [mac-address-solicitated [source-ip-address]]]\n\n", prg);
   printf("Solicate IPv6 address on the network, sending it to the all-nodes multicast address\n");
 //  printf("Option -H adds a hop-by-hop header, -F a one shot fragment header,\n");

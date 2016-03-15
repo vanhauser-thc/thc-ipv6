@@ -15,7 +15,7 @@ unsigned char *mac6 = mac, *src6, *dest6, *oldrouter6, *newrouter6, *self6, *fak
 char *interface;
 
 void help(char *prg) {
-  printf("%s %s (c) 2015 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s interface victim-ip destination-ip original-router [new-router [new-router-mac]]\n\n", prg);
   printf("Implant a route into victim-ip, which redirects all traffic to destination-ip to\n");
   printf("new-router. This is done on all traffic that flows by that matches\n");

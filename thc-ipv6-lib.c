@@ -1,5 +1,5 @@
 /*
- * (c) 2015 by van Hauser / THC <vh@thc.org>
+ * (c) 2016 by van Hauser / THC <vh@thc.org>
  *
  * THC IPv6 Attack Library
  *

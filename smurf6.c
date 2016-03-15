@@ -11,7 +11,7 @@
 #include "thc-ipv6.h"
 
 void help(char *prg) {
-  printf("%s %s (c) 2015 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s interface victim-ip [multicast-network-address]\n\n", prg);
   printf("Smurf the target with icmp echo replies. Target of echo request is the\n");
   printf("local all-nodes multicast address if not specified\n");

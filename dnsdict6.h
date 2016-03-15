@@ -1,5 +1,5 @@
 /*
- * dnsdict.h (c) 2015 by van Hauser / THC
+ * dnsdict.h (c) 2016 by van Hauser / THC
  *
  */
 
