@@ -25,10 +25,10 @@ trap ' kill -TERM `cat .$FILE.pid` ; rm -f .$FILE.pid ; exit 0 ' 1 2 3 13 15
 GO=yes
 while [ "$GO" = yes ] ; do
   fake_mld6 $INT query
-  alive26 -l $INT
+  alive6 -l $INT
   dump_router6 $INT
   fake_router26 -A 3000::/64 -a 2 -l 2 -n 1 -p low $INT
-  ifconfig $INT | grep -iq global && alive26 $INT
+  ifconfig $INT | grep -iq global && alive6 $INT
   node_query6 $INT ff02::1
   fake_mld26 $INT query
   test "$LOOP" = yes && sleep 20

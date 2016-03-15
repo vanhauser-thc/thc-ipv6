@@ -3,7 +3,7 @@
 test -z "$1" -o -z "$2" -o "$1" = "-h" && { echo Syntax: $0 interface ALIVE-FILE; echo Creates a GraphViz .gv file from the file containing alive IPv6 addresses. ; echo Several files will be created in the same directory as the input file. ; exit 1; }
 
 echo Ping scanning list ...
-alive26 -p -i "$2" $1 | grep Alive: | grep echo-reply | awk '{print$2}' > "$2".pingable
+alive6 -p -i "$2" $1 | grep Alive: | grep echo-reply | awk '{print$2}' > "$2".pingable
 
 echo Extracting one target from every network ...
 for i in `extract_networks6.sh "$2".pingable | sort -u | sed 's/:$//'`; do

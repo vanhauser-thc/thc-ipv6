@@ -2,6 +2,7 @@ CHANGELOG
 =========
 
 v3.1-dev
+ * added alive2map.sh script to create a network map (graphviz->jpg) from a list of alive hosts
  * dnssecwalk: added TCP mode (-t)
  * dnsrevenum6: added TCP mode (-t)
  * re-enabled raw mode, works now with modern kernels it seems

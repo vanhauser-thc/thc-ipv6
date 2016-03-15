@@ -113,7 +113,7 @@ them work if global addresses (non-link-local addresses) are used.
 e.g. when the source IPv6 to use is 2003::1 and the target is
 ipv6.google.com =>
   thcping6 eth0 2003::1 ipv6.google.com
-  alive26 -I 2003::1 eth0 ipv6.google.com
+  alive6 -I 2003::1 eth0 ipv6.google.com
   trace6 -s 2003::1 eth0 ipv6.google.com
 But of course it is easier to just configure that as you only global
 IPv6 addresses so that everything works, e.g.
