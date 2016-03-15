@@ -3,10 +3,13 @@ CHANGELOG
 
 v3.1-dev
  * added alive2map.sh script to create a network map (graphviz->jpg) from a list of alive hosts
+ * flood_router26:
+   - added -m option to force DHCPv6 managed and other configuration
+   - reduced lifetime for -s option to 1s
  * dnssecwalk: added TCP mode (-t)
  * dnsrevenum6: added TCP mode (-t)
- * re-enabled raw mode, works now with modern kernels it seems
  * fake_advertise6: a second packet always was sent with no flags. fixed. thanks to Christopher Werny@ERNW for reporting
+ * re-enabled raw mode, works now with modern kernels it seems
  * small reliability patches by Benjamin Kellermann, thanks!
  * added man page auto generator by Benjamin Kellermann, thanks!
  * small change to the Makefile to allow installation even if not everything could be compiled (libraries missing)

