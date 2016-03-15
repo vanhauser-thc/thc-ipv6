@@ -9,7 +9,7 @@ $count = 0;
 $ln = 0;
 
 if ($option eq "" || $option eq "-h") {
-  print "Syntax: [-n] grep6.pl ipv6-address [logfile]\n";
+  print "Syntax: grep6.pl [-n] ipv6-address [logfile]\n";
   print "Option: -n print with line count\n";
   exit(0);
 }

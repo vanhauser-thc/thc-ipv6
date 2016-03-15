@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH THC-IPv6 ATTACK-TOOLKIT6 8 "March 2016"
+.TH THC-IPv6 ATTACK-TOOLKIT6 8 "Summer 2015"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -123,7 +123,7 @@ Advertise yourself in a multicast group of your choice.
 This uses the MLDv2 protocol. Only a subset of what the protocol is able to do is possible to implement via a command line.
 .TP
 .B fake_mldrouter6 [-l] <interface> <advertise|solicitate|terminate> [own-ip [own-mac-address]]
-Announce, delete or soliciated MLD router - sourself or others.
+Announce, delete or solicitate MLD router - yourself or others.
 .TP
 .B fake_pim6 [-t ttl] [-s src6] [-d dst6] <interface> {<hello> [dr_priority]|{join|prune} <neighbor6> <multicast6> <target6>}
 The hello command takes optionally the DR priority (default: 0).
@@ -176,7 +176,7 @@ Similar to
 but with more options available.
 .TP
 .B flood_rs6 [-sS] interface [target]
-flood a network with ICMPv6 router solicitation messages
+Flood a network with ICMPv6 router solicitation messages
 .TP
 .B flood_solicitate6 <interface> [target-ip]
 Flood the network with neighbor solicitations.
@@ -188,12 +188,11 @@ Send (spoofed) packets over a 4to6 tunnel (IPv4 packets over IPv6 networks)
 Performs fragment firewall and implementation checks, including
 denial-of-service.
 .TP
-.B fuzz_dhcps6 [-x] [-t number | -T number] [-p number] [-IFSDHRJ] [-1|-2|-3|-4|-5|-6|-7] <interface> <unicast-or-multicast-address> [address-in-data-pkt]
+.B fuzz_ip6 [-x] [-t number | -T number] [-p number] [-IFSDHRJ] [-1|-2|-3|-4|-5|-6|-7] <interface> <unicast-or-multicast-address> [address-in-data-pkt]
 Fuzzes an icmp6 packet.
 .TP
 .B fuzz_dhcps6 [-t number | -T number] [-e number | -T number] [-p number] [-md] [-1|-2|-3|-4|-5|-6|-7|-8] interface [domain-name]
 Fuzzes a DHCPv6 server on specified packet types.
-.TP
 .B implementation6 <interface> <destination> [test-case-number]
 Performs some ipv6 implementation checks, can be used to test firewalls too.
 .TP
@@ -223,7 +222,7 @@ This tool version is manyfold more effective than ndpexhaust6.
 \-c      do not calculate the checksum to save time.
 \-p      send ICMPv6 Echo Requests.
 \-P      send ICMPv6 Echo Reply.
-\-T      send ICMPv6 Time-to-live-exeeded.
+\-T      send ICMPv6 Time-to-live-exceeded.
 \-U      send ICMPv6 Unreachable (no route).
 \-r      randomize the source from your /64 prefix.
 \-R      randomize the source fully.
@@ -238,10 +237,10 @@ Sends an ICMPv6 node query request to the target and dumps the replies.
 .B parasite6 <interface> [fake-mac]
 This is an "ARP spoofer" for IPv6, redirecting all local traffic to your
 own system (or nirvana if fake-mac does not exist) by answering falsely
-to Neighbor Solitication requests, specifying FAKE-MAC results in a local DOS.
+to Neighbor Solicitation requests, specifying FAKE-MAC results in a local DOS.
 .TP
 .B passive_discovery6 <interface> [scriptname]
-Passivly sniffs the network and dump all client's IPv6 addresses
+Passively sniffs the network and dump all client's IPv6 addresses
 detected. If scriptname is supplied, it is called with the detected
 IPv6 address as first and the interface as second parameters.
 .TP
