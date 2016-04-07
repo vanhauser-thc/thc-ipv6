@@ -149,7 +149,7 @@ void check_packets(u_char *pingdata, const struct pcap_pkthdr *header, const uns
       printf("(ignoring icmp6 packet with different contents (proto %d, type %d, code %d)) ", ptr[nxt], ptr[40 + offset], ptr[41 + offset]);
   } else {
     if (type == NXT_TCP && ptr[nxt] == NXT_TCP) {
-      printf("%04u.%04ld \ttcp-", (int) (ts2.tv_sec - ts.tv_sec - min), usec);
+      printf("%04u.%03ld \ttcp-", (int) (ts2.tv_sec - ts.tv_sec - min), usec);
       switch ((ptr[53 + offset] % 8)) {
       case 2:
         if (ptr[53 + offset] >= TCP_ACK) {
@@ -182,7 +182,7 @@ void check_packets(u_char *pingdata, const struct pcap_pkthdr *header, const uns
       }
     } else
       if (type == NXT_UDP && ptr[nxt] == NXT_UDP)
-        printf("%04u.%04ld \tudp", (int) (ts2.tv_sec - ts.tv_sec - min), usec);
+        printf("%04u.%03ld \tudp", (int) (ts2.tv_sec - ts.tv_sec - min), usec);
   }
   if (resp_type >= 0)
     printf(" packet received from %s%s\n", thc_ipv62notation(ptr + 8), frag);
@@ -563,7 +563,7 @@ int main(int argc, char *argv[]) {
           usleep(1);
     clock_gettime(CLOCK_REALTIME, &ts);
     if (flood < 2) {
-      printf("0000.0000 \t%s packet sent to %s\n", port == 0 ? "ping" : type == NXT_TCP ? "tcp-syn" : "udp", thc_ipv62notation(dst6));
+      printf("0000.000 \t%s packet sent to %s\n", port == 0 ? "ping" : type == NXT_TCP ? "tcp-syn" : "udp", thc_ipv62notation(dst6));
       if (flood == 1 && type != NXT_TCP && type != NXT_UDP && frag == 0) {
         if (xl)
           for (i = 0; i < count; i++)

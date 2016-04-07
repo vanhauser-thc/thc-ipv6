@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
   if (do_hdr_size)
     offset = do_hdr_size;
 
-  printf("Starting to flood with ICMPv6 redirects on %s (Press Control-C to end, a dot is printed for every 1000 packets):\n", interface);
+  printf("Starting to flood with ICMPv6 router solicitation on %s (Press Control-C to end, a dot is printed for every 1000 packets):\n", interface);
   while (until != 1) {
     if (rand_mac) {
       memcpy(hdr->pkt + 8, (char*) &k + _TAKE4, 4);

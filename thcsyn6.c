@@ -12,10 +12,11 @@
 
 void help(char *prg) {
   printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
-  printf("Syntax: %s [-AcDrRS] [-m dstmac] [-p port] [-s sourceip6] interface target port\n\n", prg);
+  printf("Syntax: %s [-aAcdDfrORS] [-m dstmac] [-p port] [-s sourceip6] interface target port\n\n", prg);
   printf("Options:\n");
   printf(" -a      add hop-by-hop header with router alert\n");
-  printf(" -d      add destination header (can be set up to 150 times)\n");
+  printf(" -d      add destination header (can be set up to 64 times)\n");
+  printf(" -f      add atomic fragmentation header (can be set up to 64 times)\n");
   printf(" -A      send TCP-ACK packets\n");
   printf(" -S      send TCP-SYN-ACK packets\n");
   printf(" -r      randomize the source from your /64 prefix\n");
@@ -34,7 +35,7 @@ void help(char *prg) {
 int main(int argc, char *argv[]) {
   char *interface, *ptr, buf2[8], buf3[18];
   unsigned char *dst = NULL, *dstmac = NULL, *src = NULL, *srcmac = NULL, dmac[6];
-  int i, type = TCP_SYN, alert = 0, randsrc = 0, randdst = 0, randsrcp = 1, randdstp = 0, dont_crc = 0, seq, do_dst = 0, fastopen = 0, olen = 0;
+  int i, type = TCP_SYN, alert = 0, randsrc = 0, randdst = 0, randsrcp = 1, randdstp = 0, dont_crc = 0, seq, do_dst = 0, do_frag = 0, fastopen = 0, olen = 0;
   unsigned char *pkt = NULL;
   int pkt_len = 0, count = 0;
   unsigned short int sport, port;
@@ -46,7 +47,7 @@ int main(int argc, char *argv[]) {
   setvbuf(stdout, NULL, _IONBF, 0);
   setvbuf(stderr, NULL, _IONBF, 0);
   
-   while ((i = getopt(argc, argv, "aAcrRsDSp:m:dO")) >= 0) {
+   while ((i = getopt(argc, argv, "afAcrRsDSp:m:dfO")) >= 0) {
      switch(i) {
        case 'a':
          alert = 8;
@@ -83,6 +84,12 @@ int main(int argc, char *argv[]) {
          break;
        case 's':
          src = thc_resolve6(optarg);
+         break;
+       case 'd':
+         do_dst++;
+         break;
+       case 'f':
+         do_frag++;
          break;
        default:
          fprintf(stderr, "Error: unknown option -%c\n", i);
@@ -169,6 +176,14 @@ int main(int argc, char *argv[]) {
       memset(buf2, 0, sizeof(buf2));
       for (i = 0; i < do_dst; i++)
         if (thc_add_hdr_dst(pkt, &pkt_len, buf2, 6) < 0)
+          return -1;
+    }
+    if (do_frag) {
+      if (do_frag > (thc_get_mtu(interface) - 40 - alert - 24) / 8)
+        do_frag = (thc_get_mtu(interface) - 40 - alert - 24) / 8;
+      memset(buf2, 0, sizeof(buf2));
+      for (i = 0; i < do_dst; i++)
+        if (thc_add_hdr_oneshotfragment(pkt, &pkt_len, getpid() + i) < 0)
           return -1;
     }
     if (thc_add_tcp(pkt, &pkt_len, sport, port, seq, 0, type, 0x3840, 0, buf3, olen, NULL, 0) < 0)
