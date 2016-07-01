@@ -2,6 +2,7 @@ CHANGELOG
 =========
 
 v3.1-dev
+ * fake_router26: new -f option to specify the sending mac address (thanks to Scott Winegarden for the patch)
  * added alive2map.sh script to create a network map (graphviz->jpg) from a list of alive hosts
  * thcsyn6: added -f and -d options
  * flood_router26:

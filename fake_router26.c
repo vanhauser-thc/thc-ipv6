@@ -33,6 +33,7 @@ void help(char *prg) {
   printf(" -M mtu             the MTU to send, defaults to the interface setting\n");
   printf(" -s sourceip        the source ip of the router, defaults to your link local\n");
   printf(" -S sourcemac       the source mac of the router, defaults to your interface\n");
+  printf(" -f ethernetmac     the ethernet mac address to use to send the frames\n");
   printf(" -l seconds         router lifetime (defaults to %d)\n", llife);
   printf(" -T ms              reachable timer (defaults to %d)\n", reach);
   printf(" -t ms              retrans timer (defaults to %d)\n", trans);
@@ -114,8 +115,8 @@ void exit_cleanup(int dummy) {
 }
 
 int main(int argc, char *argv[]) {
-  char mac[16] = "", dmac[16] = "";
-  unsigned char *routerip6, *mac6 = NULL, *ip6 = NULL;
+  char mac[16] = "", dmac[16] = "", smac[16] = "";
+  unsigned char *routerip6, *mac6 = NULL, *ip6 = NULL, *fmac = NULL;
   unsigned char buf[512], *ptr, buf2[6], string[] = "ip6 and icmp6 and dst ff02::2";
   unsigned char rbuf[MAX_ENTRIES + 1][17], pbuf[MAX_ENTRIES + 1][17], *dbuf[MAX_ENTRIES + 1];
   unsigned char *dst = thc_resolve6("ff02::1");
@@ -131,7 +132,7 @@ int main(int argc, char *argv[]) {
   memset(rbuf, 0, sizeof(rbuf));
   memset(mac, 0, sizeof(mac));
 
-  while ((i = getopt(argc, argv, "i:r:E:R:M:m:S:s:D:L:A:a:r:d:t:T:p:n:l:F:X")) >= 0) {
+  while ((i = getopt(argc, argv, "i:r:E:R:M:m:S:s:D:L:A:a:r:d:t:T:p:n:l:F:Xf:")) >= 0) {
     switch (i) {
     case 'i':
       interval = atoi(optarg);
@@ -145,6 +146,11 @@ int main(int argc, char *argv[]) {
       sscanf(optarg, "%x:%x:%x:%x:%x:%x", (unsigned int *) &mac[0], (unsigned int *) &mac[1], (unsigned int *) &mac[2], (unsigned int *) &mac[3], (unsigned int *) &mac[4],
              (unsigned int *) &mac[5]);
       mac6 = mac;
+      break;
+    case 'f':
+      sscanf(optarg, "%x:%x:%x:%x:%x:%x", (unsigned int *) &smac[0], (unsigned int *) &smac[1], (unsigned int *) &smac[2], (unsigned int *) &smac[3], (unsigned int *) &smac[4],
+             (unsigned int *) &smac[5]);
+      fmac = smac;
       break;
     case 's':
       if ((ip6 = thc_resolve6(optarg)) == NULL) {
@@ -352,6 +358,8 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "Error: invalid interface %s\n", interface);
       exit(-1);
     }
+  if (fmac == NULL)
+    fmac = mac6;
   if (ip6 == NULL)
     if ((ip6 = thc_get_own_ipv6(interface, NULL, PREFER_LINK)) == NULL) {
       fprintf(stderr, "Error: IPv6 is not enabled on interface %s\n", interface);
@@ -362,7 +370,7 @@ int main(int argc, char *argv[]) {
 
   frint = interface;
   frip6 = ip6;
-  frmac = mac6;
+  frmac = fmac;
   frbuf = buf;
   frbuf2 = buf2;
   frbuf2len = sizeof(buf2);
@@ -535,7 +543,7 @@ int main(int argc, char *argv[]) {
   }
   if (thc_add_icmp6(pkt, &pkt_len, ICMP6_ROUTERADV, 0, llife, buf, i, 0) < 0)
     return -1;
-  if (thc_generate_pkt(interface, mac6, dstmac, pkt, &pkt_len) < 0)
+  if (thc_generate_pkt(interface, frmac, dstmac, pkt, &pkt_len) < 0)
     return -1;
   frhdr = (thc_ipv6_hdr *) pkt;
 //printf("DEBUG: RA size is %d bytes, do_dst %d, do_overlap %d\n", i + 8, do_dst, do_overlap);
