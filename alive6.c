@@ -507,7 +507,7 @@ void check_packets(u_char *foo, const struct pcap_pkthdr *header, const unsigned
         ok = 2;
       }
     } else
-      orig_dst = thc_ipv62notation(ptr + 72 + offset);
+      orig_dst = thc_ipv62notation(ptr + 64 + offset);
   }
 
   i = 0;

@@ -20,6 +20,6 @@ echo Creating GraphViz GV file
 create_network_map.sh *.list > "$2".gv
 
 echo Creating JPG file
-dot -Tjpg "$2".gv > "$2".jpg
+dot -Tpng "$2".gv > "$2".png
 
-echo Done, JPG is in $2.jpg and GraphViz is in $2.gv
+echo Done, JPG is in $2.png and GraphViz is in $2.gv
