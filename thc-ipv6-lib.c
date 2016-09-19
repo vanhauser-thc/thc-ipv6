@@ -461,7 +461,10 @@ unsigned char *thc_get_own_mac(char *interface) {
 
   getifaddrs(&ifa);
   ifx = ifa;
-  mac = malloc(6);
+  if ((mac = malloc(6)) == NULL) {
+    perror("malloc");
+    return NULL;
+  }
 
   while (ifa != NULL) {
     dl = (struct sockaddr_dl *) ifa->ifa_addr;
