@@ -103,7 +103,7 @@ int netfilter_queue_callback(struct nfq_q_handle *hq, struct nfgenmsg *nfmsg, st
       log_message(LOG_DEBUG, "Packet received: %u", id);
 
     // Get payload and ip header
-    len = nfq_get_payload(nfad, (char **) &packet);
+    len = nfq_get_payload(nfad, (unsigned char **) &packet);
     packet_header = (struct ip6_hdr *) packet;
     proto = packet_header->ip6_ctlun.ip6_un1.ip6_un1_nxt;
     
