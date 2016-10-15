@@ -3,7 +3,7 @@ CHANGELOG
 
 v3.1-dev
  * added toobigsniff6: send ICMPv6 toobig messages for sniffed traffic
- * added alive2map.sh script to create a network map (graphviz->png) from a list of alive hosts
+ * added alive2map.sh script to create a network map (graphviz->jpg) from a list of alive hosts
  * alive6: fixed displaying right source of one packet type
  * fake_router26: new -f option to specify the sending mac address (thanks to Scott Winegarden for the patch)
  * thcsyn6: added -f and -d options

@@ -496,7 +496,10 @@ unsigned char *thc_get_own_mac(char *interface) {
     return NULL;
   }
 
-  mac = malloc(6);
+  if ((mac = malloc(6)) == NULL) {
+    perror("malloc");
+    return NULL;
+  }
   memcpy(mac, &ifr.ifr_hwaddr.sa_data, 6);
   close(s);
 #endif

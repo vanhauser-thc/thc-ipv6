@@ -3,7 +3,7 @@ test -z "$1" -o '!' -e "$1" && {
   echo "Syntax: $0 file1 file2 file3 file4 ... > map.gv"
   echo Creates a GV file for use with Graphviz to create a network topology map
   echo file1 must have per line one entry only.
-  echo "Afterwards run it like: dot -Tpng map.gv > map.png"
+  echo "Afterwards run it like: dot -Tjpg map.gv > map.jpg"
   exit 1
 }
 
