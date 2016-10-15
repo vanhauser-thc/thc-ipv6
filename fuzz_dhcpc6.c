@@ -12,6 +12,8 @@
 #include <sys/select.h>
 #include "thc-ipv6.h"
 
+int do_fuzzer();
+
 #define COUNT_FLAG     11
 #define COUNT_BYTE      4
 #define COUNT_WORD     16
@@ -487,7 +489,7 @@ int fuzz_loop(char *pkt, int *pkt_len) {
   }
 }
 
-dhcpc_listener() {
+void dhcpc_listener() {
   if ((s = thc_bind_udp_port(547)) < 0) {
     fprintf(stderr, "Error: could not bind to 547/udp\n");
     exit(-1);
@@ -719,6 +721,7 @@ int main(int argc, char *argv[]) {
   printf("\nFields Fuzzed:\n\n");
   do_fuzzer();
 }
+
 int do_fuzzer() {
   char *ptr;
 

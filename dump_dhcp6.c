@@ -6,6 +6,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
+#include <ctype.h>
 #include <time.h>
 #include <pcap.h>
 #include <netinet/in.h>
