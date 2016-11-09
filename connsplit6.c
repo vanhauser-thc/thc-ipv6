@@ -367,7 +367,6 @@ void signal_manager(int signal) {
   case SIGTERM:
     // Log the signal
     log_message(LOG_NOTICE, "User interrupt!");
-    // Attiva lo switch per l'uscita dal sotware
     exit_from_loop = 1;
     break;
   }
