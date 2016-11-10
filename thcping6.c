@@ -145,6 +145,7 @@ void check_packets(u_char *pingdata, const struct pcap_pkthdr *header, const uns
         printf("icmp6 %d:%d", ptr[40 + offset], ptr[41 + offset]);
         resp_type = 0;
       }
+      printf("\n");
     } else
       printf("(ignoring icmp6 packet with different contents (proto %d, type %d, code %d)) ", ptr[nxt], ptr[40 + offset], ptr[41 + offset]);
   } else {
