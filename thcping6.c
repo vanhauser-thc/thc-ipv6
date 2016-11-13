@@ -25,7 +25,7 @@ void help(char *prg, int help) {
   printf("Syntax: %s [-EafqxO] [-e ethertype] [-H t:l:v] [-D t:l:v] [-F dst] [-e ethertype] [-L length] [-N nextheader] [-V version] [-t ttl] [-c class] [-l label] [-d size] [-S port|-U port|-T type -C code] interface src6 dst6 [srcmac [dstmac [data]]]\n\n", prg);
   printf("Options:\n");
   if (help) {
-    printf("  -x              flood mode (doesnt check for replies)\n");
+    printf("  -x              flood mode (doesn't check for replies)\n");
     printf("  -a              add a hop-by-hop header with router alert option.\n");
     printf("  -q              add a hop-by-hop header with quickstart option.\n");
     printf("  -E              send as ethertype IPv4\n");

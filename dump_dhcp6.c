@@ -139,7 +139,7 @@ void check_packets(u_char *foo, const struct pcap_pkthdr *header, const unsigned
           break;
         case 2:
           if (j > 0) {
-            printf("    Server Identifier: "); // server identier
+            printf("    Server Identifier: "); // server identifier
             for (k = 0; k < j; k++) {
               printf("%02x", (unsigned char) data[4 + k]);
             }
@@ -151,7 +151,7 @@ void check_packets(u_char *foo, const struct pcap_pkthdr *header, const unsigned
             printf("    Address Offered: %s\n", thc_ipv62notation((unsigned char*)data + 20));
           break;
         case 7:
-          printf("    Prefered value (not implemented)\n"); // prefered value
+          printf("    Preferred value (not implemented)\n"); // preferred value
           break;
         case 13:
         case 19:

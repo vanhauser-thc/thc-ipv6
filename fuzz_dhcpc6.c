@@ -678,7 +678,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (test_end < test_start) {
-    printf("dont fuck up the command line options!\n");
+    printf("don't fuck up the command line options!\n");
     exit(-1);
   }
 

@@ -921,7 +921,7 @@ int main(int argc, char *argv[]) {
     help(argv[0]);
 
   if (slow && ndp_only) {
-    fprintf(stderr, "Error: you can not use the -S and -L options togther!\n");
+    fprintf(stderr, "Error: you can not use the -S and -L options together!\n");
     exit(-1);
   }
 
