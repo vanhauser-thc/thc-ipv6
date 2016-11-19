@@ -20,10 +20,10 @@ MANPAGES=$(foreach p, $(PROGRAMS) $(EXTRA), $(p).8)
 all:	$(LIBS) $(PROGRAMS) $(EXTRA) $(MANPAGES)
 
 dnssecwalk:	dnssecwalk.c
-	$(CC) $(CFLAGS) $(STATIC) -o $@ $^
+	$(CC) $(CFLAGS) $(STATIC) -o $@ $^ $(LDFLAGS)
 
 dnsdict6:	dnsdict6.c
-	$(CC) $(CFLAGS) $(STATIC) -o $@ $^ -lpthread -lresolv
+	$(CC) $(CFLAGS) $(STATIC) -o $@ $^ $(LDFLAGS) -lpthread -lresolv
 
 thcping6:	thcping6.c $(LIBS)
 	$(CC) $(CFLAGS) $(STATIC) -o $@ $^ $(LDFLAGS) -lrt
