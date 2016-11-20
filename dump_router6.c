@@ -196,7 +196,7 @@ void clean_exit(int sig) {
 int main(int argc, char *argv[]) {
   char *interface, string[] = "ip6 and icmp6";
   unsigned char *mac6, buf[512];
-  unsigned char *dst = thc_resolve6("ff02::2");
+  unsigned char *dst = thc_resolve6("ff02::2"), *src = NULL;
   int i;
   unsigned char *pkt = NULL;
   int pkt_len = 0;
@@ -206,12 +206,20 @@ int main(int argc, char *argv[]) {
   if (argc < 2 || strncmp(argv[1], "-h", 2) == 0)
     help(argv[0]);
 
-  while ((i = getopt(argc, argv, "r")) >= 0) {
+  while ((i = getopt(argc, argv, "rS:h")) >= 0) {
     switch (i) {
     case 'r':
       thc_ipv6_rawmode(1);
       rawmode = 1;
       break;
+    case 'h'
+      help(argv[0]);
+      break;
+    case 'S':
+      if ((src = thc_resolve6(optarg)) == NULL) {
+        fprintf(stderr, "Error: could not resolve %s\n", optarg);
+        return -1;
+      }
     default:
       fprintf(stderr, "Error: invalid option %c\n", i);
       exit(-1);
@@ -238,7 +246,7 @@ int main(int argc, char *argv[]) {
     exit(-1);
   }
 
-  if ((pkt = thc_create_ipv6_extended(interface, PREFER_LINK, &pkt_len, NULL, dst, 255, 0, 0, 0xe0, 0)) == NULL)
+  if ((pkt = thc_create_ipv6_extended(interface, PREFER_LINK, &pkt_len, src, dst, 255, 0, 0, 0xe0, 0)) == NULL)
     return -1;
   if (thc_add_icmp6(pkt, &pkt_len, ICMP6_ROUTERSOL, 0, 0, buf, i, 0) < 0)
     return -1;
