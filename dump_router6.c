@@ -212,7 +212,7 @@ int main(int argc, char *argv[]) {
       thc_ipv6_rawmode(1);
       rawmode = 1;
       break;
-    case 'h'
+    case 'h':
       help(argv[0]);
       break;
     case 'S':
