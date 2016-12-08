@@ -187,6 +187,14 @@ void help(char *prg) {
   exit(-1);
 }
 
+void addfuzz(char **fuzzbuf, int *fuzzbuf_sz, char *fuzztype) {
+  if (strlen(*fuzzbuf) + strlen(fuzztype) + 1 > *fuzzbuf_sz) {
+    *fuzzbuf_sz *= 2;
+    *fuzzbuf = realloc(*fuzzbuf, *fuzzbuf_sz);
+  }
+  strcat(*fuzzbuf, fuzztype);
+}
+
 void ignoreit(u_char *foo, const struct pcap_pkthdr *header, const unsigned char *data) {
   return;
 }
@@ -219,8 +227,8 @@ int main(int argc, char *argv[]) {
   int do_type = DO_PING, do_alive = 1, hopbyhop = 0, destination = 0, jumbo = 0;
   int pkt_len = 0, offset = 0, test_current = 0, i, j, k, do_fuzz = 1, test_ptr = 0;
   int test_end = TEST_MAX, ping = NEVER, frag_offset = 0, header = 0, no_send = 1;
-  int test_pos = 0, test_cnt = 0, do_it, extend = 0, mtu = 1500, size = 64, wait = 0, off2 = 14;
-  char *interface, fuzzbuf[256], *srcmac, *dns, *route6, *real_dst6 = NULL;
+  int test_pos = 0, test_cnt = 0, do_it, extend = 0, mtu = 1500, size = 64, wait = 0, off2 = 14, fuzzbuf_sz = 256;
+  char *interface, *fuzzbuf, *srcmac, *dns, *route6, *real_dst6 = NULL;
   unsigned char buf[256], buf2[100], buf3[16];
   unsigned short int *sip;
   pcap_t *p;
@@ -404,25 +412,27 @@ int main(int argc, char *argv[]) {
       exit(-1);
     }
   // generate basic packet
-  strcpy(fuzzbuf, fuzztype_ether);
+  fuzzbuf = malloc(fuzzbuf_sz);
+  fuzzbuf[0] = '\0';
+  addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_ether);
   if ((pkt = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len, src6, dst6, 0, 0, 0, 0, 0)) == NULL)
     return -1;
   if (header)
-    strcat(fuzzbuf, fuzztype_ip6);
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_ip6);
   else
-    strcat(fuzzbuf, fuzztype_ip6no);
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_ip6no);
 
   if (alert || hopbyhop || jumbo) {
     memset(buf2, 0, sizeof(buf2));
     i = 0;
     
-    strcat(fuzzbuf, "XX"); // first two bytes of EH
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, "XX"); // first two bytes of EH
 
     if (alert) {
       buf2[i++] = 5;
       buf2[i++] = 2;
       i += 2;
-      strcat(fuzzbuf, ".FW");
+      addfuzz(&fuzzbuf, &fuzzbuf_sz, ".FW");
     }
 
     if (jumbo) {
@@ -432,7 +442,7 @@ int main(int argc, char *argv[]) {
       buf2[i++] = 'J';
       buf2[i++] = 'J';
       buf2[i++] = 'J';
-      strcat(fuzzbuf, ".FWW");
+      addfuzz(&fuzzbuf, &fuzzbuf_sz, ".FWW");
     }
 
     if (hopbyhop) {
@@ -447,14 +457,15 @@ int main(int argc, char *argv[]) {
           buf3[2 + j] = '.';
           i += j;
         }
-        strcat(fuzzbuf, buf3);  // always: X..... for every new option
+	// always: X..... for every new option
+        addfuzz(&fuzzbuf, &fuzzbuf_sz, buf3);
       }
     }
     
     j = 8 - ( ( i + 2 ) % 8 );
     if (j > 0 && j < 8) {
       for (k = 0; k < j; k++)
-        strcat(fuzzbuf, "."); // fill because of padding
+        addfuzz(&fuzzbuf, &fuzzbuf_sz, "."); // fill because of padding
     }
 
     if (thc_add_hdr_hopbyhop(pkt, &pkt_len, buf2, i) < 0)
@@ -471,7 +482,7 @@ int main(int argc, char *argv[]) {
     if (thc_add_hdr_route(pkt, &pkt_len, routers, 1) < 0)
       return -1;
     else {
-      strcat(fuzzbuf, "FFFFBBBB................");
+      addfuzz(&fuzzbuf, &fuzzbuf_sz, "FFFFBBBB................");
       offset += 24;
     }
   }
@@ -481,7 +492,7 @@ int main(int argc, char *argv[]) {
     if (thc_add_hdr_fragment(pkt, &pkt_len, 0, 0, 0) < 0)
       return -1;
     else {
-      strcat(fuzzbuf, "FFWW..");
+      addfuzz(&fuzzbuf, &fuzzbuf_sz, "FFWW..");
       offset += 8;
     }
   }
@@ -489,7 +500,7 @@ int main(int argc, char *argv[]) {
   if (destination) {
     memset(buf2, 0, sizeof(buf2));
     memset(buf3, 0, sizeof(buf3));
-    strcat(fuzzbuf, "XX"); // first two bytes of EH
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, "XX"); // first two bytes of EH
     buf3[0] = 'X';
     buf3[1] = '.';
     i = 0;
@@ -501,13 +512,14 @@ int main(int argc, char *argv[]) {
         buf3[2 + j] = '.';
         i += j;
       }
-      strcat(fuzzbuf, buf3);    // always: X... for every new option
+      // always: X... for every new option
+      addfuzz(&fuzzbuf, &fuzzbuf_sz, buf3);
     }
 
     j = 8 - ( ( i + 2 ) % 8 );
     if (j > 0 && j < 8) {
       for (k = 0; k < j; k++)
-        strcat(fuzzbuf, "."); // fill because of padding
+        addfuzz(&fuzzbuf, &fuzzbuf_sz, "."); // fill because of padding
     }
 
     if (thc_add_hdr_dst(pkt, &pkt_len, buf2, i) < 0)
@@ -522,9 +534,9 @@ int main(int argc, char *argv[]) {
 
   memset(buf, 0, sizeof(buf));
 //  if (header)
-    strcat(fuzzbuf, fuzztype_icmp6);
+  addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_icmp6);
 //  else
-//    strcat(fuzzbuf, fuzztype_icmp6no);
+//    addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_icmp6no);
   switch (do_type) {
   case DO_TCP:
     // tcp options
@@ -546,13 +558,13 @@ int main(int argc, char *argv[]) {
     // rest is padding (2 bytes)
     if (thc_add_tcp(pkt, &pkt_len, 65532, port, test_current, 0, TCP_SYN, 5760, 0, (unsigned char *) buf, 20, (unsigned char *) buf, 20) < 0)
       return -1;
-    strcat(fuzzbuf, fuzztype_tcp);
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_tcp);
     break;
 
   case DO_PING:
     if (thc_add_icmp6(pkt, &pkt_len, ICMP6_PINGREQUEST, 0, test_current, (unsigned char *) &buf, 16, 0) < 0)
       return -1;
-    strcat(fuzzbuf, fuzztype_icmp6ping);
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_icmp6ping);
     break;
     
   case DO_NONE:
@@ -569,7 +581,7 @@ int main(int argc, char *argv[]) {
     memcpy(buf + 18, srcmac, 6);
     if (thc_add_icmp6(pkt, &pkt_len, ICMP6_NEIGHBORSOL, 0, 0, (unsigned char *) &buf, 24, 0) < 0)
       return -1;
-    strcat(fuzzbuf, fuzztype_icmp6ns);
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_icmp6ns);
     break;
 
   case DO_NEIGHADV:
@@ -582,14 +594,14 @@ int main(int argc, char *argv[]) {
     memcpy(buf + 18, srcmac, 6);
     if (thc_add_icmp6(pkt, &pkt_len, ICMP6_NEIGHBORADV, 0, 0xe0000000, (unsigned char *) &buf, 24, 0) < 0)
       return -1;
-    strcat(fuzzbuf, fuzztype_icmp6na);
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_icmp6na);
     break;
     
   case DO_NODEQUERY:
     memcpy(buf + 8, real_dst6, 16);
     if (thc_add_icmp6(pkt, &pkt_len, ICMP6_NODEQUERY, 0, 0x0003003e, (unsigned char *) &buf, 24, 0) < 0)
       return -1;
-    strcat(fuzzbuf, fuzztype_icmp6nq);
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_icmp6nq);
     break;    
 
   case DO_RA:
@@ -673,7 +685,7 @@ int main(int argc, char *argv[]) {
 
     if (thc_add_icmp6(pkt, &pkt_len, ICMP6_ROUTERADV, 0, 0xff080800, buf, i, 0) < 0)
       return -1;
-    strcat(fuzzbuf, fuzztype_icmp6ra);
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_icmp6ra);
     break;
 
   case DO_MLD_QUERY:
@@ -686,7 +698,7 @@ int main(int argc, char *argv[]) {
       memcpy(buf, someaddr6, 16);
     if (thc_add_icmp6(pkt, &pkt_len, do_type, 0, wait, buf, 16, 0) < 0)
       return -1;
-    strcat(fuzzbuf, fuzztype_icmp6mld);
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_icmp6mld);
     break;
   case DO_MLD2_QUERY:
     buf[0] = 0xff;
@@ -701,7 +713,7 @@ int main(int argc, char *argv[]) {
     memcpy(buf + 36, buf, 16);
     if (thc_add_icmp6(pkt, &pkt_len, DO_MLD_QUERY, 0, wait, buf, 68, 0) < 0)
       return -1;
-    strcat(fuzzbuf, fuzztype_icmp6mld2que);
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_icmp6mld2que);
     break;
   case DO_MLD2_REPORT:
     for (i = 0; i < 3; i++) {
@@ -721,7 +733,7 @@ int main(int argc, char *argv[]) {
 
     if (thc_add_icmp6(pkt, &pkt_len, do_type, 0, 3, buf, 208, 0) < 0)
       return -1;
-    strcat(fuzzbuf, fuzztype_icmp6mld2rep);
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_icmp6mld2rep);
     break;
 
   default:
