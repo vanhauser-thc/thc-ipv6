@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
   buf[1] = 2;
   memset(buf2, 0, sizeof(buf2));
   buf2[0] = 0xff;
-  buf2[1] = 0x02;
+  buf2[1] = 0x0d;
 
   printf("Starting to flood network with MLD reports on %s (Press Control-C to end, a dot is printed for every 1000 packets):\n", interface);
   while (1) {

@@ -424,9 +424,23 @@ unsigned char *thc_resolve6(char *target) {
 int thc_get_mtu(char *interface) {
   int s;
   struct ifreq ifr;
+  static struct mtu_cache_entry {
+    char *intf;
+    int mtu;
+  } *mtu_cache = NULL;
+  static int mtu_cache_size = 0;
 
   if (interface == NULL)
     interface = default_interface;
+
+  /* lookup in the cache and save syscalls */
+  if (mtu_cache_size) {
+    int i;
+    for (i = 0; i < mtu_cache_size; i++) {
+      if (strcmp(interface, mtu_cache[i].intf) == 0)
+	return mtu_cache[i].mtu;
+    }
+  }
 
   if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     return -1;
@@ -440,6 +454,14 @@ int thc_get_mtu(char *interface) {
   close(s);
   if (debug)
     printf("DEBUG: MTU %d\n", ifr.ifr_mtu);
+
+  /* Add MTU to the cache to avoid having to look it up again */
+  mtu_cache_size++;
+  mtu_cache = realloc(mtu_cache, mtu_cache_size * sizeof (*mtu_cache));
+  if (!mtu_cache)
+    exit(-1);
+  mtu_cache[mtu_cache_size-1].intf = strdup(interface);
+  mtu_cache[mtu_cache_size-1].mtu = ifr.ifr_mtu;
 
   return ifr.ifr_mtu;
 }

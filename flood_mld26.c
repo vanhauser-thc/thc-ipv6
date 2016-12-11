@@ -10,11 +10,11 @@
 #include <pcap.h>
 #include "thc-ipv6.h"
 
-#define RECORD_NUMBER     8
+#define RECORD_NUMBER     ((1500 - 40 - 6 - 8) / (4 + 16 + 16))
 
 void help(char *prg) {
   printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
-  printf("Syntax: %s interface [target]\n\n", prg);
+  printf("Syntax: %s interface [target] [max_count]\n\n", prg);
   printf("Flood the local network with MLDv2 reports.\n");
 //  printf("Use -r to use raw mode.\n\n");
   exit(-1);
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
   unsigned char *pkt = NULL;
   int pkt_len = 0;
   int rawmode = 0;
-  int count = 0;
+  int count = 0, max_count;
 
   if (argc < 2 || argc > 4 || strncmp(argv[1], "-h", 2) == 0)
     help(argv[0]);
@@ -59,6 +59,11 @@ int main(int argc, char *argv[]) {
       ip6 = thc_get_own_ipv6(interface, dst, PREFER_GLOBAL);
     }
   }
+  if (argc > 3)
+    sscanf(argv[3], "%d", &max_count);
+  else
+    max_count = 0;
+
 
   mac[0] = 0x00;
   mac[1] = 0x18;
@@ -71,7 +76,7 @@ int main(int argc, char *argv[]) {
     buf2[0 + i * 36] = 3;       // CHANGE_TO_INCLUDE_MODE
     buf2[3 + i * 36] = 1;
     buf2[4 + i * 36] = 0xff;
-    buf2[5 + i * 36] = 0x02;
+    buf2[5 + i * 36] = 0x0d;
     memcpy(buf2 + 20 + i * 36, ip6, 16);
   }
 
@@ -111,6 +116,8 @@ int main(int argc, char *argv[]) {
 //    usleep(1);
     if (count % 1000 == 0)
       printf(".");
+    if (max_count && count == max_count)
+      return 0;
   }
   return 0;
 }
