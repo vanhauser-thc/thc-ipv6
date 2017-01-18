@@ -14,7 +14,7 @@ int rawmode = 0;
 int empty = 0;
 
 void help(char *prg) {
-  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2017 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-l] interface advertise|solicitate|terminate [own-ip [own-mac-address]]\n\n", prg);
   printf("Announce, delete or soliciated MLD router - sourself or others.\n");
   printf("Use -l to loop and send (in 5s intervals) until Control-C is pressed.\n");

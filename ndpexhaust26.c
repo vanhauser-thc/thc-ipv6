@@ -11,7 +11,7 @@
 #include "thc-ipv6.h"
 
 void help(char *prg) {
-  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2017 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-acpPTUrRm] [-s sourceip6] interface target-network\n\n", prg);
   printf("Options:\n");
   printf(" -a      add a hop-by-hop header with router alert\n");

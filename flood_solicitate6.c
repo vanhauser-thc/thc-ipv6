@@ -11,7 +11,7 @@
 #include "thc-ipv6.h"
 
 void help(char *prg) {
-  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2017 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-k | -m mac] [-a] interface [target [query-address]]\n\n", prg);
   printf("Flood the network with neighbor solicitations.\n");
   printf("if not supplied, target is random and query address is ff02::1\n");

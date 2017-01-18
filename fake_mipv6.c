@@ -14,7 +14,7 @@ unsigned char buf[64];
 int buf_len = 0;
 
 void help(char *prg) {
-  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2017 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s interface home-address home-agent-address care-of-address\n\n", prg);
   printf("If the mobile IPv6 home-agent is mis-configured to accept MIPV6 updates without\n");
   printf("IPSEC, this will redirect all packets for home-address to care-of-address\n");

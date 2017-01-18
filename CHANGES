@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-v3.1-dev
+v3.2/v3.1-dev
  * added toobigsniff6: send ICMPv6 toobig messages for sniffed traffic
  * added alive2map.sh script to create a network map (graphviz->jpg) from a list of alive hosts
  * alive6: fixed displaying right source of one packet type

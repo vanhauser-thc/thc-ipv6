@@ -1,5 +1,5 @@
 /*
- * (c) 2016 by van Hauser / THC
+ * (c) 2017 by van Hauser / THC
  *
  * THC IPv6 Attack Library Header Files
  *
@@ -17,7 +17,7 @@
   #include <openssl/rsa.h>
 #endif
 
-#define VERSION 	"v3.1-dev"
+#define VERSION 	"v3.2"
 #define AUTHOR 		"van Hauser / THC <vh@thc.org>"
 #define RESOURCE	"www.thc.org"
 

@@ -19,7 +19,7 @@ int matched = 0, gtype1, gtype1a, gtype2, gtype2a, gpos, epos;
 unsigned char *gpattern, *gsrc, *gdst;
 
 void help(char *prg) {
-  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2017 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-fp] [-n number] interface destination [test-case-no]\n\n", prg);
   printf("-f activates flooding mode, no pauses between sends; -p disables first and\n");
   printf("final pings, -n number specifies how often each test is performed\n");

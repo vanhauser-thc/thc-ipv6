@@ -28,7 +28,7 @@ unsigned char *dst, *psrc, is_srcport = 0;
 pcap_t *p;
 
 void help(char *prg) {
-  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2017 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-Hu] interface destination port [test-case-no]\n\n", prg);
   printf("Performs various ACL bypass attempts to check implementations.\n");
   printf("Defaults to TCP ports, option -u switches to UDP.\nOption -H prints the hop count.\n");

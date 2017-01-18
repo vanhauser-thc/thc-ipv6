@@ -16,7 +16,7 @@ unsigned char *frip6, *frmac, *frdst;
 thc_ipv6_hdr *frhdr = NULL;
 
 void help(char *prg) {
-  printf("%s %s (c) 2016 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2017 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-HFD] interface router-address [srcmac [dstmac]]\n\n", prg);
   printf("Announce that a target a router going down to delete it from the routing tables.\n");
   printf("If you supply a '*' as router-address, this tool will sniff the network for any\n");

@@ -48,7 +48,7 @@ unsigned int method = 0;
 char *interface = NULL, ether[8];
 
 void help(char *prg) {
-  printf("fragrouter6 %s (c) 2016 by %s %s\n\n", VERSION, AUTHOR, RESOURCE);
+  printf("fragrouter6 %s (c) 2017 by %s %s\n\n", VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-dv -f len -e count -t count] INTERFACE EVASION-METHOD\n\n", prg);
   printf("Options:\n");
   printf("  -f len    size of mini fragments (option 64, default %d)\n", minifrag);
