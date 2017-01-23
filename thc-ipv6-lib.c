@@ -3112,11 +3112,25 @@ thc_key_t *thc_generate_key(int key_len) {
 
   if ((key = (thc_key_t *) malloc(sizeof(thc_key_t))) == NULL)
     return NULL;
+
+#if defined(NO_RSA_LEGACY) || OPENSSL_VERSION_NUMBER >= 0x10100000L
+  RSA *rsa = RSA_new();
+  if (rsa == NULL) {
+    free(key);
+    return NULL;
+  }
+  BIGNUM *f4 = BN_new();
+  BN_set_word(f4, RSA_F4);
+  RSA_generate_key_ex(rsa, key_len, f4, NULL);
+  key->rsa = rsa;
+#else
   if ((key->rsa = RSA_generate_key(key_len, 65535, NULL, NULL)) == NULL) {
     free(key);
     return NULL;
   }
   key->len = key_len;
+#endif
+
   return key;
 }
 
