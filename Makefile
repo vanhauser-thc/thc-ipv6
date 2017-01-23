@@ -20,22 +20,22 @@ MANPAGES=$(foreach p, $(PROGRAMS) $(EXTRA), $(p).8)
 all:	$(LIBS) $(PROGRAMS) $(EXTRA) $(MANPAGES)
 
 dnssecwalk:	dnssecwalk.c
-	$(CC) $(CFLAGS) $(STATIC) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(STATIC) -o $@ $^ $(LDFLAGS)
 
 dnsdict6:	dnsdict6.c
-	$(CC) $(CFLAGS) $(STATIC) -o $@ $^ $(LDFLAGS) -lpthread -lresolv
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(STATIC) -o $@ $^ $(LDFLAGS) -lpthread -lresolv
 
 thcping6:	thcping6.c $(LIBS)
-	$(CC) $(CFLAGS) $(STATIC) -o $@ $^ $(LDFLAGS) -lrt
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(STATIC) -o $@ $^ $(LDFLAGS) -lrt
 
 fragrouter6:	fragrouter6.c $(LIBS)
-	-$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) -lnetfilter_queue || /bin/echo -e "\nCompilation of fragrouter6 failed, you have to install libnetfilter-queue-dev for this!\n"
+	-$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $^ $(LDFLAGS) -lnetfilter_queue || /bin/echo -e "\nCompilation of fragrouter6 failed, you have to install libnetfilter-queue-dev for this!\n"
 
 connsplit6:	connsplit6.c $(LIBS)
-	-$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) -lnetfilter_queue || /bin/echo -e "\nCompilation of connsplit6 failed, you have to install libnetfilter-queue-dev for this!\n"
+	-$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $^ $(LDFLAGS) -lnetfilter_queue || /bin/echo -e "\nCompilation of connsplit6 failed, you have to install libnetfilter-queue-dev for this!\n"
 
 %:	%.c $(LIBS)
-	$(CC) $(CFLAGS) $(STATIC) -o $@ $^ $(LDFLAGS) 
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(STATIC) -o $@ $^ $(LDFLAGS)
 
 strip:	all
 	-$(STRIP) $(PROGRAMS) $(EXTRA)
