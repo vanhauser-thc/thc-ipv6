@@ -3,6 +3,7 @@ CHANGELOG
 
 v3.3-dev
  * added patch to support the horrible openssl-1.1 release
+ * removed unnecessary debug definitions
 
 
 v3.2/v3.1-dev

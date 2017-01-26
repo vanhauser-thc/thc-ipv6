@@ -24,7 +24,8 @@
 #include "thc-ipv6.h"
 
 #define RETRY 5
-int debug = 0, errcnt = 0, sock, ensure = 0, dores = -1, tcp = 0, tcp_offset = 0;
+//int debug = 0;
+int errcnt = 0, sock, ensure = 0, dores = -1, tcp = 0, tcp_offset = 0;
 char *dst, first[256], beforesub[256], firstsub[256];
 
 int dnssocket(char *server) {
@@ -193,6 +194,7 @@ int main(int argc, char **argv) {
       exit(-1);
     }
 
+/*
     if (debug) {
       len = i;
       for (i = 0; i < len; i++) {
@@ -206,6 +208,7 @@ int main(int argc, char **argv) {
       }
       printf("\n\n");
     }
+*/
 
     errcntbak = errcnt;
     signal(SIGALRM, noreply);
