@@ -16,7 +16,7 @@ for j in `dig $DNS $DOMAIN ns | grep -w NS | grep -w IN | grep -v ';' | awk '{pr
   SERVER=`echo $j|sed 's/\.$//'`
   test -z "$OK" && { 
     echo Trying $j ...
-    dnssecwalk -6 $j $DOMAIN > $SERVER-$FILE.dnssecwalk
+    dnssecwalk -t -6 $j $DOMAIN > $SERVER-$FILE.dnssecwalk
     grep -q Found: $SERVER-$FILE.dnssecwalk && OK=1
     test -n "$OK" && echo Dnssecwalk succeeded, saved to $SERVER-$FILE.dnssecwalk
     test -n "$OK" || rm -f $SERVER-$FILE.dnssecwalk
