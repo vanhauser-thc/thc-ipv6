@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
   char *interface, mac[6] = "", newroutermac[6];
   unsigned char *mac6 = mac;
   unsigned char buf[1460], buf2[6], buf3[1504];
-  unsigned char *dst = thc_resolve6("ff02::1"), *fake_src = NULL, *fake_dst = NULL, *dstmac = NULL, *oldrouter = NULL, *newrouter = NULL;
+  unsigned char *dst = thc_resolve6("ff02::1"), *src = NULL, *fake_dst = NULL, *dstmac = NULL, *oldrouter = NULL, *newrouter = NULL;
   int i, j, k, type = NXT_ICMP6, offset = 14, rand_newrouter = 1, rand_src = 0, unreach = 0;
   unsigned char *pkt = NULL, *pkt2 = NULL;
   int pkt_len = 0, pkt_len2 = 0, rawmode = 0, count = 0, do_alert = 0, do_hop = 0, do_frag = 0, do_dst = 0;
@@ -76,8 +76,9 @@ int main(int argc, char *argv[]) {
 
   interface = argv[optind];
   dst = thc_resolve6(argv[optind + 1]);
-  dstmac = thc_get_mac(dst);
   mac6 = thc_get_own_mac(interface);
+  src = thc_get_own_ipv6(interface, dst, PREFER_GLOBAL);
+  dstmac = thc_get_mac(interface, src, dst);
 
   if (mac6 == NULL) {
     fprintf(stderr, "Error: invalid interface %s\n", interface);
@@ -108,10 +109,10 @@ int main(int argc, char *argv[]) {
   while (until != 1) {
     if (rand_src > 0) {
       for (i = 0; i < 8; i++)
-        src[8 + i] = rand() % 256);
+        src[8 + i] = rand() % 256;
       if (rand_src > 1)
         for (i = 1; i < 8; i++)
-          src[i] = rand() % 256);
+          src[i] = rand() % 256;
     }
 
     if ((pkt = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len, src, dst, 255, 0, 0, 0, 0)) == NULL)
