@@ -2,6 +2,7 @@ CHANGELOG
 =========
 
 v3.3-dev
+ * added new tool: flood_unreach6 (black nurse attack)
  * added patch to support the horrible openssl-1.1 release
  * removed unnecessary debug definitions
 
