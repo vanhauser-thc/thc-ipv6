@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   int until = 0;
   thc_ipv6_hdr *hdr = NULL, *hdr2 = NULL;
 
-  if (argc < 3 || strncmp(argv[1], "-h", 2) == 0)
+  if (argc < 3)
     help(argv[0]);
 
   while ((i = getopt(argc, argv, "DFHphrR")) >= 0) {
