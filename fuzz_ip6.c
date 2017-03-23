@@ -18,7 +18,6 @@
  *  W = word = 2 bytes | 0,1,254,255^2 xor XOR | 18 ; 65536
  *  D = double word = 4 bytes | {0,1,254,255}^4 xor XOR | 258 ; 4294967295
  *  . = byte = ignore, jump over
- *
  */
 
 char fuzztype_ether[] = "..............";
@@ -34,7 +33,10 @@ char fuzztype_icmp6nq[] = "FXFX........XX............XX";
 char fuzztype_icmp6mld[] = "WWXXXX............XX";
 char fuzztype_icmp6mld2rep[] = "WFFXFFF................................................XFFF................................................XFFF................................................";
 char fuzztype_icmp6mld2que[] = "WWXXXX............XXFWFF";
-char fuzztype_tcp[] = "WWWWWWXXWWWXXWXXXXXXWWWWXX"; 
+char fuzztype_tcp[] = "WWWWWWXXWWWXXWXXXXXXWWWWXX";
+char fuzztype_pim_hello[] = "X....X.X..WW...BXXXX.....X.XX....X.XXXBB.............B";
+char fuzztype_pim_bootstrap[] = "X...XX..................XXXXX...............XXXXXX................XX";
+char fuzztype_pim_assert[] = "X...XXXXX...............XX.X.............XX.......";
 
 unsigned char flags[] = { 0, 1, 2, 4, 8, 16, 32, 64, 128, 254, 255 };   // 11
 unsigned char bytes[] = { 0, 1, 254, 255 };     // 4
@@ -148,13 +150,16 @@ unsigned int dwords[] = { 0x00000000, 0x00000001, 0x000000fe, 0x000000ff,
 #define DO_MLD_QUERY  130
 #define DO_MLD2_QUERY  256
 #define DO_MLD2_REPORT 143
+#define DO_PIM_HELLO     65536
+#define DO_PIM_BOOTSTRAP 65540
+#define DO_PIM_ASSERT    65541
 
 int port = -1;
 
 void help(char *prg) {
   printf("%s %s (c) 2017 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
-  printf("Syntax: %s [-x] [-t number | -T number] [-p number] [-IFSDHRJ] [-X|-1|-2|-3|-4|-5|-6|-7|-8|-9|-0 port] interface unicast-or-multicast-address [address-in-data-pkt]\n\n", prg);
-  printf("Fuzzes an icmp6 packet\n");
+  printf("Syntax: %s [-x] [-t number | -T number] [-p number] [-IFSDHRJ] [-X|-1|-2|-3|-4|-5|-6|-7|-8|-9|-0 port|-P type] interface unicast-or-multicast-address [address-in-data-pkt]\n\n", prg);
+  printf("Fuzzes an IPv6 packet with optional EHs and upper layer transport\n");
   printf("Options:\n");
   printf(" -X         do not add any ICMP/TCP header (transport layer)\n");
   printf(" -1         fuzz ICMP6 echo request (default)\n");
@@ -168,6 +173,7 @@ void help(char *prg) {
   printf(" -9         fuzz multicast listener v2 query packet\n");
   printf(" -0         fuzz node query packet\n");
   printf(" -s port    fuzz TCP-SYN packet against port\n");       
+  printf(" -P type    fuzz PIMv2 type packet (hello, bootstrap, assert)\n");
   printf(" -x         tries all 256 values for flag and byte types\n");
   printf(" -t number  continue from test no. number\n");
   printf(" -T number  only performs test no. number\n");
@@ -182,7 +188,8 @@ void help(char *prg) {
   printf(" -R         add router alert header, and fuzz it too (for 5-9 and all)\n");
   printf(" -J         add jumbo packet header, and fuzz it too (for 1)\n");
 //  printf("Use -r to use raw mode.\n");
-  printf("You can only define one of -0 ... -9 and -s, defaults to -1.\n");
+  printf("You can only define one of -0 ... -9, -P and -s, defaults to -1.\n");
+  printf("Note that the -P fuzzing target should be ff02::d\n");
   printf("Returns -1 on error, 0 on tests done and targt alive or 1 on target crash.\n");
   exit(-1);
 }
@@ -228,7 +235,7 @@ int main(int argc, char *argv[]) {
   int pkt_len = 0, offset = 0, test_current = 0, i, j, k, do_fuzz = 1, test_ptr = 0;
   int test_end = TEST_MAX, ping = NEVER, frag_offset = 0, header = 0, no_send = 1;
   int test_pos = 0, test_cnt = 0, do_it, extend = 0, mtu = 1500, size = 64, wait = 0, off2 = 14, fuzzbuf_sz = 256;
-  char *interface, *fuzzbuf, *srcmac, *dns, *route6, *real_dst6 = NULL;
+  char *interface, *fuzzbuf, *srcmac, *dns, *route6, *real_dst6 = NULL, *tmp6 = NULL;
   unsigned char buf[256], buf2[100], buf3[16];
   unsigned short int *sip;
   pcap_t *p;
@@ -237,7 +244,7 @@ int main(int argc, char *argv[]) {
   if (argc < 3 || strncmp(argv[1], "-h", 2) == 0)
     help(argv[0]);
 
-  while ((i = getopt(argc, argv, "s:0123456789Xxt:T:p:FSDHRIJan:")) >= 0) {
+  while ((i = getopt(argc, argv, "s:0123456789Xxt:T:p:FSDHRIJan:P:")) >= 0) {
     switch (i) {
     case 's':
       do_type = DO_TCP;
@@ -274,6 +281,18 @@ int main(int argc, char *argv[]) {
     case '9':
       do_type = DO_MLD2_QUERY;
       wait = 0xff0000;
+      break;
+    case 'P':
+      if (strncmp(optarg, "hel", 3) == 0)
+        do_type = DO_PIM_HELLO;
+      else if (strncmp(optarg, "ass", 3) == 0)
+        do_type = DO_PIM_ASSERT;
+      else if (strncmp(optarg, "boot", 4) == 0)
+        do_type = DO_PIM_BOOTSTRAP;
+      else {
+        fprintf(stderr, "Error: PIM message type %s is not implemented yet\n", optarg);
+        exit(-1);
+      }
       break;
     case 'X':
       do_type = DO_NONE;
@@ -348,6 +367,8 @@ int main(int argc, char *argv[]) {
       memcpy(dst6 + 13, mcast6 + 13, 3);
     } else
       dst6 = thc_resolve6("ff02::1");
+    if (do_type >= DO_PIM_HELLO && do_type <= DO_PIM_ASSERT)
+      dst6 = thc_resolve6("ff02::d");
   } else {
     dst6 = thc_resolve6(argv[optind + 1]);
   }
@@ -356,7 +377,6 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "Error: %s does not resolve to a valid IPv6 address\n", argv[optind + 1]);
       exit(-1);
     }
-
 
   if (interface == NULL || argv[optind + 1] == NULL) {
     printf("Error: interface and target-ipv6-address are mandatory command line options\n");
@@ -565,6 +585,86 @@ int main(int argc, char *argv[]) {
     if (thc_add_icmp6(pkt, &pkt_len, ICMP6_PINGREQUEST, 0, test_current, (unsigned char *) &buf, 16, 0) < 0)
       return -1;
     addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_icmp6ping);
+    break;
+    
+  case DO_PIM_HELLO:
+    buf[1] = 1; // opt 1
+    buf[3] = 2; // len 2
+    buf[5] = 255;
+    buf[7] = 19; // opt 19
+    buf[9] = 4;  // len 4
+    buf[13] = 2;
+    buf[15] = 20; // opt 20
+    buf[17] = 4 ; // len 4
+    //buf 18, 4 bytes: rand counter
+    i = time(NULL);
+    memcpy(buf + 18, (char*) &i + _TAKE4, 4);
+    buf[23] = 2; // opt 2
+    buf[25] = 4; // len 4
+    memset(buf + 26, 0x01, 4);
+    buf[31] = 24; // opt 24
+    buf[33] = 18; // len 18
+    buf[34] = 2;
+    if (someaddr6 == NULL)
+      tmp6 = thc_get_own_ipv6(interface, dst6, PREFER_GLOBAL);
+    else
+      tmp6 = someaddr6;
+    memcpy(buf + 36, tmp6, 16);
+
+    if (thc_add_pim(pkt, &pkt_len, do_type, buf, 52) < 0)
+      return -1;
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_pim_hello);
+    break;
+    
+  case DO_PIM_BOOTSTRAP:
+    buf[0] = 5;
+    buf[1] = 0x7d;
+    buf[3] = 1;
+    buf[4] = 2;
+    if (someaddr6 == NULL)
+      tmp6 = thc_get_own_ipv6(interface, dst6, PREFER_GLOBAL);
+    else
+      tmp6 = someaddr6;
+    memcpy(buf + 6, tmp6, 16);
+    buf[22] = 2;
+    buf[25] = 40; // mask
+    tmp6 = thc_resolve6("ff00::");
+    memcpy(buf + 26, tmp6, 16); // buf + 27 <= rand
+    buf[42] = 1;
+    buf[43] = 1;
+    buf[46] = 2;
+    tmp6 = thc_get_own_ipv6(interface, dst6, PREFER_GLOBAL);
+    memcpy(buf + 48, tmp6, 16);
+    buf[65] = 0x96; // holdtime
+    buf[66] = 7; // prio
+
+    if (someaddr6 == NULL)
+      tmp6 = thc_get_own_ipv6(interface, dst6, PREFER_GLOBAL);
+    else
+      tmp6 = someaddr6;
+    memcpy(buf + 36, tmp6, 16);
+
+    if (thc_add_pim(pkt, &pkt_len, do_type, buf, 68) < 0)
+      return -1;
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_pim_bootstrap);
+    break;
+    
+  case DO_PIM_ASSERT:
+    buf[0] = 2;
+    buf[3] = 16;
+    if (someaddr6 != NULL && someaddr6[0] == 0xff)
+      tmp6 = someaddr6;
+    else
+      tmp6 = thc_resolve6("ff05::3");
+    memcpy(buf + 4, tmp6, 16);
+    buf[20] = 2;
+    buf[32 + 6] = 0x80;
+    buf[34 + 6] = 1; // metric 256
+    buf[38 + 6] = 1;
+    
+    if (thc_add_pim(pkt, &pkt_len, do_type, buf, 46) < 0)
+      return -1;
+    addfuzz(&fuzzbuf, &fuzzbuf_sz, fuzztype_pim_assert);
     break;
     
   case DO_NONE:
@@ -900,6 +1000,15 @@ int main(int argc, char *argv[]) {
         case DO_TCP:
           memcpy(hdr->pkt + offset + 58, (char *) &test_current + _TAKE4, 4);
           break;
+        case DO_PIM_HELLO:
+          memcpy(hdr->pkt + offset + 62 + 14, (char *) &test_current + _TAKE4, 4); // TEST BUG FIXME XXX
+          break;
+        case DO_PIM_ASSERT:
+          memcpy(hdr->pkt + offset + 60 + 14, (char *) &test_current + _TAKE4, 4); // TEST BUG FIXME XXX
+          break;
+        case DO_PIM_BOOTSTRAP:
+          memcpy(hdr->pkt + offset + 71 + 14, (char *) &test_current + _TAKE4, 4); // TEST BUG FIXME XXX
+          break;
         case DO_NEIGHSOL:
         case DO_NEIGHADV:
           break;                // do nothing for these
@@ -931,10 +1040,16 @@ int main(int argc, char *argv[]) {
         }
 
         // regenerate checksum
-        if (do_type != DO_TCP && do_type != DO_NONE) {       // maybe for later non-icmp stuff
+        if (do_type != DO_TCP && do_type != DO_NONE && (do_type < DO_PIM_HELLO || do_type > DO_PIM_ASSERT)) {       // maybe for later non-icmp stuff
           hdr->pkt[offset + 56] = 0;
           hdr->pkt[offset + 57] = 0;
           i = checksum_pseudo_header(hdr->original_src, hdr->final_dst, NXT_ICMP6, &hdr->pkt[offset + 54], hdr->pkt_len - offset - 54);
+          hdr->pkt[offset + 56] = i / 256;
+          hdr->pkt[offset + 57] = i % 256;
+        } else if (do_type >= DO_PIM_HELLO && do_type <= DO_PIM_ASSERT) {
+          hdr->pkt[offset + 56] = 0;
+          hdr->pkt[offset + 57] = 0;
+          i = checksum_pseudo_header(hdr->original_src, hdr->final_dst, NXT_PIM, &hdr->pkt[offset + 54], hdr->pkt_len - offset - 54);
           hdr->pkt[offset + 56] = i / 256;
           hdr->pkt[offset + 57] = i % 256;
         } else { // TCP

@@ -2105,7 +2105,7 @@ int thc_add_hdr_oneshotfragment(unsigned char *pkt, int *pkt_len, unsigned int i
   if (id == 0) {
     pid = getpid();
     memcpy(buf + 2, (char *) &pid + _TAKE4, 4);
-    buf[4] = 0xb0;
+    buf[4] = 0xb0; // IDS support
     buf[5] = 0x0b;
   } else
     memcpy(buf + 2, (char *) &id + _TAKE4, 4);
@@ -2370,9 +2370,9 @@ int thc_add_pim(unsigned char *pkt, int *pkt_len, unsigned char type, unsigned c
   hdr->final = (char *) nehdr;
   hdr->final_type = NXT_PIM;
 
-  buf[0] = type;
-  if (type < 16)
-    buf[0] += 32; // ensure we set a PIM version (here: v2)
+  buf[0] = type % 16;
+  buf[0] += 32; // ensure we set a PIM version (here: v2)
+  buf[1] = 0;
   // byte 1: reserved, 2+3: checksum
   memcpy(buf + 4, data, data_len);
 

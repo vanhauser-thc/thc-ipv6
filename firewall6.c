@@ -152,7 +152,7 @@ void check_packet(u_char *foo, const struct pcap_pkthdr *header, const unsigned 
       matched = 1;
       if (do_hop)
         printf("[%d] ", ptr[7]);
-      printf("ICMPv6 Echo Reply");
+      printf("ICMPv6 Echo Reply\n");
     }
 }
 

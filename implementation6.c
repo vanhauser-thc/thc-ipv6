@@ -92,7 +92,7 @@ int check_for_reply_n(pcap_t * p, unsigned char *src, unsigned char *dst) {
     (void) thc_pcap_check(p, (char *) check_packet_n, NULL);
     if (matched > 0)
       ret = 0;
-    if (time(NULL) > t + 3 && ret < 0)
+    if (time(NULL) > t + 2 && ret < 0)
       ret = 0;
   }
 
@@ -198,7 +198,7 @@ int check_for_reply(pcap_t *p, int type1, int type2, int type1a, int type2a, int
       ret = -1;
       matched = 0;
     }
-    if (time(NULL) > t + 3 && ret < 0)
+    if (time(NULL) > t + 2 && ret < 0)
       ret = 0;
   }
 
@@ -233,7 +233,7 @@ int check_alive(pcap_t * p, char *interface, unsigned char *src, unsigned char *
       thc_ping6(interface, src, dst, 16, 1);
       ret = -1;
     }
-    if (time(NULL) > t + 3 && ret < 0)
+    if (time(NULL) > t + 2 && ret < 0)
       ret = 0;
   }
 
@@ -584,6 +584,31 @@ int main(int argc, char *argv[]) {
     if ((pkt = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len, src6, dst6, 255, 0, count, 0, 0)) == NULL)
       return -1;
     if (thc_add_hdr_oneshotfragment(pkt, &pkt_len, getpid() + 70000) < 0)
+      return -1;
+    memset(bla, count % 256, sizeof(bla));
+    thc_add_icmp6(pkt, &pkt_len, ICMP6_PINGREQUEST, 0, count, (unsigned char *) &bla, fragsize - 100, 0);
+    if (thc_generate_and_send_pkt(interface, srcmac, dstmac, pkt, &pkt_len) < 0)
+      return -1;
+//    hdr = (thc_ipv6_hdr *) pkt;
+//    while (thc_pcap_check(p, (char *) ignoreit, NULL) > 0);
+//    if (thc_send_as_fragment6(interface, src6, dst6, NXT_ICMP6,
+//                              hdr->pkt + 40 + offset, hdr->pkt_len - 40 - offset, hdr->pkt_len > fragsize ? fragsize : (((hdr->pkt_len - 40 - 14) / 16) + 1) * 8) < 0)
+//      return -1;
+    pkt = thc_destroy_packet(pkt);
+    if (check_for_reply(p, NXT_ICMP6, ICMP6_PINGREPLY, NXT_ICMP6, ICMP6_PINGREPLY, fragsize - 200, 0, bla))
+      tests[count] = 1;
+  }
+  count++;
+
+  if (test == 0 || test == count) {
+    printf("Test %2d: too large fragmentation EH\t\t", count);
+    if ((pkt = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len, src6, dst6, 255, 0, count, 0, 0)) == NULL)
+      return -1;
+    memset(bla, count % 256, sizeof(bla));
+    bla[0] = 0;
+    bla[1] = 0;
+    bla[6] = 0x80; // this is for wireshark this error EH not correctly
+    if (thc_add_hdr_misc(pkt, &pkt_len, NXT_FRAG, -1, bla, 8 + 8 + 8 + 6) < 0)
       return -1;
     memset(bla, count % 256, sizeof(bla));
     thc_add_icmp6(pkt, &pkt_len, ICMP6_PINGREQUEST, 0, count, (unsigned char *) &bla, fragsize - 100, 0);

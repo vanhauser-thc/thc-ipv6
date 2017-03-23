@@ -262,7 +262,7 @@ void check_packets(u_char *foo, const struct pcap_pkthdr *header, const unsigned
 int main(int argc, char *argv[]) {
   unsigned char *pkt = NULL, *pkt2 = NULL, foomac[6];
   unsigned char *dst6, *src6 = NULL, foo6[16], *mac = NULL, string[64] = "ip6 and dst ";
-  int pkt_len = 0, pkt2_len = 0, prefer = PREFER_GLOBAL, i, k, m, dport = 0, resolve = 0, notreached = 0;
+  int pkt_len = 0, pkt2_len = 0, i, k, m, dport = 0, resolve = 0, notreached = 0;
   unsigned int j;
   struct hostent *he;
   unsigned char *interface, *srcmac, *buf = NULL, dummy[4] = "???", text[120], buf3[6];
@@ -332,8 +332,11 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Error: can not resolve %s\n", argv[optind + 1]);
     exit(-1);
   }
-  if (src6 == NULL)
-    src6 = thc_get_own_ipv6(interface, dst6, prefer);
+  if (src6 == NULL) {
+      src6 = thc_get_own_ipv6(interface, dst6, PREFER_GLOBAL);
+    if (src6 == NULL || src6[0] == 0xfe)
+      src6 = thc_get_own_ipv6(interface, NULL, PREFER_GLOBAL);
+  }
   srcmac = thc_get_own_mac(interface);
   up_to = MAX_SEND;
   if (do_reply)
@@ -422,7 +425,7 @@ int main(int argc, char *argv[]) {
         if (position[i] != NULL && position[i][0] == '?') {
           if (type != 1)
             memset((char *) &j, i % 256, 4);
-          if ((pkt = thc_create_ipv6_extended(interface, prefer, &pkt_len, src6, dst6, i, 0, 0, 0, 0)) == NULL)
+          if ((pkt = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len, src6, dst6, i, 0, 0, 0, 0)) == NULL)
             return -1;
           if (do_alert)
             if (thc_add_hdr_hopbyhop(pkt, &pkt_len, buf3, 6) < 0)

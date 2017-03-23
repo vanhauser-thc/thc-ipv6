@@ -39,6 +39,11 @@ int main(int argc, char *argv[]) {
       printf("%02x:%02x:%02x:%02x:%02x:%02x\n", (dst6[8] ^ 2), dst6[9], dst6[10], dst6[13], dst6[14], dst6[15]);
       return 1;
     }
+    // ::ffff:ip4enc:ipv4enc support
+    if (dst6[8] + dst6[9] == 0 && dst6[10] == 0xff & dst6[11] == 0xff) {
+      dst6[10] = 0;
+      dst6[11] = 0;
+    }
     if (dst6[8] + dst6[10] + dst6[12] + dst6[14] == 0 && dst6[9] != 0) { // hexdecimal ipv4
       j = 0;
       for (i = 0; i < 4; i++)

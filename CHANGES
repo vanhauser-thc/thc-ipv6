@@ -3,8 +3,17 @@ CHANGELOG
 
 v3.3-dev
  * added new tool: flood_unreach6 (black nurse attack)
+ * fake_pim6:
+   - added bootstrap and assert support
+   - added loop mode
+   - added flood mode
+   - rewrote help output
+   - some fixes
+ * fuzz_ip6: added PIM hello, bootstrap and assert support
+ * alive6: fix for IPv6 address display for unreachable dst reason
+ * implementation6: large fragmentation EH test added
  * added patch to support the horrible openssl-1.1 release
- * removed unnecessary debug definitions
+ * some minor enhancements and fixes
 
 
 v3.2/v3.1-dev
