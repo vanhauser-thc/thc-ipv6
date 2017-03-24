@@ -541,18 +541,28 @@ unsigned char *thc_get_own_ipv6(char *interface, unsigned char *dst, int prefer)
   if (interface == NULL)
     interface = default_interface;
 
-  if (dst != NULL && dst[0] == 0xff)
-    dst = NULL;
-  if (dst != NULL && dst[0] == 0xfe)
-    prefer = PREFER_LINK;
-  if (dst != NULL && dst[0] != 0xfe)
-    prefer = PREFER_GLOBAL;
+  // -- we have a prefer setup, we should honor it
+  if (prefer != PREFER_GLOBAL && prefer != PREFER_LINK) {
+    if (dst != NULL) {
+      if (dst[0] == 0xff) {
+        if (dst[1] > 2)
+          prefer = PREFER_GLOBAL;
+        else
+          prefer = PREFER_LINK;
+      } else
+        if (dst[0] == 0xfe)
+          prefer = PREFER_LINK;
+        else
+          prefer = PREFER_GLOBAL;
+    } else
+      prefer = PREFER_GLOBAL; // this is the default
+  }
 
   if (dst != NULL)
     tmpdst = thc_ipv62string(dst);
   memset(save, 0, sizeof(save));
 
-  while (done < 2 && picky < 2) {
+  while (done < 2 && picky < 3) {
     if ((f = fopen("/proc/net/if_inet6", "r")) == NULL) {
       fprintf(stderr, "Error: /proc/net/if_inet6 does not exist, no IPv6 support on your Linux box!\n");
       if (tmpdst != NULL)
@@ -560,7 +570,13 @@ unsigned char *thc_get_own_ipv6(char *interface, unsigned char *dst, int prefer)
       return NULL;
     }
 
+    if (picky == 1 && dst == NULL)
+      picky = 2;
     if (picky == 1) {
+      dst = NULL;
+      tmpdst = NULL;
+    }
+    if (picky == 2) {
       if (prefer == PREFER_GLOBAL)
         prefer = PREFER_LINK;
       else

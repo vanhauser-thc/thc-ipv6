@@ -332,11 +332,8 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Error: can not resolve %s\n", argv[optind + 1]);
     exit(-1);
   }
-  if (src6 == NULL) {
-      src6 = thc_get_own_ipv6(interface, dst6, PREFER_GLOBAL);
-    if (src6 == NULL || src6[0] == 0xfe)
-      src6 = thc_get_own_ipv6(interface, NULL, PREFER_GLOBAL);
-  }
+  if (src6 == NULL)
+    src6 = thc_get_own_ipv6(interface, dst6, PREFER_GLOBAL);
   srcmac = thc_get_own_mac(interface);
   up_to = MAX_SEND;
   if (do_reply)
