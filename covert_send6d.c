@@ -75,7 +75,7 @@ void check_packets(u_char *foo, const struct pcap_pkthdr *header, const unsigned
   dlen = 40 + (ptr[41] + 1) * 8;
   rlen = len - 54;
   pos = 54;
-  while (rlen > 0 && end == 0 && dlen >= pos && done == 0) {
+  while (rlen > 0 && end == 0 && dlen > pos && done == 0) {
     if (ptr[pos] == 0)
       done = 1;
     else if (ptr[pos] < 0x12)
