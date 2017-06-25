@@ -115,6 +115,7 @@ extern int thc_paramprob6(char *interface, unsigned char *src, unsigned char *sr
 extern int thc_unreach6(char *interface, unsigned char *src, unsigned char *srcmac, unsigned char *dstmac, unsigned char code, unsigned char *pkt, int pkt_len);
 extern int thc_redir6(char *interface, unsigned char *src, unsigned char *srcmac, unsigned char *dstmac, unsigned char *newrouter, unsigned char *newroutermac, unsigned char *pkt, int pkt_len);
 extern int thc_send_as_fragment6(char *interface, unsigned char *src, unsigned char *dst, unsigned char type, unsigned char *data, int data_len, int frag_len);
+extern int thc_send_raguard_bypass6(char *interface, unsigned char *src, unsigned char *dst, unsigned char *srcmac, unsigned char *dstmac, unsigned char type, unsigned char *data, int data_len,  int mtu);
 extern int thc_send_as_overlapping_first_fragment6(char *interface, unsigned char *src, unsigned char *dst, unsigned char type, unsigned char *data, int data_len, int frag_len, int overlap_spoof_type);
 extern int thc_send_as_overlapping_last_fragment6(char *interface, unsigned char *src, unsigned char *dst, unsigned char type, unsigned char *data, int data_len, int frag_len, int overlap_spoof_type);
 extern unsigned char *thc_create_ipv6(char *interface, int *pkt_len, unsigned char *src, unsigned char *dst);

