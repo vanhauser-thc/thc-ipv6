@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   setvbuf(stdout, NULL, _IONBF, 0);
   setvbuf(stderr, NULL, _IONBF, 0);
   
-   while ((i = getopt(argc, argv, "afAcrRsDSp:m:dfO")) >= 0) {
+   while ((i = getopt(argc, argv, "afAcrRs:DSp:m:dfO")) >= 0) {
      switch(i) {
        case 'a':
          alert = 8;
