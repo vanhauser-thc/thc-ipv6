@@ -53,7 +53,7 @@ void help(char *prg) {
   printf("Options:\n");
   printf("  -f len    size of mini fragments (option 64, default %d)\n", minifrag);
   printf("  -e count  hop count to the IDS for evading (option 256 & 512)\n");
-  printf("  -t count  hop count to the target that reachs it\n");
+  printf("  -t count  hop count to the target that reaches it\n");
 //  printf("  -d        debug mode for the thc-ipv6 library\n");
   printf("  -v        verbose mode, print all packets processed for evasion\n");
   printf("Evasion Methods:\n");

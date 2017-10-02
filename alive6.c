@@ -1052,7 +1052,7 @@ int main(int argc, char *argv[]) {
 
   if (input != NULL)
     if ((in = fopen(input, "r")) == NULL) {
-      fprintf(stderr, "Error: coult not open file %s\n", input);
+      fprintf(stderr, "Error: could not open file %s\n", input);
       exit(-1);
     }
 
