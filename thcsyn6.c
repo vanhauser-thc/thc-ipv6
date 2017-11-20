@@ -148,6 +148,8 @@ int main(int argc, char *argv[]) {
   }
 
   printf("Starting to flood target network with TCP%s%s %s (Press Control-C to end, a dot is printed for every 1000 packets):\n", (type & TCP_SYN) > 0 ? "-SYN" : "", (type & TCP_ACK) > 0 ? "-ACK" : "", interface);
+  if (type == TCP_SYN)
+    printf("Remember to filter outgoing RST packets for SYN flooding, e.g. iptables -I OUTPUT -p tcp --tcp-flags RST RST -j DROP\n");  
   while (1) {
 
     if (randsrc) {
