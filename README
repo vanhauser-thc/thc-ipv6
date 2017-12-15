@@ -271,6 +271,20 @@ are sent to a non-existing mac, and are therefore very easy to detect).
 If you dont want this, change the code.
 
 
+BUILDING
+========
+You can build the tools by running:
+ 
+   make all
+
+You can install the tools and existing manual pages by running:
+
+   make install
+
+Note: Depends on "libnetfilter-queue-dev".  Remember to also update your
+linker cache (`sudo ldconfig`) before testing out a tool.
+
+
 PATCHES, BUGS, HINTS, etc.
 ==========================
 Send them to vh (at) thc (dot) org (and add "antispam" to the subject line)
