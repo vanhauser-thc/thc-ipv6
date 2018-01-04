@@ -13,7 +13,7 @@
 extern int debug;
 
 void help(char *prg) {
-  printf("%s %s (c) 2017 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2018 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-sS] interface [target]\n\n", prg);
   printf("Flood the local network with ICMPv6 Router Soliciation packets.\n");
   printf("Option -s uses random source IPv6 addresses. Option -S also randomizes the MAC.\n");

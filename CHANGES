@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-v3.3-dev
+v3.4/v3.3-dev
  * Added new function to thc-ipv6-lib: thc_send_raguard_bypass6()
    bypass attack found by ERNW in one easy function.
  * Added RA guard bypass attack (F option) to:

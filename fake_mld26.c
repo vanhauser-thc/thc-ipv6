@@ -15,7 +15,7 @@ char *multicast6 = NULL;
 int empty = 0;
 
 void help(char *prg) {
-  printf("%s %s (c) 2017 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2018 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-l] interface add|delete|query [multicast-address [target-address-to-subscribe-from [ttl [own-ip [own-mac-address [destination-mac-address]]]]]]\n\n", prg);
   printf("This uses the MLDv2 protocol. Only a subset of what the protocol is able to\n");
   printf("do is possible to implement via a command line. Code it if you need something.\n");
