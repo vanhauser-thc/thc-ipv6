@@ -10,10 +10,12 @@
 #include <pcap.h>
 #include <sys/timeb.h>
 #include <ctype.h>
+#include <arpa/inet.h>
 #include "thc-ipv6.h"
 
 struct timespec ts, ts2;
-int dlen = -1, port = 0, done = 0, resp_type = -1, type = NXT_ICMP6, fastopen = 0, client = 0;
+int dlen = -1, port = 0, done = 0, resp_type = -1, type = NXT_ICMP6, fastopen = 0, client = 0, waitms = 1000000, fill = 1, notfound = 1, count = 1;
+unsigned int sent = 0;
 
 extern int do_pppoe;
 extern int do_hdr_off;
@@ -26,6 +28,7 @@ void help(char *prg, int help) {
   printf("Options:\n");
   if (help) {
     printf("  -x              flood mode (doesn't check for replies)\n");
+    printf("  -w ms           wait time between packets in ms (default: 1000, if -n not 1)\n");
     printf("  -a              add a hop-by-hop header with router alert option.\n");
     printf("  -q              add a hop-by-hop header with quickstart option.\n");
     printf("  -E              send as ethertype IPv4\n");
@@ -145,6 +148,8 @@ void check_packets(u_char *pingdata, const struct pcap_pkthdr *header, const uns
         printf("icmp6 %d:%d", ptr[40 + offset], ptr[41 + offset]);
         resp_type = 0;
       }
+      if (fill)
+        printf(" for seq=%u", sent);
       printf("\n");
     } else
       printf("(ignoring icmp6 packet with different contents (proto %d, type %d, code %d)) ", ptr[nxt], ptr[40 + offset], ptr[41 + offset]);
@@ -170,6 +175,8 @@ void check_packets(u_char *pingdata, const struct pcap_pkthdr *header, const uns
         resp_type = 1;
         break;
       }
+      if (fill)
+        printf(" for seq=%u", sent);
       if (fastopen && len > 62 + offset) {
         if (ptr[60 + offset] == 23) {
           olen = ptr[61 + offset];
@@ -188,8 +195,11 @@ void check_packets(u_char *pingdata, const struct pcap_pkthdr *header, const uns
   if (resp_type >= 0)
     printf(" packet received from %s%s\n", thc_ipv62notation(ptr + 8), frag);
   if (done == 0 && resp_type >= 0) {
-    alarm(2);
     done = 1;
+    if (count == 1) {
+      alarm(1);
+      notfound = 0;
+    }
   }
 }
 
@@ -197,8 +207,8 @@ int main(int argc, char *argv[]) {
   unsigned char *pkt1 = NULL, buf[2096] = "thcping6", *routers[2], buf2[1300] = "";
   unsigned char *src6 = NULL, *dst6 = NULL, smac[16] = "", dmac[16] = "", *srcmac = smac, *dstmac = dmac;
   char string[255] = "ip6 and dst ", *interface, *d_opt = NULL, *h_opt = NULL, *oo, *ol, *ov;
-  int pkt1_len = 0, flags = 0, frag = 0, alert = 0, quick = 0, route = 0, ttl = 255, label = 0, class = 0, i, j, k, ether = -1, xl = 0, frag_type = NXT_ICMP6, offset = 14, count = 1, icmptype = ICMP6_PINGREQUEST, icmpcode = 0, flood = 0, fake_len = -1, fake_ver = 0, fake_nxt = -1, olen = 0;
-  pcap_t *p;
+  int pkt1_len = 0, flags = 0, frag = 0, alert = 0, quick = 0, route = 0, ttl = 255, label = 0, class = 0, i, j, k, ether = -1, xl = 0, frag_type = NXT_ICMP6, offset = 14, icmptype = ICMP6_PINGREQUEST, icmpcode = 0, flood = 0, fake_len = -1, fake_ver = 0, fake_nxt = -1, olen = 0;
+  pcap_t *p = NULL;
   thc_ipv6_hdr *hdr;
 
   setvbuf(stdout, NULL, _IONBF, 0);
@@ -210,13 +220,16 @@ int main(int argc, char *argv[]) {
     help(argv[0], 0);
 
   memset(buf, 0, sizeof(buf));
-  while ((i = getopt(argc, argv, "aqfd:D:H:xF:t:c:l:OS:U:EXn:T:C:e:L:N:V:")) >= 0) {
+  while ((i = getopt(argc, argv, "w:aqfd:D:H:xF:t:c:l:OS:U:EXn:T:C:e:L:N:V:")) >= 0) {
     switch (i) {
     case 'e':
       if (strncmp(optarg, "0x", 2) == 0)
         sscanf(optarg + 2, "%x", (int *) &ether);
       else
         sscanf(optarg, "%x", (int *) &ether);
+      break;
+    case 'w':
+      waitms = atoi(optarg) * 1000;
       break;
     case 'O':
       fastopen = 1;
@@ -287,9 +300,12 @@ int main(int argc, char *argv[]) {
       break;
     case 'n':
       count = atoi(optarg);
+      if (count == 0)
+        count = -1;
       break;
     case 'd':
       dlen = atoi(optarg);
+      fill = 0;
       if (dlen > 2096)
         dlen = 2096;
       for (j = 0; j < (dlen / 8); j++)
@@ -307,8 +323,10 @@ int main(int argc, char *argv[]) {
   if (dlen == -1) {
     if (type == NXT_TCP)
       dlen = 0;
-    else
+    else {
       dlen = 8;
+      memset(buf, 0, sizeof(buf));
+    }
   }
 
   if (port < 1024 && (type == NXT_TCP || type == NXT_UDP))
@@ -358,7 +376,10 @@ int main(int argc, char *argv[]) {
       dstmac = NULL;
   } else
     dstmac = NULL;
+  
   do {
+    sent++;
+    done = 0;
     if ((pkt1 = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt1_len, src6, dst6, ttl, 0, label, class, fake_ver)) == NULL)
       return -1;
     if (alert || quick) {
@@ -487,8 +508,11 @@ int main(int argc, char *argv[]) {
           dlen = sizeof(buf) - 1;
         memcpy(buf, argv[optind + 5], dlen);
         buf[dlen] = 0;
+        fill = 0;
       }
     }
+    if ((port == 0 || type == NXT_UDP) && fill)
+      memcpy(buf,(char*)&sent, sizeof(sent));
     if (port == 0) {
       if (thc_add_icmp6(pkt1, &pkt1_len, icmptype, icmpcode, flags, (unsigned char *) &buf, dlen, 0) < 0)
         return -1;
@@ -500,7 +524,7 @@ int main(int argc, char *argv[]) {
         buf2[0] = 34;
         buf2[1] = 2;
       }
-      if (thc_add_tcp(pkt1, &pkt1_len, port + flood + client, port, (port << 16) + port, 0, TCP_SYN, 5760, 0, (unsigned char *) &buf2, olen, (unsigned char *) &buf, dlen) < 0)
+      if (thc_add_tcp(pkt1, &pkt1_len, port + flood + client, port, sent, 0, TCP_SYN, 5760, 0, (unsigned char *) &buf2, olen, (unsigned char *) &buf, dlen) < 0)
         return -1;
     } else if (thc_add_udp(pkt1, &pkt1_len, port + flood + client, port, 0, (unsigned char *) &buf, dlen) < 0)
       return -1;
@@ -548,18 +572,18 @@ int main(int argc, char *argv[]) {
     strcat(string, thc_ipv62notation(src6));
 
     signal(SIGALRM, alarming);
-    alarm(6);
 
-    if ((p = thc_pcap_init(interface, string)) == NULL) {
-      fprintf(stderr, "Error: could not capture on interface %s with string %s\n", interface, string);
-      exit(-1);
-    }
+    if (p == NULL)
+      if ((p = thc_pcap_init(interface, string)) == NULL) {
+        fprintf(stderr, "Error: could not capture on interface %s with string %s\n", interface, string);
+        exit(-1);
+      }
 
     if (xl || hdr->pkt_len > thc_get_mtu(interface))
-      for (i = 0; i < count; i++)
+      //for (i = 0; i < count; i++)
         thc_send_as_fragment6(interface, src6, dst6, frag_type, hdr->pkt + 40 + offset, hdr->pkt_len - 40 - offset, 1280);
     else
-      for (i = 0; i < count; i++)
+      //for (i = 0; i < count; i++)
         while (thc_send_pkt(interface, pkt1, &pkt1_len) < 0)
           usleep(1);
     clock_gettime(CLOCK_REALTIME, &ts);
@@ -575,11 +599,21 @@ int main(int argc, char *argv[]) {
               usleep(1);
       }
     }
+    { 
+      int slices = waitms / 500, counter;
+      for (counter = 0; counter < slices /*&& done == 0*/; counter++) {
+        usleep(500);
+        while (thc_pcap_check(p, (char *) check_packets, buf) > 0);
+      }
+    }
+    pkt1 = thc_destroy_packet(pkt1);
     if (flood > 0)
       flood++;
-    pkt1 = thc_destroy_packet(pkt1);
-  } while (flood != 0);
-  while (1) {
+    if (count > 0)
+      count--;
+  } while (flood != 0 || count != 0);
+  alarm(2);
+  while (notfound) {
     thc_pcap_check(p, (char *) check_packets, buf);
   }
 

@@ -9,6 +9,7 @@ static struct fingerprints {
 }
 
 fingerprintsArray[] = {
+{"003c:a0:4000:SS05a0:NOP:WSxx:SP:TS", "Ironport"},
 {"0028:50:0100", "Dell Switch"},
 {"0028:50:0200", "Dell Switch"},
 {"0028:50:0218", "Packeteer PacketShaper"},
