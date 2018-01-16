@@ -3,6 +3,8 @@ CHANGELOG
 
 v3.5-dev
  * ... your patch? :)
+ * added new tool: connect6, useful for tcp6 connect pings
+ * added -w timeout option to thcping6
 
 
 v3.4/v3.3-dev
