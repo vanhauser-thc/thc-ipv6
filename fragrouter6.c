@@ -1,3 +1,11 @@
+/*
+ * TODO:
+ *    send data directly after syn?
+ *
+ *
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
