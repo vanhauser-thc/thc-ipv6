@@ -12,8 +12,9 @@
 
 void help(char *prg) {
   printf("%s %s (c) 2018 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
-  printf("Syntax: %s [-aAcdDfrORS] [-m dstmac] [-p port] [-s sourceip6] interface target port\n\n", prg);
+  printf("Syntax: %s [-aAcdDfrORS] [-i microsecond] [-m dstmac] [-p port] [-s sourceip6] interface target port\n\n", prg);
   printf("Options:\n");
+  printf(" -i      interval microsecond of packets\n");
   printf(" -a      add hop-by-hop header with router alert\n");
   printf(" -d      add destination header (can be set up to 64 times)\n");
   printf(" -f      add atomic fragmentation header (can be set up to 64 times)\n");
@@ -39,6 +40,7 @@ int main(int argc, char *argv[]) {
   unsigned char *pkt = NULL;
   int pkt_len = 0, count = 0;
   unsigned short int sport, port;
+  int msec = 0;
 
   if (argc < 3 || strncmp(argv[1], "-h", 2) == 0)
     help(argv[0]);
@@ -47,8 +49,11 @@ int main(int argc, char *argv[]) {
   setvbuf(stdout, NULL, _IONBF, 0);
   setvbuf(stderr, NULL, _IONBF, 0);
   
-   while ((i = getopt(argc, argv, "afAcrRs:DSp:m:dfO")) >= 0) {
+   while ((i = getopt(argc, argv, "i:afAcrRs:DSp:m:dfO")) >= 0) {
      switch(i) {
+       case 'i':
+         msec = atoi(optarg);
+         break;
        case 'a':
          alert = 8;
          break;
@@ -201,6 +206,8 @@ int main(int argc, char *argv[]) {
     count++;
     if (count % 1000 == 0)
       printf(".");
+    if (msec != 0)
+      usleep(msec);
   }
   return 0;
 }
