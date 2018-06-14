@@ -4,6 +4,7 @@ CHANGELOG
 v3.5-dev
  * ... your patch? :)
  * added new tool: connect6, useful for tcp6 connect pings
+ * added -i microseconds interval option for smurf6 and thcsyn6 (thanks to shellqiqi@github)
  * added -w timeout option to thcping6
 
 

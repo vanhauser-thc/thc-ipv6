@@ -12,7 +12,7 @@
 
 void help(char *prg) {
   printf("%s %s (c) 2013 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
-  printf("Syntax: %s interface victim-ip [-i microsecond] [multicast-network-address]\n\n", prg);
+  printf("Syntax: %s [-i microseconds] interface victim-ip [multicast-network-address]\n\n", prg);
   printf("Smurf the target with icmp echo replies. Target of echo request is the\n");
   printf("local all-nodes multicast address if not specified\n");
 //  printf("Use -r to use raw mode.\n\n");
