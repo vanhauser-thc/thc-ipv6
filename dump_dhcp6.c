@@ -50,12 +50,13 @@ char dnsupdate2[] = { 0, 6, 0, 2, 0, 39 };
 
 void help(char *prg) {
   printf("%s %s (c) 2018 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
-  printf("Syntax: %s [-V vendorid] interface\n\n", prg);
+  printf("Syntax: %s [-V vendorid] interface [target]\n\n", prg);
   printf("Options:\n");
   printf("  -V vendorid  send vendorid number,string (e.g. 11,test)\n");
   printf("  -N           use fe80:: as source\n");
   printf("  -n           use empty mac as source\n");
   printf("\nDHCPv6 information tool. Dumps the available servers and their setup.\n");
+  printf("You can specify a specific DHCPv6 server as destination.\n");
   exit(-1);
 }
 
@@ -230,7 +231,7 @@ int main(int argc, char *argv[]) {
   char mac[6] = { 0, 0x0c, 0, 0, 0, 0 }, *pkt = NULL, *pkt2 = NULL;
   char wdatabuf[1024], wdatabuf2[1024];
   unsigned char *mac6 = mac, *src, *dst, *vendorid = NULL, *ptr;
-  int i, s, len, len2, pkt_len = 0, pkt2_len = 0;
+  int i, s, len, len2, pkt_len = 0, pkt2_len = 0, source = PREFER_LINK, hlim = 1;
   unsigned long long int count = 0;
   pcap_t *p = NULL;
   int do_all = 1, use_real_mac = 1, use_real_link = 1;
@@ -268,14 +269,23 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Error: invalid interface %s\n", interface);
     exit(-1);
   }
-  dns_name = argv[optind + 1];
+  if (argv[optind + 1] != NULL && strlen(argv[optind + 1]) > 0) {
+    dst = thc_resolve6(argv[optind + 1]);
+    if (dst[0] != 0 && dst[0] != 0xff && dst[0] != 0xfe) {
+      source = PREFER_GLOBAL;
+      hlim = 64;
+    }
+    dns_name = argv[optind + 2]; // can be NULL but this is not used yet
+  } else {
+    dst = thc_resolve6("ff02::1:2");
+    dns_name = NULL;
+  }
   if (use_real_link)
-    src = thc_get_own_ipv6(interface, NULL, PREFER_LINK);
+    src = thc_get_own_ipv6(interface, NULL, source);
   else
     src = thc_resolve6("fe80::");
   if (use_real_mac)
     mac6 = thc_get_own_mac(interface);
-  dst = thc_resolve6("ff02::1:2");
   setvbuf(stdout, NULL, _IONBF, 0);
   setvbuf(stderr, NULL, _IONBF, 0);
 
@@ -331,13 +341,13 @@ int main(int argc, char *argv[]) {
     len2 += 10 + strlen(ptr);
   }
 
-  if ((pkt = thc_create_ipv6_extended(interface, PREFER_LINK, &pkt_len, src, dst, 1, 0, 0, 0, 0)) == NULL)
+  if ((pkt = thc_create_ipv6_extended(interface, source, &pkt_len, src, dst, hlim, 0, 0, 0, 0)) == NULL)
     return -1;
   if (thc_add_udp(pkt, &pkt_len, 546, 547, 0, wdatabuf, len) < 0)
     return -1;
   if (thc_generate_and_send_pkt(interface, mac6, NULL, pkt, &pkt_len) < 0)
     printf("!");
-  if ((pkt2 = thc_create_ipv6_extended(interface, PREFER_LINK, &pkt2_len, src, dst, 1, 0, 0, 0, 0)) == NULL)
+  if ((pkt2 = thc_create_ipv6_extended(interface, source, &pkt2_len, src, dst, hlim, 0, 0, 0, 0)) == NULL)
     return -1;
   if (thc_add_udp(pkt2, &pkt2_len, 546, 547, 0, wdatabuf2, len2) < 0)
     return -1;
