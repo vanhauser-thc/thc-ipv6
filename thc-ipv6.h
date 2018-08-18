@@ -19,7 +19,7 @@
 
 #define VERSION 	"v3.5-dev"
 #define AUTHOR 		"van Hauser / THC <vh@thc.org>"
-#define RESOURCE	"www.thc.org"
+#define RESOURCE	"www.github.com/vanhauser-thc/thc-ipv6"
 
 #define THC_SPLITCONNECT_PORT 64446
 #define THC_SPLITCONNECT_FROM_BYTE 0xff

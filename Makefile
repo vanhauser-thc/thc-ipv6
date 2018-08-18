@@ -63,7 +63,7 @@ backup:	clean
 	@echo .SH AUTHOR >> $@
 	@echo "thc-ipv6 was written by van Hauser <vh@thc.org> / THC" >> $@
 	@echo >> $@
-	@echo  The homepage for this toolkit is: http://www.thc.org/thc-ipv6 >> $@
+	@echo  The homepage for this toolkit is: https://github.com/vanhauser-thc/thc-ipv6 >> $@
 	@echo >> $@
 	@echo .SH COPYRIGHT >> $@
 	@./$* |head -n1|sed -e "s#^\./##g" >> $@
