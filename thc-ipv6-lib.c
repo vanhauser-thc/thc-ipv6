@@ -3207,7 +3207,10 @@ thc_key_t *thc_generate_key(int key_len) {
     return NULL;
   }
   BIGNUM *f4 = BN_new();
-  BN_set_word(f4, RSA_F4);
+  if (f4 == NULL)
+    return NULL;
+  if (BN_set_word(f4, RSA_F4) == 0)
+    return NULL;
   RSA_generate_key_ex(rsa, key_len, f4, NULL);
   key->rsa = rsa;
 #else

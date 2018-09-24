@@ -3,6 +3,7 @@ CHANGELOG
 
 v3.5-dev
  * ... your patch? :)
+ * added error check for openssl BN_ functions (thanks to lc3412)
  * added support for global destinations for dump_dhcp6
  * added new tool: connect6, useful for tcp6 connect pings
  * added -i microseconds interval option for smurf6 and thcsyn6 (thanks to shellqiqi@github)
