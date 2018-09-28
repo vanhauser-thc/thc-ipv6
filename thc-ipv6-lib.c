@@ -68,6 +68,14 @@
 
 #include "thc-ipv6.h"
 
+// we need this because the default sockaddr structure does not fit the maximum device name length on linux.
+// why linux? why??
+struct thcsockaddr {
+        u_short sa_family;              /* address family */
+        char    sa_data[16];            /* up to 16 bytes of direct address */
+};
+
+
 /***********************************************************/
 
 // exported to external via thc-ipv6.h
@@ -82,7 +90,7 @@ int do_6in4 = 0, do_pppoe = 0, do_hdr_off = 0;
 char *do_hdr = NULL, *do_capture = NULL;
 
 // other internal global vars
-char default_interface[16] = "eth0";
+char default_interface[32] = "eth0";
 int thc_socket = -1;
 int _thc_ipv6_rawmode = 0;
 
@@ -536,7 +544,7 @@ unsigned char *thc_get_own_ipv6(char *interface, unsigned char *dst, int prefer)
   unsigned char ipv6[36] = "", save[34] = "", tmpbuf[34], buf[1024], *tmpdst = NULL;
   int a, b, c, done = 0, picky = 0, orig_prefer = prefer;
   unsigned char tmpd, tmpb;
-  char bla[16];
+  char bla[32];
 
   if (interface == NULL)
     interface = default_interface;
@@ -835,7 +843,7 @@ int thc_is_dst_local(char *interface, unsigned char *dst) {
   unsigned char tmpbuf[34], buf[1024], *tmpdst = NULL;
   int a, b, c /*, found = 0, fd = -1 */ ;
   unsigned char tmpd, tmpb;
-  char bla[16];
+  char bla[32];
 
   if (thc_socket < 0)
     thc_socket = thc_open_ipv6();
@@ -881,7 +889,7 @@ unsigned char *thc_get_mac(char *interface, unsigned char *src, unsigned char *d
   unsigned char tmpbuf[34], router1[34], router2[34], defaultgw[34] = "", buf[1024], *tmpdst = NULL;
   int a, b, c /*, found = 0, fd = -1 */ ;
   unsigned char tmpd, tmpb;
-  char bla[16], *ret, *p1;
+  char bla[32], *ret, *p1;
 
   if (thc_socket < 0)
     thc_socket = thc_open_ipv6();
@@ -2990,7 +2998,7 @@ printf("\n");
 }
 
 int thc_send_pkt(char *interface, unsigned char *pkt, int *pkt_len) {
-  struct sockaddr sa;
+  struct thcsockaddr sa;
   thc_ipv6_hdr *hdr = (thc_ipv6_hdr *) pkt;
 
   if (pkt == NULL || hdr->pkt == NULL || hdr->pkt_len < 1 || hdr->pkt_len > 65535)
@@ -3020,7 +3028,7 @@ int thc_send_pkt(char *interface, unsigned char *pkt, int *pkt_len) {
     } 
   }
 
-  return sendto(thc_socket, hdr->pkt, hdr->pkt_len, 0, &sa, sizeof(sa));
+  return sendto(thc_socket, hdr->pkt, hdr->pkt_len, 0, (struct sockaddr*)&sa, sizeof(sa));
 }
 
 int thc_generate_and_send_pkt(char *interface, unsigned char *srcmac, unsigned char *dstmac, unsigned char *pkt, int *pkt_len) {

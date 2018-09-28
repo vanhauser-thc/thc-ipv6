@@ -958,6 +958,8 @@ int main(int argc, char *argv[]) {
   if (ptr != NULL) { // && (index(ptr, ':') == NULL || index(ptr, '-') == NULL)) {
     if (verbose > 1)
       printf("Resolving %s ...\n", ptr);
+    if (index(ptr, '/') != NULL)
+      fprintf(stderr, "Warning: network mask is ignored and processed as single host: %s\n", ptr);
     multicast6 = thc_resolve6(ptr);     // if it cant resolve - no problem
   }
   if (interface == NULL) {
@@ -1118,8 +1120,12 @@ int main(int argc, char *argv[]) {
         if (ok && verbose > 1)
           printf("Resolving %s ...\n", ptr);
         if ((cur_dst = thc_resolve6(ptr)) == NULL) {
-          if (ok)
+          if (ok) {
             fprintf(stderr, "Warning: could not resolve %s, skipping\n", ptr);
+          } else {
+            if (index(ptr, '/') != NULL)
+             fprintf(stderr, "Warning: network mask is ignored and processed as single host: %s\n", ptr);
+          }
           ok = 0;
         } else {
           memcpy(orig_dst, cur_dst, 16);

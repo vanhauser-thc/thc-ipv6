@@ -3,6 +3,7 @@ CHANGELOG
 
 v3.5-dev
  * ... your patch? :)
+ * fixed a crash in thc-ipv6-lib when the ethernet device has a length of > 13 bytes. why does linux not support its own stuff? thanks to Christophe Desoutter@Airbus for reporting
  * added error check for openssl BN_ functions (thanks to lc3412)
  * added support for global destinations for dump_dhcp6
  * added new tool: connect6, useful for tcp6 connect pings
