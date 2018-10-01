@@ -3006,6 +3006,9 @@ int thc_send_pkt(char *interface, unsigned char *pkt, int *pkt_len) {
 
   if (interface == NULL)
     interface = default_interface;
+  else
+    if (_thc_ipv6_showerrors && strlen(interface) > 13) 
+      fprintf(stderr, "Warning: the socket interface used does not support long interface names!\n");
   strcpy(sa.sa_data, interface);
 
   if (thc_socket < 0)
