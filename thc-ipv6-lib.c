@@ -17,6 +17,12 @@
 #include <ctype.h>
 
 /* network */
+#include <netpacket/packet.h>
+#include <net/if.h>
+#include <net/ethernet.h>
+#include <linux/if_ether.h>
+#include <netinet/in.h>
+#include <netinet/ether.h>
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -24,8 +30,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <net/if.h>
-#include <netinet/in.h>
 //#include <linux/if.h>
 
 /* files */
@@ -752,7 +756,7 @@ unsigned char *thc_lookup_ipv6_mac(char *interface, unsigned char *dst) {
   pcap_t *p;
 
   if (thc_socket < 0)
-    thc_socket = thc_open_ipv6();
+    thc_socket = thc_open_ipv6(interface);
   if (_thc_ipv6_rawmode || do_pppoe || do_6in4 || do_hdr_vlan)
     return thc_ipv6_dummymac();
   if (dst == NULL)
@@ -846,7 +850,7 @@ int thc_is_dst_local(char *interface, unsigned char *dst) {
   char bla[32];
 
   if (thc_socket < 0)
-    thc_socket = thc_open_ipv6();
+    thc_socket = thc_open_ipv6(interface);
   if (_thc_ipv6_rawmode || dst == NULL || do_pppoe || do_6in4 || do_hdr_vlan)
     return 0;
   if (interface == NULL)
@@ -892,7 +896,7 @@ unsigned char *thc_get_mac(char *interface, unsigned char *src, unsigned char *d
   char bla[32], *ret, *p1;
 
   if (thc_socket < 0)
-    thc_socket = thc_open_ipv6();
+    thc_socket = thc_open_ipv6(interface);
   if (_thc_ipv6_rawmode || do_pppoe || do_6in4 || do_hdr_vlan)
     return thc_ipv6_dummymac();
   if (dst == NULL)
@@ -2514,10 +2518,24 @@ int thc_add_data6(unsigned char *pkt, int *pkt_len, unsigned char type, unsigned
   return 0;
 }
 
-int thc_open_ipv6() {
+int thc_open_ipv6(char *interface) {
   char *ptr, *ptr2, tbuf[6], vbuf[4];
   int i = 0;
+  int ret;
   struct sockaddr_in servaddr;
+
+  struct sockaddr_ll sock_ll={
+     sll_family:AF_PACKET,
+     sll_protocol: ETH_P_IPV6,
+     sll_halen:ETH_ALEN,
+  };
+
+  struct ifreq ifr;
+  
+  memset(&sock_ll, 0, sizeof(sock_ll));
+  sock_ll.sll_family=AF_PACKET;
+  sock_ll.sll_protocol=ETH_P_IPV6;
+  sock_ll.sll_halen=ETH_ALEN;
 
   if (thc_socket >= 0)
     return thc_socket;
@@ -2689,10 +2707,35 @@ int thc_open_ipv6() {
     sprintf(do_capture, /*"ether proto 0x8100 and */"ether src %18s", ptr2);
   }
   
+  int s=-1;
   if (_thc_ipv6_rawmode)
-    return socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_ALL));     // XXX BUG TODO FIXME : no this is not working.
+    s = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_ALL));     // XXX BUG TODO FIXME : no this is not working.
   else
-    return socket(AF_INET, SOCK_PACKET, htons(ETH_P_ARP));
+    s = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+    //return socket(AF_INET, SOCK_PACKET, htons(ETH_P_ARP));
+
+  //Bind socket to interface
+  strncpy ((char*) ifr.ifr_name, interface, IFNAMSIZ);
+  ret = ioctl(s, SIOCGIFINDEX, &ifr, sizeof(ifr));
+  if (ret < 0){
+     perror("IOCTL SIOCGIFINDEX Failed");
+  }
+  printf("Socket interface idx %d\n", ifr.ifr_ifindex);
+
+  sock_ll.sll_ifindex=ifr.ifr_ifindex;
+  ioctl(s, SIOCGIFHWADDR, &ifr, sizeof(ifr));
+  if (ret < 0){
+     perror("IOCTL SIOCGIFHWADDR, Failed");
+  }
+  printf("Socket interface HW addr: %s\n", ether_ntoa((struct ether_addr*)ifr.ifr_hwaddr.sa_data));
+  
+  memcpy(sock_ll.sll_addr, ifr.ifr_hwaddr.sa_data, ETH_ALEN);
+  ret = bind(s, (const struct sockaddr *)&sock_ll, sizeof(sock_ll));
+  if (ret < 0){
+     perror("Bind failed");
+  }
+
+  return s;
 }
 
 int thc_generate_pkt(char *interface, unsigned char *srcmac, unsigned char *dstmac, unsigned char *pkt, int *pkt_len) {
@@ -2717,7 +2760,7 @@ int thc_generate_pkt(char *interface, unsigned char *srcmac, unsigned char *dstm
     interface = default_interface;
 
   if (thc_socket < 0)
-    thc_socket = thc_open_ipv6();
+    thc_socket = thc_open_ipv6(interface);
 
   if (_thc_ipv6_rawmode == 0) {
     if (do_pppoe || do_6in4 || do_hdr_vlan) {
@@ -3006,13 +3049,14 @@ int thc_send_pkt(char *interface, unsigned char *pkt, int *pkt_len) {
 
   if (interface == NULL)
     interface = default_interface;
-  else
+  /* else
     if (_thc_ipv6_showerrors && strlen(interface) > 13) 
       fprintf(stderr, "Warning: the socket interface used does not support long interface names!\n");
-  strcpy(sa.sa_data, interface);
+  strcpy(sa.sa_data, interface);  */
 
   if (thc_socket < 0)
-    thc_socket = thc_open_ipv6();
+    thc_socket = thc_open_ipv6(interface);
+
   if (thc_socket < 0 && geteuid() != 0) {
     fprintf(stderr, "Error: Program must be run as root.\n");
     exit(-1);
@@ -3031,7 +3075,8 @@ int thc_send_pkt(char *interface, unsigned char *pkt, int *pkt_len) {
     } 
   }
 
-  return sendto(thc_socket, hdr->pkt, hdr->pkt_len, 0, (struct sockaddr*)&sa, sizeof(sa));
+  return send(thc_socket, hdr->pkt, hdr->pkt_len, 0);
+  //return sendto(thc_socket, hdr->pkt, hdr->pkt_len, 0, (struct sockaddr*)&sa, sizeof(sa));
 }
 
 int thc_generate_and_send_pkt(char *interface, unsigned char *srcmac, unsigned char *dstmac, unsigned char *pkt, int *pkt_len) {
