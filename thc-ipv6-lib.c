@@ -2720,14 +2720,14 @@ int thc_open_ipv6(char *interface) {
   if (ret < 0){
      perror("IOCTL SIOCGIFINDEX Failed");
   }
-  printf("Socket interface idx %d\n", ifr.ifr_ifindex);
+  if (debug) printf("Socket interface idx %d\n", ifr.ifr_ifindex);
 
   sock_ll.sll_ifindex=ifr.ifr_ifindex;
   ioctl(s, SIOCGIFHWADDR, &ifr, sizeof(ifr));
   if (ret < 0){
      perror("IOCTL SIOCGIFHWADDR, Failed");
   }
-  printf("Socket interface HW addr: %s\n", ether_ntoa((struct ether_addr*)ifr.ifr_hwaddr.sa_data));
+  if (debug) printf("Socket interface HW addr: %s\n", ether_ntoa((struct ether_addr*)ifr.ifr_hwaddr.sa_data));
   
   memcpy(sock_ll.sll_addr, ifr.ifr_hwaddr.sa_data, ETH_ALEN);
   ret = bind(s, (const struct sockaddr *)&sock_ll, sizeof(sock_ll));
