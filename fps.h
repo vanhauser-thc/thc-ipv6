@@ -9,6 +9,8 @@ static struct fingerprints {
 }
 
 fingerprintsArray[] = {
+{"0040:b0:ffff:SS05a0:NOP:WSxx:NOP:NOP:TS:SP:NOP:NOP", "QNX 6.x"},
+{"002c:60:16d0:SS059c", "LWP embedded TCP/IP stack"},
 {"003c:a0:4000:SS05a0:NOP:WSxx:SP:TS", "Ironport"},
 {"0028:50:0100", "Dell Switch"},
 {"0028:50:0200", "Dell Switch"},
