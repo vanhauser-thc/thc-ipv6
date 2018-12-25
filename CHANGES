@@ -3,7 +3,7 @@ CHANGELOG
 
 v3.5-dev
  * ... your patch? :)
- * long interface name are now supported. Thanks to Christophe Desoutter@Airbus for the patch!
+ * long interface names are now supported. Thanks to Christophe Desoutter@Airbus for the patch!
  * added error check for openssl BN_ functions (thanks to lc3412)
  * added support for global destinations for dump_dhcp6
  * added new tool: connect6, useful for tcp6 connect pings
