@@ -17,7 +17,7 @@
   #include <openssl/rsa.h>
 #endif
 
-#define VERSION 	"v3.6"
+#define VERSION 	"v3.7-dev"
 #define AUTHOR 		"van Hauser / THC <vh@thc.org>"
 #define RESOURCE	"www.github.com/vanhauser-thc/thc-ipv6"
 

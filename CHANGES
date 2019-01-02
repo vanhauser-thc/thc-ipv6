@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+v3.7-dev
+ * your patch? :)
+
+
 v3.6/v3.5-dev
  * long interface names are now supported. Thanks to Christophe Desoutter@Airbus for the patch!
  * added error check for openssl BN_ functions (thanks to lc3412)
