@@ -11,7 +11,7 @@
 #include "thc-ipv6.h"
 
 void help(char *prg) {
-  printf("%s %s (c) 2018 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2019 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-HFD] [-p|-h] [-r|-R] interface target\n\n", prg);
   printf("Flood the target with ICMPv6 unreachable packets.\n");
   printf("-F/-D/-H add fragment/destination/hopbyhop header to bypass simple filters\n");

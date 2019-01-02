@@ -27,7 +27,7 @@ int main() {
 #include "thc-ipv6.h"
 
 void help(char *prg) {
-  printf("%s %s (c) 2018 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2019 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-m mtu] [-k key] [-s resend] interface target file [port]\n\n", prg);
   printf("Options:\n");
   printf("  -m mtu     specifies the maximum MTU (default: interface MTU, min: 1000)\n");

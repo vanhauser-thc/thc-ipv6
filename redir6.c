@@ -11,7 +11,7 @@
 #include "thc-ipv6.h"
 
 void help(char *prg) {
-  printf("%s %s (c) 2018 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2019 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s interface victim-ip target-ip original-router new-router [new-router-mac] [hop-limit]\n\n", prg);
   printf("Implant a route into victim-ip, which redirects all traffic to target-ip to\n");
   printf("new-ip. You must know the router which would handle the route.\n");

@@ -11,7 +11,7 @@
 #include "thc-ipv6.h"
 
 void help(char *prg) {
-  printf("%s %s (c) 2018 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2019 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-aAcdDfrORS] [-i microsecond] [-m dstmac] [-p port] [-s sourceip6] interface target port\n\n", prg);
   printf("Options:\n");
   printf(" -i      sending interval of packets (in microseconds)\n");

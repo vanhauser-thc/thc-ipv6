@@ -13,7 +13,7 @@
 #include "thc-ipv6.h"
 
 void help(char *prg) {
-  printf("%s %s (c) 2018 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2019 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax:\n\t%s mac-address [ipv6-prefix]\n", prg);
   printf("\t%s ipv4-address [ipv6-prefix]\n", prg);
   printf("\t%s ipv6-address\n\n", prg);

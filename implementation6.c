@@ -22,7 +22,7 @@ int ret_code = 1, matched = 0, gtype1, gtype1a, gtype2, gtype2a, gpos, epos, one
 unsigned char *gpattern, *gsrc, *gdst, etype, ecode;
 
 void help(char *prg) {
-  printf("%s %s (c) 2018 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2019 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-p] [-s sourceip6] interface destination [test-case-number]\n\n", prg);
   printf("Options:\n");
   printf("  -s sourceip6  use the specified source IPv6 address\n");

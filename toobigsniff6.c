@@ -14,7 +14,7 @@ unsigned char *mac6, *src6, *interface, *ip6;
 unsigned int loop = 0, go = 1, mtu, offset = 14;
 
 void help(char *prg) {
-  printf("%s %s (c) 2018 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2019 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-c] interface target mtu\n\n", prg);
   printf("Sniff for packte from target and send an ICMPv6 too big error message based on\n");
   printf("that packet with the MTU specified. If you supply a '*' as-address, any global\n");

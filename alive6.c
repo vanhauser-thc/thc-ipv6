@@ -197,7 +197,7 @@ unsigned char tcp_opt[TCP_OPT_LEN] = {
 // cafe, dead, beef, affe, b00b, babe, f00, fefe, ffff, 1337, 666, 0, 1
 
 void help(char *prg) {
-  printf("%s %s (c) 2018 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2019 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf ("Syntax: %s [-CFHLMPSdlpvV] [-I srcip6] [-i file] [-o file] [-e opt] [-s port,..] [-a port,..] [-u port,..] [-T tag] [-W TIME] interface [unicast-or-multicast-address [remote-router]]\n\n", prg);
   printf("Options:\n");
   if (do_help) printf(" Output Options:\n");
@@ -1072,7 +1072,7 @@ int main(int argc, char *argv[]) {
 
   if (verbose) {
     timeval = time(NULL);
-    printf("Starting alive6 %s (c) 2018 by van Hauser / THC at %s\n", VERSION, ctime(&timeval));
+    printf("Starting alive6 %s (c) 2019 by van Hauser / THC at %s\n", VERSION, ctime(&timeval));
   }
   if (renew && src6[0] > 0xfd && (multicast6 != NULL && multicast6[0] > 0xfd))
     prefer = PREFER_LINK;

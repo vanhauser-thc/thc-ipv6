@@ -21,7 +21,7 @@
 int rawmode = 0;
 
 void help(char *prg) {
-  printf("%s %s (c) 2018 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2019 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s interface destination test-case-number\n\n", prg);
   printf("Performs various denial of service attacks on a target\n");
   printf("If a system is vulnerable, it can crash or be under heavy load, so be careful!\n");
@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
   memset(bla, 0, sizeof(bla));
 
   if (test < 1 || test > MAX_TEST) {
-    printf("%s %s (c) 2018 by %s %s\n\n", argv[0], VERSION, AUTHOR, RESOURCE);
+    printf("%s %s (c) 2019 by %s %s\n\n", argv[0], VERSION, AUTHOR, RESOURCE);
     printf("Syntax: %s interface destination test-case-number\n\n", argv[0]);
     printf("The following test cases are currently implemented:\n");
     printf("  1 : large hop-by-hop header with router-alert and filled with unknown options\n");

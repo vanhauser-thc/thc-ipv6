@@ -157,7 +157,7 @@ unsigned int dwords[] = { 0x00000000, 0x00000001, 0x000000fe, 0x000000ff,
 int port = -1;
 
 void help(char *prg) {
-  printf("%s %s (c) 2018 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2019 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-x] [-t number | -T number] [-p number] [-IFSDHRJ] [-X|-1|-2|-3|-4|-5|-6|-7|-8|-9|-0 port|-P type] interface unicast-or-multicast-address [address-in-data-pkt]\n\n", prg);
   printf("Fuzzes an IPv6 packet with optional EHs and upper layer transport\n");
   printf("Options:\n");

@@ -15,7 +15,7 @@ unsigned char dmac[6], *mac;
 int done = 0;
 
 void help(char *prg) {
-  printf("%s %s (c) 2018 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2019 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s interface mac-address\n\n", prg);
   printf("Performs an inverse address query, to get the IPv6 addresses that are assigned\n");
   printf("to a MAC address. Note that only few systems support this yet.\n");
