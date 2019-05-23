@@ -3,7 +3,7 @@ HAVE_SSL=yes
 
 CC=gcc
 #CFLAGS=-g
-CFLAGS=-Ofast -falign-functions -falign-jumps -falign-loops -falign-labels -freorder-blocks -freorder-blocks-and-partition
+CFLAGS=-O3 -march=native -flto -falign-functions -falign-jumps -falign-loops -falign-labels -freorder-blocks -freorder-blocks-and-partition
 CFLAGS+=$(if $(HAVE_SSL),-D_HAVE_SSL,)
 LDFLAGS+=-lpcap $(if $(HAVE_SSL),-lssl -lcrypto,)
 STATIC=
