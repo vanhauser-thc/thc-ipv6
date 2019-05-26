@@ -360,6 +360,8 @@ int main(int argc, char *argv[]) {
     exit(-1);
   }
 
+  strcat(string, thc_ipv62notation(src6));
+
   if (argc - optind >= 4) {
     if (strcmp(argv[optind + 3], "x") != 0)
       sscanf(argv[optind + 3], "%x:%x:%x:%x:%x:%x", (unsigned int *) &smac[0], (unsigned int *) &smac[1], (unsigned int *) &smac[2], (unsigned int *) &smac[3],
@@ -568,8 +570,6 @@ int main(int argc, char *argv[]) {
         hdr->pkt[13] = (unsigned char)((unsigned int) ether % 256);
       }
     }
-
-    strcat(string, thc_ipv62notation(src6));
 
     signal(SIGALRM, alarming);
 

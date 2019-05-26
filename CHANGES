@@ -3,6 +3,7 @@ CHANGELOG
 
 v3.7-dev
  * your patch? :)
+ * fixed crash in thcping6 with -n 0 or larger values
 
 
 v3.6/v3.5-dev
