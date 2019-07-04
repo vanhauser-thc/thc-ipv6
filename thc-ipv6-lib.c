@@ -49,6 +49,7 @@
   #include <openssl/sha.h>
   #include <openssl/rsa.h>
   #include <openssl/x509.h>
+  #include <openssl/err.h>
 #endif
 
 /* OS specifics */
@@ -3267,8 +3268,15 @@ thc_key_t *thc_generate_key(int key_len) {
     return NULL;
   if (BN_set_word(f4, RSA_F4) == 0)
     return NULL;
-  RSA_generate_key_ex(rsa, key_len, f4, NULL);
-  key->rsa = rsa;
+  if (RSA_generate_key_ex(rsa, key_len, f4, NULL) != 1) {
+    free(key);
+    unsigned long err = ERR_get_error();
+    if (err == 67637368)
+      printf("Key size too small. Try with 512 bits at least\n");
+    return NULL;
+  }
+  else
+    key->rsa = rsa;
 #else
   if ((key->rsa = RSA_generate_key(key_len, 65535, NULL, NULL)) == NULL) {
     free(key);
