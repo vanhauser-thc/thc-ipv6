@@ -30,6 +30,7 @@
 #include <signal.h>
 #include <ctype.h>
 #include <string.h>
+#include <time.h>
 #include "thc-ipv6.h"
 
 // do not set below 2
