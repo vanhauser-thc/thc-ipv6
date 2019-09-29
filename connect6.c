@@ -23,7 +23,7 @@
 
 #define PROGRAM "connect6"
 
-#ifndef in6_pktinfo
+#ifndef _BSD_SOURCE
 struct in6_pktinfo {
   struct in6_addr ipi6_addr;
   int ipi6_ifindex;
