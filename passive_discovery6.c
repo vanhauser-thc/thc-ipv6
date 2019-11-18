@@ -50,13 +50,16 @@ void detect(u_char *foo, const struct pcap_pkthdr *header, unsigned char *data) 
   for (k = 0; k <= do_dst; k++) {
     doit = 0;
 
-    if (ptr[offset] != 0xff
+    if ((unsigned char)ptr[offset] != 0xff
          &&
-        ( maxhop > 254 || ptr[7] >= 255 - maxhop || (ptr[7] >= 128 - maxhop && ptr[7] <= 128) || (ptr[7] >= 64 - maxhop && ptr[7] <= 64) )
+        ( maxhop > 254 || (unsigned char)ptr[7] >= 255 - maxhop
+          || ( (unsigned char)ptr[7] >= 128 - maxhop && (unsigned char)ptr[7] <= 128 )
+          || ( (unsigned char)ptr[7] >= 64 - maxhop && (unsigned char)ptr[7] <= 64 )
+        )
        )
       doit = 1;
     if (memcmp(ptr + 8, d[dcnt + 1], 16) == 0) {
-      if (k == 0 && ptr[7] == 255 && ptr[6] == NXT_ICMP6 && ptr[40] == ICMP6_NEIGHBORSOL && len >= 64) {
+      if (k == 0 && (unsigned char)ptr[7] == 255 && (unsigned char)ptr[6] == NXT_ICMP6 && (unsigned char)ptr[40] == ICMP6_NEIGHBORSOL && len >= 64) {
         doit = 1;   // DAD packet
         offset = 48;
       } else

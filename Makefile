@@ -1,9 +1,9 @@
 # Comment out if openssl-dev is not present
 HAVE_SSL=yes
 
-CC=gcc
+#CC=gcc
 #CFLAGS=-g
-CFLAGS=-O3 -march=native -flto -falign-functions -falign-jumps -falign-loops -falign-labels -freorder-blocks -freorder-blocks-and-partition
+CFLAGS+=-O3 -march=native -flto -falign-functions -falign-jumps -falign-loops -falign-labels -freorder-blocks
 CFLAGS+=$(if $(HAVE_SSL),-D_HAVE_SSL,)
 LDFLAGS+=-lpcap $(if $(HAVE_SSL),-lssl -lcrypto,)
 STATIC=

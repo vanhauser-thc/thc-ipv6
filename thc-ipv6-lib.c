@@ -546,7 +546,7 @@ unsigned char *thc_get_own_mac(char *interface) {
 unsigned char *thc_get_own_ipv6(char *interface, unsigned char *dst, int prefer) {
   char *myipv6;
   FILE *f;
-  unsigned char ipv6[36] = "", save[34] = "", tmpbuf[34], buf[1024], *tmpdst = NULL;
+  unsigned char ipv6[36] = "", save[36] = "", tmpbuf[34], buf[1024], *tmpdst = NULL;
   int a, b, c, done = 0, picky = 0, orig_prefer = prefer;
   unsigned char tmpd, tmpb;
   char bla[32];
@@ -1494,7 +1494,7 @@ int thc_ping26(char *interface, unsigned char *srcmac, unsigned char *dstmac, un
   unsigned char *pkt = NULL;
   int pkt_len;
   unsigned char buf[size];
-  int ret, counter = count;
+  int ret = 0, counter = count;
 
   memset(buf, 'A', size);
 
@@ -3484,7 +3484,7 @@ int thc_add_send(unsigned char *pkt, int *pkt_len, int type, int code, unsigned 
 
   /* add various security features to ND message */
   /* determine options' total length */
-  if ((cga_hdr == NULL))
+  if (cga_hdr == NULL)
     return -1;
 
   ndp_opt_len += cga_hdr->len * 8;

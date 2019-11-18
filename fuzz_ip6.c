@@ -423,7 +423,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Error: could not capture on interface %s with string %s\n", interface, string);
     exit(-1);
   }
-  if (real_dst6 != NULL && real_dst6[0] == 0xff)
+  if (real_dst6 != NULL && (unsigned char)real_dst6[0] == 0xff)
     do_alive = 0;
   // ping before to check if it works
   if (do_alive)

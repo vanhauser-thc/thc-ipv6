@@ -487,6 +487,7 @@ int fuzz_loop(char *pkt, int *pkt_len) {
       test_current++;
     }
   }
+  return 0;
 }
 
 void dhcpc_listener() {
