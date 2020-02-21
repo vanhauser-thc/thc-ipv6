@@ -1,7 +1,7 @@
 /*
  * Simple DNSSEC walker requiring no special libraries.
  *
- * (c) 2019 by Marc "van Hauser" Heuse <vh(at)thc.org> or <mh(at)mh-sec.de>
+ * (c) 2020 by Marc "van Hauser" Heuse <vh(at)thc.org> or <mh(at)mh-sec.de>
  * The AGPL v3 license applies to this code.
  *
  * Works against DNSSEC servers which have NSEC enabled (default)
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
   setvbuf(stderr, NULL, _IONBF, 0);
 
   if (argc < 3) {
-    printf("%s %s (c) 2019 by Marc Heuse <mh@mh-sec.de> http://www.mh-sec.de\n\n", argv[0], VERSION);
+    printf("%s %s (c) 2020 by Marc Heuse <mh@mh-sec.de> http://www.mh-sec.de\n\n", argv[0], VERSION);
     printf("Syntax: %s [-e46t] dns-server domain\n\n", argv[0]);
     printf("Options:\n -e  ensure that the domain is present in found addresses, quit otherwise\n -4  resolve found entries to IPv4 addresses\n -6  resolve found entries to IPv6 addresses\n -t  use TCP instead of UDP\n\n");
     printf("Perform DNSSEC NSEC walking.\n\nExample: %s dns.test.com test.com\n", argv[0]);

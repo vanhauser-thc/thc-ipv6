@@ -5,7 +5,7 @@
  *   - ipv6 support
  *   - simplified options
  *   - srv support
- * have fun!     van Hauser / THC, (c) 2019 
+ * have fun!     van Hauser / THC, (c) 2020 
  *
  * ** dnsmap - DNS Network Mapper by pagvac
  * ** Copyright (C) 2014 gnucitizen.org
@@ -47,7 +47,7 @@ char ***lists;
 unsigned short int listptr[MAX_THREADS];
 
 void *help(char *prg) {
-  printf("%s %s (c) 2019 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-d4] [-s|-m|-l|-x|-u] [-t THREADS] [-D] domain [dictionary-file]\n\n", prg);
   printf("Enumerates a domain for DNS entries, it uses a dictionary file if supplied\n");
   printf("or a built-in list otherwise. This tool is based on dnsmap by gnucitizen.org.\n\n");

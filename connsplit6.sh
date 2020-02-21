@@ -4,7 +4,7 @@
 #
 
 test -z "$1" -o "$1" = "-h" -o -z "$2" && {
-  echo "connsplit6 startup script (c) 2019 by van Hauser / THC"
+  echo "connsplit6 startup script (c) 2020 by van Hauser / THC"
   echo
   echo "Syntax: $0 interface client|server [ipv6-network]"
   echo "The ipv6-network (e.g. 2001:2:3:4::) needs to be supplied for client mode"

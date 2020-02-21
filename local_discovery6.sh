@@ -2,7 +2,7 @@
 LOOP=
 test "$1" = "-i" && { LOOP=yes ; shift ; }
 test -z "$1" -o "$1" = "help" && {
-  echo 'Local IPv6 Discovery Script (c) 2019 by van Hauser <vh@thc.org> www.github.com/vanhauser-thc/thc-ipv6'
+  echo 'Local IPv6 Discovery Script (c) 2020 by van Hauser <vh@thc.org> www.github.com/vanhauser-thc/thc-ipv6'
   echo
   echo Syntax: $0 [-i] INTERFACE
   echo

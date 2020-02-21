@@ -1,5 +1,5 @@
 /*
- * (c) 2019 by van Hauser / THC
+ * (c) 2020 by van Hauser / THC
  *
  * THC IPv6 Attack Library Header Files
  *

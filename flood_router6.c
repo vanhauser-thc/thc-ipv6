@@ -11,7 +11,7 @@
 #include "thc-ipv6.h"
 
 void help(char *prg) {
-  printf("%s %s (c) 2019 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-HFD] interface\n\n", prg);
   printf("Flood the local network with router advertisements.\n");
   printf("-F/-D/-H add fragment/destination/hopbyhop header to bypass RA guard security.\n");

@@ -181,7 +181,7 @@ char solicit[] = {
 int port = -1;
 
 void help(char *prg) {
-  printf("%s %s (c) 2019 by %s %s\n\n", prg, VERSION, "Brandon Hutcheson, Graeme Neilson and Ryan Ko", RESOURCE);
+  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, "Brandon Hutcheson, Graeme Neilson and Ryan Ko", RESOURCE);
   printf("Syntax: %s [-t number | -T number] [-e number | -T number] [-p number] [-md] [-1|-2|-3|-4|-5|-6|-7|-8] interface [domain-name]\n\n", prg);
   printf("Options:\n");
   printf(" -1         fuzz DHCPv6 Solicit (default)\n");
