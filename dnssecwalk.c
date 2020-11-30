@@ -7,7 +7,7 @@
  * Works against DNSSEC servers which have NSEC enabled (default)
  * instead of NSEC3 :-)
  *
- * Compile simply as gcc -O2 -o dnssecwalk dnssecwalk.c 
+ * Compile simply as gcc -O2 -o dnssecwalk dnssecwalk.c
  *
  */
 
@@ -24,14 +24,14 @@
 #include "thc-ipv6.h"
 
 #define RETRY 5
-//int debug = 0;
-int errcnt = 0, sock, ensure = 0, dores = -1, tcp = 0, tcp_offset = 0;
+// int debug = 0;
+int   errcnt = 0, sock, ensure = 0, dores = -1, tcp = 0, tcp_offset = 0;
 char *dst, first[256], beforesub[256], firstsub[256];
 
 int dnssocket(char *server) {
   struct addrinfo *ai;
-  struct addrinfo hints;
-  int s;
+  struct addrinfo  hints;
+  int              s;
 
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_family = AF_UNSPEC;
@@ -62,7 +62,8 @@ int dnssocket(char *server) {
 void noreply(int signo) {
   ++errcnt;
   if (errcnt < RETRY) {
-    fprintf(stderr, "Warning: DNS server timeout (%d of %d retries)\n", errcnt, RETRY);
+    fprintf(stderr, "Warning: DNS server timeout (%d of %d retries)\n", errcnt,
+            RETRY);
     close(sock);
     sock = -1;
     return;
@@ -74,29 +75,38 @@ void noreply(int signo) {
 
 int main(int argc, char **argv) {
   unsigned char buf[1024], buf2[1024];
-  char *ptr, *ptr2, nexthost[256], domain[256];
-  char b1[] = { 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-  char b2[] = { 0x00, 0x2f, 0x00, 0x01 };
-  int pid = getpid(), dlen = 0, i = 0, fixi, len, ok = 1, cnt = 0, errcntbak, sub = 0, recv_len;
-  struct addrinfo hints, *res, *p;
+  char *        ptr, *ptr2, nexthost[256], domain[256];
+  char b1[] = {0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  char b2[] = {0x00, 0x2f, 0x00, 0x01};
+  int  pid = getpid(), dlen = 0, i = 0, fixi, len, ok = 1, cnt = 0, errcntbak,
+      sub = 0, recv_len;
+  struct addrinfo      hints, *res, *p;
   struct sockaddr_in6 *ipv6, *q;
-  struct sockaddr_in *ipv4, *q4;
-  char ipv4str[16], ipv6str[40];
-  void *addr, *addr4;
+  struct sockaddr_in * ipv4, *q4;
+  char                 ipv4str[16], ipv6str[40];
+  void *               addr, *addr4;
 
   setvbuf(stdout, NULL, _IONBF, 0);
   setvbuf(stderr, NULL, _IONBF, 0);
 
   if (argc < 3) {
-    printf("%s %s (c) 2020 by Marc Heuse <mh@mh-sec.de> http://www.mh-sec.de\n\n", argv[0], VERSION);
+    printf(
+        "%s %s (c) 2020 by Marc Heuse <mh@mh-sec.de> http://www.mh-sec.de\n\n",
+        argv[0], VERSION);
     printf("Syntax: %s [-e46t] dns-server domain\n\n", argv[0]);
-    printf("Options:\n -e  ensure that the domain is present in found addresses, quit otherwise\n -4  resolve found entries to IPv4 addresses\n -6  resolve found entries to IPv6 addresses\n -t  use TCP instead of UDP\n\n");
-    printf("Perform DNSSEC NSEC walking.\n\nExample: %s dns.test.com test.com\n", argv[0]);
+    printf(
+        "Options:\n -e  ensure that the domain is present in found addresses, "
+        "quit otherwise\n -4  resolve found entries to IPv4 addresses\n -6  "
+        "resolve found entries to IPv6 addresses\n -t  use TCP instead of "
+        "UDP\n\n");
+    printf(
+        "Perform DNSSEC NSEC walking.\n\nExample: %s dns.test.com test.com\n",
+        argv[0]);
     exit(0);
   }
 
   while ((i = getopt(argc, argv, "e46t")) >= 0) {
-    switch(i) {
+    switch (i) {
       case 'e':
         ensure = 1;
         break;
@@ -121,67 +131,65 @@ int main(int argc, char **argv) {
         exit(-1);
     }
   }
-  
+
   if (optind + 2 > argc) {
-    fprintf(stderr, "Error: you must specify the DNS server to query and the domain\n");
+    fprintf(stderr,
+            "Error: you must specify the DNS server to query and the domain\n");
     exit(-1);
   }
 
   dst = argv[optind];
   sock = dnssocket(dst);
-  
+
   for (i = 0; i < strlen(argv[optind]); i++)
     argv[optind][i] = (char)tolower((int)argv[optind][i]);
   for (i = 0; i < strlen(argv[optind + 1]); i++)
     argv[optind + 1][i] = (char)tolower((int)argv[optind + 1][i]);
 
   if (index(argv[optind + 1], '.') == NULL) {
-    fprintf(stderr, "Error: not a valid domain (must be at least \".\"): %s\n", argv[optind + 1]);
+    fprintf(stderr, "Error: not a valid domain (must be at least \".\"): %s\n",
+            argv[optind + 1]);
     exit(-1);
   }
   strncpy(domain, argv[optind + 1], sizeof(nexthost) - 2);
   domain[sizeof(domain) - 2] = 0;
-  if (domain[strlen(domain) - 1] != '.')
-    strcat(domain, ".");
+  if (domain[strlen(domain) - 1] != '.') strcat(domain, ".");
   strncpy(nexthost, argv[optind + 1], sizeof(nexthost) - 1);
   nexthost[sizeof(nexthost) - 1] = 0;
 
-  memcpy(buf + tcp_offset, (char *) &pid + _TAKE2, 2);
+  memcpy(buf + tcp_offset, (char *)&pid + _TAKE2, 2);
   memcpy(buf + tcp_offset + 2, b1, sizeof(b1));
   i = 2 + sizeof(b1) + tcp_offset;
   fixi = i;
 
   if (dores >= 0) {
-    memset((char*)&hints, 0, sizeof(hints));
+    memset((char *)&hints, 0, sizeof(hints));
     hints.ai_family = dores;
   }
 
-
-  printf("Starting DNSSEC walking on server %s about %s (%s)\n", dst, domain, tcp == 0 ? "UDP" : "TCP");
+  printf("Starting DNSSEC walking on server %s about %s (%s)\n", dst, domain,
+         tcp == 0 ? "UDP" : "TCP");
   while (ok == 1) {
     ptr = nexthost;
     i = fixi;
 
     // domain-encoded-here foo.com == \x03foo\x03com\x00 == dlen
-    if (strcmp(ptr, ".") != 0)
-      do {
-        if ((ptr2 = index(ptr, '.')) != NULL)
-          *ptr2 = 0;
+    if (strcmp(ptr, ".") != 0) do {
+        if ((ptr2 = index(ptr, '.')) != NULL) *ptr2 = 0;
         len = strlen(ptr);
         buf[i++] = len;
         memcpy(buf + i, ptr, len);
         i += len;
         dlen += (len + 1);
         ptr = ptr2;
-        if (ptr != NULL)
-          ptr++;
+        if (ptr != NULL) ptr++;
       } while (ptr != NULL && *ptr != 0);
     buf[i++] = 0;
 
     memcpy(buf + i, b2, sizeof(b2));
     i += sizeof(b2);
     dlen = i;
-    
+
     if (tcp) {
       int data_len = dlen - 2;
       buf[0] = data_len / 256;
@@ -194,21 +202,21 @@ int main(int argc, char **argv) {
       exit(-1);
     }
 
-/*
-    if (debug) {
-      len = i;
-      for (i = 0; i < len; i++) {
-        if (i % 16 == 0)
-          printf(" ");
-        if (i % 8 == 0)
-          printf(" ");
-        printf("%02x ", buf[i]);
-        if (i % 16 == 15)
-          printf("\n");
-      }
-      printf("\n\n");
-    }
-*/
+    /*
+        if (debug) {
+          len = i;
+          for (i = 0; i < len; i++) {
+            if (i % 16 == 0)
+              printf(" ");
+            if (i % 8 == 0)
+              printf(" ");
+            printf("%02x ", buf[i]);
+            if (i % 16 == 15)
+              printf("\n");
+          }
+          printf("\n\n");
+        }
+    */
 
     errcntbak = errcnt;
     signal(SIGALRM, noreply);
@@ -221,46 +229,43 @@ int main(int argc, char **argv) {
         close(sock);
         sock = dnssocket(dst);
         recv_len = 0;
-        if (errcntbak == errcnt)
-          errcnt++;
-        if ((errcntbak != errcnt) && errcnt > 0 && errcnt <= RETRY)
-          goto resend;
-        if (RETRY < errcnt || len < 10)
-          noreply(0);
+        if (errcntbak == errcnt) errcnt++;
+        if ((errcntbak != errcnt) && errcnt > 0 && errcnt <= RETRY) goto resend;
+        if (RETRY < errcnt || len < 10) noreply(0);
       } else
-        recv_len = (unsigned int)((unsigned int)buf2[0] << 8) + (unsigned int) buf2[1];
-      if (sock == -1)
-        sock = dnssocket(dst);
+        recv_len =
+            (unsigned int)((unsigned int)buf2[0] << 8) + (unsigned int)buf2[1];
+      if (sock == -1) sock = dnssocket(dst);
     } else
-      recv_len =  sizeof(buf2);
+      recv_len = sizeof(buf2);
     alarm(5);
     len = recv(sock, buf2, recv_len, 0);
     alarm(0);
-    if (sock == -1)
-      sock = dnssocket(dst);
-    if (len <= 0 && errcntbak == errcnt)
-      errcnt++;
-    if ((errcntbak != errcnt) && errcnt > 0 && errcnt <= RETRY)
-      goto resend;
-    if (RETRY < errcnt || len < 10)
-      noreply(0);
+    if (sock == -1) sock = dnssocket(dst);
+    if (len <= 0 && errcntbak == errcnt) errcnt++;
+    if ((errcntbak != errcnt) && errcnt > 0 && errcnt <= RETRY) goto resend;
+    if (RETRY < errcnt || len < 10) noreply(0);
 
     if ((buf2[3] & 9) == 9 || (buf2[3] & 15) == 2) {
       printf("Result: server not responsible for domain %s\n", nexthost);
       exit(1);
     } else if (buf2[3] == 5) {
-      printf("Result: server does not support NSEC, dnssec walking not possible\n");
+      printf(
+          "Result: server does not support NSEC, dnssec walking not "
+          "possible\n");
       exit(1);
     } else if ((buf2[3] & 15) > 0) {
       printf("Result: unknown error (%d)\n", (buf2[3] & 15));
       exit(1);
     } else if (buf2[7] != 1) {
-      printf("Result: server does not support NSEC, dnssec walking not possible\n");
+      printf(
+          "Result: server does not support NSEC, dnssec walking not "
+          "possible\n");
       exit(1);
     }
 
-    ptr = (char *) (buf2 + i);
-    while (ptr < (char *) (buf2 + len) && *ptr != 0x2f)
+    ptr = (char *)(buf2 + i);
+    while (ptr < (char *)(buf2 + len) && *ptr != 0x2f)
       ptr++;
     ptr += 9;
     ptr2 = ptr + 1;
@@ -291,8 +296,11 @@ int main(int argc, char **argv) {
         if (cnt != 0) {
           if ((ptr2[2 + strlen(ptr2)] & 2) == 2) {
             fprintf(stderr,
-                  "Warning: start of a sub domain: %s - following items can not be enumerated automatically (don't blame the tool, NSEC is broken. Brute force the next valid hostname and rerun the tool with hostname++.domain.)\n",
-                  nexthost);
+                    "Warning: start of a sub domain: %s - following items can "
+                    "not be enumerated automatically (don't blame the tool, "
+                    "NSEC is broken. Brute force the next valid hostname and "
+                    "rerun the tool with hostname++.domain.)\n",
+                    nexthost);
             sub = 1;
             strcpy(beforesub, nexthost);
             strncpy(firstsub, ptr2, sizeof(firstsub) - 1);
@@ -310,7 +318,8 @@ int main(int argc, char **argv) {
           strcpy(first, nexthost);
         }
         if (ensure && strstr(nexthost, domain) == NULL) {
-          fprintf(stderr, "Error: domain %s not found in result %s, exiting\n", domain, nexthost);
+          fprintf(stderr, "Error: domain %s not found in result %s, exiting\n",
+                  domain, nexthost);
           exit(-1);
         }
         if (dores != -1) {
@@ -320,18 +329,20 @@ int main(int argc, char **argv) {
             q4 = NULL;
             for (p = res; p != NULL; p = p->ai_next) {
               if (p->ai_family == AF_INET6) {  // IPv6
-                ipv6 = (struct sockaddr_in6 *) p->ai_addr;
+                ipv6 = (struct sockaddr_in6 *)p->ai_addr;
                 addr = &(ipv6->sin6_addr);
                 // convert the IP to a string and print it:
-                if (q == NULL || memcmp(&ipv6->sin6_addr, &q->sin6_addr, 16) != 0) {
+                if (q == NULL ||
+                    memcmp(&ipv6->sin6_addr, &q->sin6_addr, 16) != 0) {
                   q = ipv6;
                   inet_ntop(p->ai_family, addr, ipv6str, sizeof ipv6str);
                   printf(" => %s", ipv6str);
                 }
               } else if (p->ai_family == AF_INET) {
-                ipv4 = (struct sockaddr_in *) p->ai_addr;
+                ipv4 = (struct sockaddr_in *)p->ai_addr;
                 addr4 = &(ipv4->sin_addr);
-                if (q4 == NULL || memcmp(&ipv4->sin_addr, &q4->sin_addr, 4) != 0) {
+                if (q4 == NULL ||
+                    memcmp(&ipv4->sin_addr, &q4->sin_addr, 4) != 0) {
                   q4 = ipv4;
                   inet_ntop(p->ai_family, addr4, ipv4str, sizeof ipv4str);
                   printf(" => %s", ipv4str);
@@ -339,7 +350,7 @@ int main(int argc, char **argv) {
               }
             }
             printf("\n");
-            freeaddrinfo(res);        // free the linked list
+            freeaddrinfo(res);  // free the linked list
           } else
             printf("Found: %s\n", nexthost);
         } else
@@ -352,19 +363,15 @@ int main(int argc, char **argv) {
 
     if (ok == 0) {
       for (i = 0; i < len; i++) {
-        if (i % 16 == 0)
-          printf(" ");
-        if (i % 8 == 0)
-          printf(" ");
+        if (i % 16 == 0) printf(" ");
+        if (i % 8 == 0) printf(" ");
         printf("%02x ", buf2[i]);
-        if (i % 16 == 15)
-          printf("\n");
+        if (i % 16 == 15) printf("\n");
       }
       printf("\n");
     }
   }
-  if (ok == 2)
-    printf("Done, %d entries found.\n", cnt);
+  if (ok == 2) printf("Done, %d entries found.\n", cnt);
 
   close(sock);
   if (ok == 2)

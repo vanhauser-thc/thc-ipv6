@@ -6,6 +6,8 @@ v3.7-dev
  * fixed crash in thcping6 with -n 0 or larger values
  * fixed minor issues
  * honors now CC and CLAGS environment variables and compiles with clang
+ * fixed various issues
+ * new code indention
 
 
 v3.6/v3.5-dev

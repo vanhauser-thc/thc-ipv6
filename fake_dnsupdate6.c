@@ -16,22 +16,26 @@ void noreply(int signo) {
 
 int main(int argc, char **argv) {
   char buf[1024], *dst, *host, *domain, *ptr, *ptr2;
-  char b1[] = { 0x28, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00 };
-  char b2[] = { 0x00, 0x06, 0x00, 0x01 };
-  char b3[] = { 0xc0, 0x0c, 0x00, 0x1c, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-  char b4[] = { 0xc0, 0x00, 0x00, 0x1c, 0x00, 0x01, 0x00, 0x01, 0x51, 0x80, 0x00, 0x10 };
+  char b1[] = {0x28, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00};
+  char b2[] = {0x00, 0x06, 0x00, 0x01};
+  char b3[] = {0xc0, 0x0c, 0x00, 0x1c, 0x00, 0xff,
+               0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  char b4[] = {0xc0, 0x00, 0x00, 0x1c, 0x00, 0x01,
+               0x00, 0x01, 0x51, 0x80, 0x00, 0x10};
   struct addrinfo *ai;
-  struct addrinfo hints;
-  int sock, pid = getpid(), dlen = 0, i = 0, len;
+  struct addrinfo  hints;
+  int              sock, pid = getpid(), dlen = 0, i = 0, len;
 
   if (argc != 4) {
     printf("%s %s (c) 2020 by %s %s\n\n", argv[0], VERSION, AUTHOR, RESOURCE);
-    printf("Syntax: %s dns-server full-qualified-host-dns-name ipv6address\n\n", argv[0]);
+    printf("Syntax: %s dns-server full-qualified-host-dns-name ipv6address\n\n",
+           argv[0]);
     printf("Example: %s dns.test.com myhost.sub.test.com ::1\n\n", argv[0]);
     exit(0);
   }
 
-  if (getenv("THC_IPV6_PPPOE") != NULL || getenv("THC_IPV6_6IN4") != NULL) printf("WARNING: %s is not working with injection!\n", argv[0]);
+  if (getenv("THC_IPV6_PPPOE") != NULL || getenv("THC_IPV6_6IN4") != NULL)
+    printf("WARNING: %s is not working with injection!\n", argv[0]);
 
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_family = AF_UNSPEC;
@@ -58,22 +62,22 @@ int main(int argc, char **argv) {
     exit(-1);
   }
 
-  memcpy(buf, (char *) &pid + _TAKE2, 2);
+  memcpy(buf, (char *)&pid + _TAKE2, 2);
   memcpy(buf + 2, b1, sizeof(b1));
   i = 2 + sizeof(b1);
 
   // domain-encoded-here foo.com == \x03foo\x03com\x00 == dlen
   host = argv[2];
   if ((domain = index(argv[2], '.')) == NULL) {
-    fprintf(stderr, "Error: not a valid full-qualified-host-name: %s\n", argv[2]);
+    fprintf(stderr, "Error: not a valid full-qualified-host-name: %s\n",
+            argv[2]);
     exit(-1);
   }
   *domain = 0;
   ptr = domain;
   do {
     ptr++;
-    if ((ptr2 = index(ptr, '.')) != NULL)
-      *ptr2 = 0;
+    if ((ptr2 = index(ptr, '.')) != NULL) *ptr2 = 0;
     len = strlen(ptr);
     buf[i++] = len;
     memcpy(buf + i, ptr, len);

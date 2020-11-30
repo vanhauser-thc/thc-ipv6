@@ -26,7 +26,7 @@
 #ifndef _BSD_SOURCE
 struct in6_pktinfo {
   struct in6_addr ipi6_addr;
-  int ipi6_ifindex;
+  int             ipi6_ifindex;
 };
 #endif
 char *prg;
@@ -52,16 +52,19 @@ void myalarm(int signal) {
 }
 
 int main(int argc, char *argv[]) {
-  int i, t = -1, conn_len, do_alert = 0, interactive = 0, optval, optlen, fastopen = 0;
-  unsigned long int ping = 0, waitms = 1000;
-  char buf[1033], *interface, *target;
-  struct addrinfo *res, *aip, *aip_saved = NULL;
-  struct addrinfo hints;
+  int i, t = -1, conn_len, do_alert = 0, interactive = 0, optval, optlen,
+         fastopen = 0;
+  unsigned long int   ping = 0, waitms = 1000;
+  char                buf[1033], *interface, *target;
+  struct addrinfo *   res, *aip, *aip_saved = NULL;
+  struct addrinfo     hints;
   struct sockaddr_in6 conn;
-  unsigned short rtalert_code = 0;      // alert type, 0 = MLD, 1 = RSVP, 2 = Active Network
+  unsigned short      rtalert_code =
+      0;  // alert type, 0 = MLD, 1 = RSVP, 2 = Active Network
 
   prg = argv[0];
-  if (argc < 3 || strncmp(argv[1], "-h", 2) == 0 || strncmp(argv[1], "--h", 3) == 0)
+  if (argc < 3 || strncmp(argv[1], "-h", 2) == 0 ||
+      strncmp(argv[1], "--h", 3) == 0)
     help();
 
   setvbuf(stdout, NULL, _IONBF, 0);
@@ -73,34 +76,34 @@ int main(int argc, char *argv[]) {
 
   while ((i = getopt(argc, argv, "paA:iIOw:")) >= 0) {
     switch (i) {
-    case 'w':
-      waitms = atoi(optarg);
-    case 'p':
-      ping = 1;
-      break;
-    case 'a':
-      do_alert = 1;
-      break;
-    case 'O':
-      fastopen = 1;
-      break;
-    case 'A':
-      do_alert = 1;
-      rtalert_code = atoi(optarg);
-      break;
-    case 'i':
-      interactive = 1;
-      break;
-    case 'I':
-      interactive = 2;
-      break;
-    default:
-      fprintf(stderr, "Error: invalid option %c\n", i);
-      exit(-1);
+      case 'w':
+        waitms = atoi(optarg);
+      case 'p':
+        ping = 1;
+        break;
+      case 'a':
+        do_alert = 1;
+        break;
+      case 'O':
+        fastopen = 1;
+        break;
+      case 'A':
+        do_alert = 1;
+        rtalert_code = atoi(optarg);
+        break;
+      case 'i':
+        interactive = 1;
+        break;
+      case 'I':
+        interactive = 2;
+        break;
+      default:
+        fprintf(stderr, "Error: invalid option %c\n", i);
+        exit(-1);
     }
   }
 
-  memset((char *) &hints, 0, sizeof(hints));
+  memset((char *)&hints, 0, sizeof(hints));
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_family = AF_INET6;
 
@@ -110,12 +113,16 @@ int main(int argc, char *argv[]) {
     *interface++ = 0;
 #else
   {
-    fprintf(stderr, "Error: your operating system does not support SO_BINDTODEVICE, so I can't bind to an interface!\n");
+    fprintf(stderr,
+            "Error: your operating system does not support SO_BINDTODEVICE, so "
+            "I can't bind to an interface!\n");
     exit(-1);
   }
 #endif
   else if (strncmp(target, "fe80", 4) == 0) {
-    fprintf(stderr, "Error: to connect to an fe80:: link local address, you must specify an interface, e.g. fe80::1%%eth0\n");
+    fprintf(stderr,
+            "Error: to connect to an fe80:: link local address, you must "
+            "specify an interface, e.g. fe80::1%%eth0\n");
     exit(-1);
   }
 
@@ -136,7 +143,8 @@ int main(int argc, char *argv[]) {
       }
 #ifdef SO_BINDTODEVICE
       if (interface != NULL)
-        if (setsockopt(t, SOL_SOCKET, SO_BINDTODEVICE, interface, strlen(interface) + 1) < 0)
+        if (setsockopt(t, SOL_SOCKET, SO_BINDTODEVICE, interface,
+                       strlen(interface) + 1) < 0)
           fprintf(stderr, "Warning: could not bind to device %s\n", interface);
 #endif
       memset(buf, 0, 8);
@@ -147,8 +155,7 @@ int main(int argc, char *argv[]) {
         buf[5] = rtalert_code % 256;
         if (setsockopt(t, IPPROTO_IPV6, IPV6_HOPOPTS, buf, 8) != 0) {
           perror("setsockopt");
-          if (ping == 0)
-            exit(-1);
+          if (ping == 0) exit(-1);
         }
       }
       if (fastopen) {
@@ -156,7 +163,7 @@ int main(int argc, char *argv[]) {
         if (sendto(t, buf, 0, 0, aip->ai_addr, aip->ai_addrlen) < 0) {
           printf("error!\n");
           perror("sendto");
-          (void) close(t);
+          (void)close(t);
           t = -1;
           continue;
         }
@@ -168,7 +175,7 @@ int main(int argc, char *argv[]) {
           alarm(waitms / 1000);
         if (connect(t, aip->ai_addr, aip->ai_addrlen) == -1) {
           perror("connect");
-          (void) close(t);
+          (void)close(t);
           t = -1;
           continue;
         } else
@@ -188,19 +195,18 @@ int main(int argc, char *argv[]) {
     printf("Connected.\n");
 
     i = getsockopt(t, IPPROTO_IPV6, IPV6_MTU, &optval, &optlen);
-    printf("MTU to target is %d (return code from getsockopt was %d)\n", optval, i);
+    printf("MTU to target is %d (return code from getsockopt was %d)\n", optval,
+           i);
     if (interactive == 1) {
       fcntl(fileno(stdin), F_SETFL, O_NONBLOCK);
       fcntl(t, F_SETFL, O_NONBLOCK);
       while (1) {
-        if ((i = recv(t, buf, sizeof(buf), 0)) > 0)
-          fwrite(buf, 1, i, stdout);
-        if ((i = read(fileno(stdin), buf, sizeof(buf))) > 0)
-          send(t, buf, i, 0);
+        if ((i = recv(t, buf, sizeof(buf), 0)) > 0) fwrite(buf, 1, i, stdout);
+        if ((i = read(fileno(stdin), buf, sizeof(buf))) > 0) send(t, buf, i, 0);
         usleep(10);
       }
     } else if (interactive == 2) {
-      snprintf(buf, sizeof(buf), "\r\n");       // do something else than enter maybe
+      snprintf(buf, sizeof(buf), "\r\n");  // do something else than enter maybe
       send(t, buf, strlen(buf), 0);
       alarm(3);
       if ((i = recv(t, buf, sizeof(buf), 0)) < 0) {
@@ -210,18 +216,21 @@ int main(int argc, char *argv[]) {
       printf("%s\n", buf);
     }
   } else {
-    fd_set myset;
-    struct timeval tv;
+    fd_set            myset;
+    struct timeval    tv;
     unsigned long int diff;
 
     close(t);
     printf("Connected seq=%lu\n", ping);
     while (1) {
-      if ((t = socket(aip_saved->ai_family, aip_saved->ai_socktype, aip_saved->ai_protocol)) >= 0) {
+      if ((t = socket(aip_saved->ai_family, aip_saved->ai_socktype,
+                      aip_saved->ai_protocol)) >= 0) {
 #ifdef SO_BINDTODEVICE
         if (interface != NULL)
-          if (setsockopt(t, SOL_SOCKET, SO_BINDTODEVICE, interface, strlen(interface) + 1) < 0)
-            fprintf(stderr, "Warning: could not bind to device %s\n", interface);
+          if (setsockopt(t, SOL_SOCKET, SO_BINDTODEVICE, interface,
+                         strlen(interface) + 1) < 0)
+            fprintf(stderr, "Warning: could not bind to device %s\n",
+                    interface);
 #endif
         memset(buf, 0, 8);
         if (do_alert) {
@@ -241,7 +250,8 @@ int main(int argc, char *argv[]) {
         tv.tv_usec = (waitms % 1000) * 1000;
         if (select(t + 1, NULL, &myset, NULL, &tv) > 0) {
           diff = (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
-          printf("Connected seq=%lu %ds %dms\n", ping, (waitms - diff) / 1000, (waitms - diff) % 1000);
+          printf("Connected seq=%lu %ds %dms\n", ping, (waitms - diff) / 1000,
+                 (waitms - diff) % 1000);
         }
         // wait for rest of timeout
         close(t);

@@ -4,35 +4,38 @@
 #ifndef _HAVE_SSL
 
 int main() {
-  fprintf(stderr, "Error: thc-ipv6 was compiled without openssl support, sendpees6 disabled.\n");
+  fprintf(stderr,
+          "Error: thc-ipv6 was compiled without openssl support, sendpees6 "
+          "disabled.\n");
   return -1;
 }
 
 #else
 
-#include <pcap.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <openssl/rsa.h>
-#include "thc-ipv6.h"
+  #include <pcap.h>
+  #include <sys/types.h>
+  #include <sys/socket.h>
+  #include <arpa/inet.h>
+  #include <openssl/rsa.h>
+  #include "thc-ipv6.h"
 
 int main(int argc, char **argv) {
-  thc_cga_hdr *cga_opt;
-  thc_key_t *key;
+  thc_cga_hdr *   cga_opt;
+  thc_key_t *     key;
   struct in6_addr addr6;
-  unsigned char *pkt = NULL;
-  unsigned char *dst6, *cga, *dev;
-  char dummy[24], prefix[8], addr[50];
-  char dsthw[] = "\xff\xff\xff\xff\xff\xff";
-  char srchw[] = "\xdd\xde\xad\xbe\xef\xff";
-  int pkt_len = 0;
-
+  unsigned char * pkt = NULL;
+  unsigned char * dst6, *cga, *dev;
+  char            dummy[24], prefix[8], addr[50];
+  char            dsthw[] = "\xff\xff\xff\xff\xff\xff";
+  char            srchw[] = "\xdd\xde\xad\xbe\xef\xff";
+  int             pkt_len = 0;
 
   if (argc != 5) {
     printf("sendpees6 by willdamn <willdamn@gmail.com>\n\n");
     printf("Syntax: %s interface key_length prefix victim\n\n", argv[0]);
-    printf("Send SEND neighbor solicitation messages and make target to verify a lota CGA and RSA signatures\n\n");
+    printf(
+        "Send SEND neighbor solicitation messages and make target to verify a "
+        "lota CGA and RSA signatures\n\n");
     exit(1);
   }
 
@@ -64,11 +67,13 @@ int main(int argc, char **argv) {
   dummy[17] = 1;
   memcpy(dummy, dst6, 16);
 
-  if ((pkt = thc_create_ipv6_extended(dev, PREFER_GLOBAL, &pkt_len, cga, dst6, 0, 0, 0, 0, 0)) == NULL) {
+  if ((pkt = thc_create_ipv6_extended(dev, PREFER_GLOBAL, &pkt_len, cga, dst6,
+                                      0, 0, 0, 0, 0)) == NULL) {
     printf("Cannot create IPv6 header\n");
     exit(1);
   }
-  if (thc_add_send(pkt, &pkt_len, ICMP6_NEIGHBORSOL, 0xfacebabe, 0x0, dummy, 24, cga_opt, key, NULL, 0) < 0) {
+  if (thc_add_send(pkt, &pkt_len, ICMP6_NEIGHBORSOL, 0xfacebabe, 0x0, dummy, 24,
+                   cga_opt, key, NULL, 0) < 0) {
     printf("Cannot add SEND options\n");
     exit(1);
   }
