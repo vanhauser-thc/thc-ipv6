@@ -1,8 +1,7 @@
 CHANGELOG
 =========
 
-v3.7-dev
- * your patch? :)
+v3.8/3.7-dev
  * fixed crash in thcping6 with -n 0 or larger values
  * fixed minor issues
  * honors now CC and CLAGS environment variables and compiles with clang
