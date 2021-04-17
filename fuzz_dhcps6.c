@@ -330,7 +330,7 @@ int fuzz_loop(char *pkt, int *pkt_len) {
 
   printf("Fuzzing packet, starting at fuzz case %d, ending at fuzz case %d:\n",
          test_start, test_end);
-  printf("fuzzbuf(%d): %s\n", strlen(fuzzbuf), fuzzbuf);
+  printf("fuzzbuf(%lu): %s\n", strlen(fuzzbuf), fuzzbuf);
   while (do_fuzz) {
     if (test_cnt == 0)
       while (fuzzbuf[test_ptr] == '.') {

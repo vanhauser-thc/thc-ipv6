@@ -250,7 +250,7 @@ int main(int argc, char *argv[]) {
         tv.tv_usec = (waitms % 1000) * 1000;
         if (select(t + 1, NULL, &myset, NULL, &tv) > 0) {
           diff = (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
-          printf("Connected seq=%lu %ds %dms\n", ping, (waitms - diff) / 1000,
+          printf("Connected seq=%lu %lus %lums\n", ping, (waitms - diff) / 1000,
                  (waitms - diff) % 1000);
         }
         // wait for rest of timeout
