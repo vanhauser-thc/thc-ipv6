@@ -58,7 +58,7 @@ backup:	clean
 	sync
 
 %.8: %
-	@echo .TH $* 8 `date --iso-8601` THC "IPv6 ATTACK TOOLKIT" > $@
+	@echo .TH $* 8 `date -I` THC "IPv6 ATTACK TOOLKIT" > $@
 	@echo .SH NAME >> $@
 	@echo .B $* >> $@
 	@./$*|tail -n +2|sed -e "s#\\./$*#$*#g" -e "s/^Syntax: \?/.SH SYNOPSIS\n/g" -e "s/Options:/.SH OPTIONS\n.nf\n/g" -e "s/^\(.*\):\$$/.SH \1\n/g" >> $@
