@@ -375,7 +375,7 @@ int fuzz_loop(char *pkt, int *pkt_len) {
   memcpy(pkt_bak, hdr->pkt, hdr->pkt_len);
 
   if (fdebug)
-    printf("fuzzing_mask(%d): %s\n", strlen(fuzzing_mask), fuzzing_mask);
+    printf("fuzzing_mask(%lu): %s\n", strlen(fuzzing_mask), fuzzing_mask);
   if (fdebug) printf("Victim: %s\n", victim);
   while (do_fuzz) {
     if (test_cnt == 0)
@@ -749,12 +749,16 @@ int main(int argc, char *argv[]) {
         break;
       case 'c':
         cidflag = 1;
+	unsigned int cidint[14];
         sscanf(optarg, "%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x",
-               (char *)&cid[0], (char *)&cid[1], (char *)&cid[2],
-               (char *)&cid[3], (char *)&cid[4], (char *)&cid[5],
-               (char *)&cid[6], (char *)&cid[7], (char *)&cid[8],
-               (char *)&cid[9], (char *)&cid[10], (char *)&cid[11],
-               (char *)&cid[12], (char *)&cid[13]);
+                &cidint[0],  &cidint[1],  &cidint[2],
+                &cidint[3],  &cidint[4],  &cidint[5],
+                &cidint[6],  &cidint[7],  &cidint[8],
+                &cidint[9],  &cidint[10], &cidint[11],
+                &cidint[12], &cidint[13]);
+	for(unsigned int i = 0; i < 14; i++) {
+		cid[i] = (char) cidint[i];
+	}
         break;
       default:
         fprintf(stderr, "Error: unknown option -%c\n", i);
