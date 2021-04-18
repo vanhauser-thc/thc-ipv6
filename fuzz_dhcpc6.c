@@ -756,7 +756,8 @@ int main(int argc, char *argv[]) {
                 &cidint[6],  &cidint[7],  &cidint[8],
                 &cidint[9],  &cidint[10], &cidint[11],
                 &cidint[12], &cidint[13]);
-	for(unsigned int i = 0; i < 14; i++) {
+	unsigned int i;
+	for(i = 0; i < 14; i++) {
 		cid[i] = (char) cidint[i];
 	}
         break;
