@@ -197,7 +197,7 @@ char *thc_pcap_close(pcap_t *pcap_link) {
 /* wow, ugly, complicated work for something a standard linux library could do
  * as well :-) */
 void thc_notation2beauty(unsigned char *ipv6) {
-  char buf[40], buf2[40] = ":0:0:", *ptr, *ptr2 = NULL;
+  char buf[64], buf2[64] = ":0:0:", *ptr, *ptr2 = NULL;
   int  i, j, k = 0, l = 0;
 
   if (ipv6[39] != 0 || strlen(ipv6) != 39) return;

@@ -235,7 +235,7 @@ int main(int argc, char *argv[]) {
                 buf2[1300] = "";
   unsigned char *src6 = NULL, *dst6 = NULL, smac[16] = "", dmac[16] = "",
                 *srcmac = smac, *dstmac = dmac;
-  char string[255] = "ip6 and dst ", *interface, *d_opt = NULL, *h_opt = NULL,
+  char string[256] = "ip6 and dst ", *interface, *d_opt = NULL, *h_opt = NULL,
        *oo, *ol, *ov;
   int pkt1_len = 0, flags = 0, frag = 0, alert = 0, quick = 0, route = 0,
       ttl = 255, label = 0, class = 0, i, j, k, ether = -1, xl = 0,
