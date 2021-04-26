@@ -31,7 +31,7 @@ void help(char *prg) {
 }
 
 int main(int argc, char *argv[]) {
-  unsigned char *ptr, *dst6, ipv4[16] = "", ipv6[40], *prefix;
+  unsigned char *ptr, *dst6, ipv4[16] = "", ipv6[64], *prefix;
   int            i, j, k, found = 0;
   struct in_addr in;
 

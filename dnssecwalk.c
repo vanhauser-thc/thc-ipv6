@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
   struct addrinfo      hints, *res, *p;
   struct sockaddr_in6 *ipv6, *q;
   struct sockaddr_in * ipv4, *q4;
-  char                 ipv4str[16], ipv6str[40];
+  char                 ipv4str[16], ipv6str[64];
   void *               addr, *addr4;
 
   setvbuf(stdout, NULL, _IONBF, 0);
