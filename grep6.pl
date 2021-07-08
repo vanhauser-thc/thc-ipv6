@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 # basic code by Eric Vyncke
-use Socket;
-use Socket6;
+use Socket qw(AF_INET6 inet_pton);
 
 $fd = STDIN;
 $option = shift;
