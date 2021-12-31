@@ -17,7 +17,7 @@ unsigned char *frip6, *frmac;
 thc_ipv6_hdr * frhdr = NULL;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf(
       "Syntax: %s [-HFD] interface network-address/prefix-length [dns-server "
       "[router-ip-link-local [mtu [mac-address]]]]\n\n",

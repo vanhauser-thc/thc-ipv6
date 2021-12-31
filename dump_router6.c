@@ -21,7 +21,7 @@ char           seen[MAX_SEEN + 1][16];
 extern int     do_hdr_size;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s interface [target]\n\n", prg);
   printf("Dumps all local routers and their information\n\n");
   //  printf("Use -r to use raw mode.\n\n");

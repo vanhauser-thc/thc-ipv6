@@ -13,7 +13,7 @@
 extern int debug;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-sS] interface [target]\n\n", prg);
   printf("Flood the local network with ICMPv6 Router Soliciation packets.\n");
   printf(

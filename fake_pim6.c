@@ -11,7 +11,7 @@
 #include "thc-ipv6.h"
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax:\n");
   printf(
       "  %s [-l|-f] [-t ttl] [-s src6] [-d dst6] interface hello "

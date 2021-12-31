@@ -19,7 +19,7 @@ char *        ptr1, *ptr2, *ptr3, *ptr4;
 thc_ipv6_hdr *hdr;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-lRFHD] interface [fake-mac]\n\n", prg);
   printf(
       "This is an \"ARP spoofer\" for IPv6, redirecting all local traffic to "

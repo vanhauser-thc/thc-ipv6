@@ -14,7 +14,7 @@ int rawmode = 0;
 int empty = 0;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf(
       "Syntax: %s [-l] interface advertise|solicitate|terminate [own-ip "
       "[own-mac-address]]\n\n",

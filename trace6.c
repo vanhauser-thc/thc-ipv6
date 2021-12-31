@@ -29,7 +29,7 @@ int udp = 0, offset = 48, buf_len = 16, tunnel = 0, do_alert = 0, do_reply = 0,
 int up_to = MAX_SEND, complete = 0, type = 0, rawmode = 0, finaldst = 0;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-abdtu] [-s src6] interface targetaddress [port]\n\n",
          prg);
   printf("Options:\n");

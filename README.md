@@ -1,6 +1,6 @@
                   
                       THC-IPV6-ATTACK-TOOLKIT
-  (c) 2005-2020 vh@thc.org https://github.com/vanhauser-thc/thc-ipv6
+  (c) 2005-2022 vh@thc.org https://github.com/vanhauser-thc/thc-ipv6
 
 
 		Licensed under AGPLv3 (see LICENSE file)

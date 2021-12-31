@@ -4,7 +4,7 @@
 #
 
 test -z "$1" -o "$1" = "-h" -o -z "$2" && {
-  echo "fragrouter6 startup script  (c) 2020 by van Hauser / THC"
+  echo "fragrouter6 startup script  (c) 2022 by van Hauser / THC"
   echo
   echo "Syntax: $0 [fragrouter6-options] interface evasion-mode [ip6tables-rule]"
   echo

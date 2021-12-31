@@ -20,7 +20,7 @@ int            i;
 unsigned char *ownmac;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-S] interface\n\n", prg);
   printf(
       "This tools prevents new IPv6 interfaces to come up, by sending answers "

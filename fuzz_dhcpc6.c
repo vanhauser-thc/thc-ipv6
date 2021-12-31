@@ -302,7 +302,7 @@ char                    cmsgbuf[1024];
 int                     fromlen = 0, len, s, t;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n", prg, VERSION, "Darrell Ambro", RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n", prg, VERSION, "Darrell Ambro", RESOURCE);
   printf("Partially based on code by Brandon Hutcheson and Graeme Neilson\n\n");
   printf(
       "Syntax: %s  [-1|-2|-3|-4|-5|-6|-7|-8|-9|-A|-B|-C|-D|-m] -f mac -l link "

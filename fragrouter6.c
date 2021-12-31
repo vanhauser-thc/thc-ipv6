@@ -55,7 +55,7 @@ unsigned int              method = 0;
 char *                    interface = NULL, ether[8];
 
 void help(char *prg) {
-  printf("fragrouter6 %s (c) 2020 by %s %s\n\n", VERSION, AUTHOR, RESOURCE);
+  printf("fragrouter6 %s (c) 2022 by %s %s\n\n", VERSION, AUTHOR, RESOURCE);
   printf(
       "Syntax: %s [-dv -f len -e count -t count] INTERFACE EVASION-METHOD\n\n",
       prg);

@@ -17,7 +17,7 @@ unsigned char d[MAX_ENTRIES + 1][16], hostpart[8];
 char *        interface, *script = NULL, exec[256], *replace = NULL, *ll;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-Ds] [-m maxhop] [-R prefix] interface [script]\n\n",
          prg);
   printf("Options:\n");

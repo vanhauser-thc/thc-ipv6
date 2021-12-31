@@ -19,7 +19,7 @@ int   type = 0, passive = 0, active = 0;
 char *interface;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-ap] interface\n\n", prg);
   printf(
       "This tool answers to keep-alive requests on PPPoE and 6in4 tunnels; for "

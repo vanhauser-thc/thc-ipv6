@@ -18,7 +18,7 @@ char *         ptr3, *ptr4;
 int            i;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s interface [script]\n\n", prg);
   printf("This tools detects new IPv6 addresses joining the local network.\n");
   printf(

@@ -37,7 +37,7 @@ int rawmode = 0;
 int cont = 0;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s interface\n\n", prg);
   printf(
       "Identifies test packets by the implementation6 tool, useful to check "

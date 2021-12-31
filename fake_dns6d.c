@@ -17,7 +17,7 @@ int   mlen, rawmode = 0;
 char *mac6, *ip6;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s interface ipv6-address [fake-ipv6-address [fake-mac]]\n",
          prg);
   printf(

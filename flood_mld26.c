@@ -13,7 +13,7 @@
 #define RECORD_NUMBER ((1500 - 40 - 6 - 8) / (4 + 16 + 16))
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s interface [target] [max_count]\n\n", prg);
   printf("Flood the local network with MLDv2 reports.\n");
   //  printf("Use -r to use raw mode.\n\n");

@@ -145,7 +145,7 @@ unsigned int dwords[] = {
 int port = -1;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf(
       "Syntax: %s [-x] [-t number | -T number] [-p number] [-IFSDHRJ] "
       "[-X|-1|-2|-3|-4|-5|-6|-7|-8|-9|-0 port|-P type] interface "

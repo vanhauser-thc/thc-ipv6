@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
   int              sock, pid = getpid(), dlen = 0, i = 0, len;
 
   if (argc != 4) {
-    printf("%s %s (c) 2020 by %s %s\n\n", argv[0], VERSION, AUTHOR, RESOURCE);
+    printf("%s %s (c) 2022 by %s %s\n\n", argv[0], VERSION, AUTHOR, RESOURCE);
     printf("Syntax: %s dns-server full-qualified-host-dns-name ipv6address\n\n",
            argv[0]);
     printf("Example: %s dns.test.com myhost.sub.test.com ::1\n\n", argv[0]);

@@ -160,7 +160,7 @@ char solicit[] = {
 int port = -1;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION,
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION,
          "Brandon Hutcheson, Graeme Neilson and Ryan Ko", RESOURCE);
   printf(
       "Syntax: %s [-t number | -T number] [-e number | -T number] [-p number] "

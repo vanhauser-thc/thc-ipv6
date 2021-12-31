@@ -16,7 +16,7 @@ unsigned char *mac6 = mac, *src6, *dest6, *oldrouter6, *newrouter6, *self6,
 char *interface;
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf(
       "Syntax: %s interface victim-ip destination-ip original-router "
       "[new-router [new-router-mac]]\n\n",

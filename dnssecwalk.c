@@ -1,7 +1,7 @@
 /*
  * Simple DNSSEC walker requiring no special libraries.
  *
- * (c) 2020 by Marc "van Hauser" Heuse <vh(at)thc.org> or <mh(at)mh-sec.de>
+ * (c) 2022 by Marc "van Hauser" Heuse <vh(at)thc.org> or <mh(at)mh-sec.de>
  * The AGPL v3 license applies to this code.
  *
  * Works against DNSSEC servers which have NSEC enabled (default)
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 
   if (argc < 3) {
     printf(
-        "%s %s (c) 2020 by Marc Heuse <mh@mh-sec.de> http://www.mh-sec.de\n\n",
+        "%s %s (c) 2022 by Marc Heuse <mh@mh-sec.de> http://www.mh-sec.de\n\n",
         argv[0], VERSION);
     printf("Syntax: %s [-e46t] dns-server domain\n\n", argv[0]);
     printf(

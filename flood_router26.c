@@ -11,7 +11,7 @@
 #include "thc-ipv6.h"
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-HFD] [-sSG] [-RPA] interface [target]\n\n", prg);
   printf("Flood the local network with router advertisements.\n");
   printf("Each packet contains ~25 prefix and route enries\n");

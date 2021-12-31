@@ -158,7 +158,7 @@ unsigned char tcp_opt[TCP_OPT_LEN] = {0x02, 0x04, 0xff, 0xff, 0x04, 0x02, 0x08,
 // cafe, dead, beef, affe, b00b, babe, f00, fefe, ffff, 1337, 666, 0, 1
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf(
       "Syntax: %s [-CFHLMPSdlpvV] [-I srcip6] [-i file] [-o file] [-e opt] [-s "
       "port,..] [-a port,..] [-u port,..] [-T tag] [-W TIME] interface "
@@ -1143,7 +1143,7 @@ int main(int argc, char *argv[]) {
 
   if (verbose) {
     timeval = time(NULL);
-    printf("Starting alive6 %s (c) 2020 by van Hauser / THC at %s\n", VERSION,
+    printf("Starting alive6 %s (c) 2022 by van Hauser / THC at %s\n", VERSION,
            ctime(&timeval));
   }
   if (renew && src6[0] > 0xfd && (multicast6 != NULL && multicast6[0] > 0xfd))

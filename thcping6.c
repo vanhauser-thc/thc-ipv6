@@ -25,7 +25,7 @@ extern int do_6in4;
 extern int do_hdr_vlan;
 
 void help(char *prg, int help) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf(
       "Syntax: %s [-EafqxO] [-e ethertype] [-H t:l:v] [-D t:l:v] [-F dst] [-e "
       "ethertype] [-L length] [-N nextheader] [-V version] [-t ttl] [-c class] "

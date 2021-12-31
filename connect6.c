@@ -32,7 +32,7 @@ struct in6_pktinfo {
 char *prg;
 
 void help() {
-  printf("%s %s (c) 2020 by %s %s\n\n", PROGRAM, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", PROGRAM, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-a | -A type] [-i] target-ip target-port\n\n", prg);
   printf("Options:\n");
   printf("  -a       send Hop-by-Hop Router Alert option\n");

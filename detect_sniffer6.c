@@ -17,7 +17,7 @@ int             found = 0, oneonly = 0;
 char            doubles[256][16];
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s interface [target6]\n\n", prg);
   printf("Tests if systems on the local LAN are sniffing.\n");
   printf("Works against Windows, Linux, OS/X and *BSD\n");

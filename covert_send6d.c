@@ -34,7 +34,7 @@ int    rawmode = 0, seq = 1, id = 0, num = 0;
 char   hash[20] = "", *key = NULL, vec[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 void help(char *prg) {
-  printf("%s %s (c) 2020 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
+  printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
   printf("Syntax: %s [-k key] interface file\n\n", prg);
   printf("Options:\n");
   printf("  -k key     decrypt the content with Blowfish-160\n");
