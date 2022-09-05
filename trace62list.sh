@@ -16,11 +16,11 @@ FILE="$1"
 test -n "$2" && SKIP=$2
 
 { 
-  test -z "$SKIP" && egrep '^ *[0-9]+: ' "$FILE"
+  test -z "$SKIP" && grep -E '^ *[0-9]+: ' "$FILE"
   test -z "$SKIP" || {
-    LINES=`egrep '^ *[0-9]+: ' "$FILE" | wc -l`
+    LINES=`grep -E '^ *[0-9]+: ' "$FILE" | wc -l`
     DUMP=`expr $LINES - $SKIP`
-    test "$DUMP" -gt 0 && egrep '^ *[0-9]+: ' "$FILE" | tail -n $DUMP
+    test "$DUMP" -gt 0 && grep -E '^ *[0-9]+: ' "$FILE" | tail -n $DUMP
   }
 
 } | tr '\t' ' ' | sed 's/ *\[.*//' | awk '{print$2" "$3}' | sed 's/ ()//' | tr '\n' '#' | sed 's/[??? #]*??? #$/#/' | sed 's/!!! *#$/#/'  | tr '#' '\n'

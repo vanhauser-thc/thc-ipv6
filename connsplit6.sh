@@ -31,7 +31,7 @@ test "$MODE" = 0 && PORTDEF=--sport
 test "$MODE" = 0 -a -z "$NET" && { echo Error: you must supply your global network for client mode ; exit 1; }
 FROM=
 TO=
-echo "NET" | egrep -q ":$" && {
+echo "NET" | grep -E -q ":$" && {
   FROM=${NET}ff
   TO=${NET}ee
 }

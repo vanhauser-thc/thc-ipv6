@@ -13,7 +13,7 @@ test -z "$DOMAIN" && DOMAIN=`dig @8.8.8.8 -x $FOO ns | grep -w SOA | awk '{print
 test -z "$DOMAIN" && { echo Error: could not get SOA entry for $FOO ; exit 1 ; }
 test -z "$DOMAIN" -a -n "$PLEN" && {
   CHARS=`expr '(' 132 - $PLEN ')' / 2`
-  DOMAIN=`dig -x $FOO soa | grep -w SOA | awk '{print$1}' | egrep '^;' | awk '{print$1}' | cut -b ${CHARS}- `
+  DOMAIN=`dig -x $FOO soa | grep -w SOA | awk '{print$1}' | grep -E '^;' | awk '{print$1}' | cut -b ${CHARS}- `
 }
 
 X=`echo $FOO | sed 's/\.$//' | tr : _`

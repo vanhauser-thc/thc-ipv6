@@ -29,7 +29,7 @@ which dig > /dev/null 2>&1 || { echo Error: you need the dig command in your pat
 
 DOMAIN=`dig -x $PREFIX soa | grep SOA | grep -v '^;' | tr '\t' ' ' | sed 's/.*SOA *//' | sed 's/ .*//'`
 test -z "$DOMAIN" && DOMAIN=`dig @8.8.8.8 -x $PREFIX soa | grep SOA | grep -v '^;' | tr '\t' ' ' | sed 's/.*SOA *//' | sed 's/ .*//'`
-test -z "$DOMAIN" -a -n "$EXTRA" && DOMAIN=`dig $EXTRA ns | egrep -v '^;' | egrep -w NS | egrep -w IN | awk '{print$5}'`
+test -z "$DOMAIN" -a -n "$EXTRA" && DOMAIN=`dig $EXTRA ns | grep -E -v '^;' | grep -E -w NS | grep -E -w IN | awk '{print$5}'`
 test -z "$DOMAIN" && { echo Error: no SOA entry found for domain ; exit 1 ; }
 
 X=`echo ${PREFIX}-$PLEN| sed 's/\.$//' | tr : _`
