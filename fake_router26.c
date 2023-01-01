@@ -27,7 +27,7 @@ void help(char *prg) {
   printf(
       "Syntax: %s [-E type] [-A network/prefix] [-R network/prefix] [-D "
       "dns-server] [-s sourceip] [-S sourcemac] [-ardl seconds] [-Tt ms] [-n "
-      "no] [-i interval] interface [target]\n\n",
+      "no] [-i interval] [-V] interface [target]\n\n",
       prg);
   printf("Options:\n");
   printf(" -A network/prefix  add autoconfiguration network (up to %d times)\n",
@@ -96,6 +96,7 @@ void help(char *prg) {
   printf(
       " -X                 clean up by de-announcing fake router (default: "
       "disabled)\n");
+  printf(" -V                 enable debug output\n");
   printf(
       "\nAnnounce yourself as a router and try to become the default "
       "router.\n");
@@ -187,7 +188,7 @@ int main(int argc, char *argv[]) {
   memset(mac, 0, sizeof(mac));
 
   while ((i = getopt(argc, argv,
-                     "i:r:E:R:M:m:S:s:D:L:A:a:r:d:t:T:p:n:l:F:Xf:")) >= 0) {
+                     "i:r:E:R:M:m:S:s:D:L:A:a:r:d:t:T:p:n:l:F:Xf:V")) >= 0) {
     switch (i) {
       case 'i':
         interval = atoi(optarg);
@@ -433,6 +434,9 @@ int main(int argc, char *argv[]) {
         break;
       case 'X':
         do_cleanup = 1;
+        break;
+      case 'V':
+        debug = 1;
         break;
       default:
         fprintf(stderr, "Error: invalid option %c\n", i);
