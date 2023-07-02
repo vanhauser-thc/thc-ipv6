@@ -62,8 +62,8 @@ fi
 $MODPROBE ipt_NFQUEUE
 $MODPROBE ipt_state
 
-# Ignore SIGINT, SIGKILL and SIGTERM
-trap "echo User interrupt!" INT HUP KILL TERM
+# Ignore SIGINT, SIGHUP and SIGTERM
+trap "echo User interrupt!" INT HUP TERM
 
 # Prepare for startup
 # Create new tables
