@@ -89,7 +89,7 @@ void help(char *prg, int help) {
   exit(-1);
 }
 
-void alarming() {
+void alarming(int signal) {
   if (done == 0) printf("No packet received, terminating.\n");
   exit(resp_type);
 }

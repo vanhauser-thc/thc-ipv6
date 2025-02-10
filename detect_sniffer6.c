@@ -27,7 +27,7 @@ void help(char *prg) {
   exit(-1);
 }
 
-void alarming() {
+void alarming(int signal) {
   if (found == 0)
     printf("No packets received, no vulnerable system seems to be sniffing.\n");
   else
@@ -63,7 +63,7 @@ void check_packets(u_char *pingdata, const struct pcap_pkthdr *header,
       printf(" Sniffing host detected: %s\n", thc_ipv62notation(ptr + 8));
       memcpy(doubles[found], thc_ipv62notation(ptr + 8), 16);
       found++;
-      if (oneonly) alarming();
+      if (oneonly) alarming(0);
     }
   }
 }
