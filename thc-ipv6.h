@@ -208,7 +208,7 @@ extern int thc_generate_pkt(char *interface, unsigned char *srcmac,
                             int *pkt_len);
 extern int thc_send_pkt(char *interface, unsigned char *pkt, int *pkt_len);
 extern unsigned char *thc_destroy_packet(unsigned char *pkt);
-extern int            thc_open_ipv6();
+extern int            thc_open_ipv6(char *interface);
 extern int            thc_is_dst_local(char *interface, unsigned char *dst);
 extern int  checksum_pseudo_header(unsigned char *src, unsigned char *dst,
                                    unsigned char type, unsigned char *data,
