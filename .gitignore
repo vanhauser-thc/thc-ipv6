@@ -1,0 +1,20 @@
+# Build outputs
+/[a-z0-9_-]*6
+/[a-z0-9_-]*6d
+/four2six
+/dnssecwalk
+/thc-ipv6-lib.o
+/contrib/host_scan
+/contrib/spoofer
+
+# Generated manpages
+/*.8
+
+# Editor and crash leftovers
+*~
+*.swp
+*.swo
+.DS_Store
+core
+core.*
+DEADJOE
