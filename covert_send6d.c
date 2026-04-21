@@ -24,14 +24,24 @@ int main() {
   #include <sys/wait.h>
   #include <time.h>
   #include <pcap.h>
-  #include <openssl/blowfish.h>
+  #include <openssl/evp.h>
   #include <openssl/sha.h>
   #include "thc-ipv6.h"
+  #ifdef THC_USE_OPENSSL_3_API
+    #include <openssl/provider.h>
+  #else
+    #include <openssl/blowfish.h>
+  #endif
 
 FILE * f;
-BF_KEY bfkey;
 int    rawmode = 0, seq = 1, id = 0, num = 0;
 char   hash[20] = "", *key = NULL, vec[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  #ifdef THC_USE_OPENSSL_3_API
+EVP_CIPHER_CTX *bfctx = NULL;
+OSSL_PROVIDER * legacy_provider = NULL;
+  #else
+BF_KEY bfkey;
+  #endif
 
 void help(char *prg) {
   printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
@@ -98,8 +108,17 @@ void check_packets(u_char *foo, const struct pcap_pkthdr *header,
 
   if (bytes > 0) {
     if (key != NULL) {
+      #ifdef THC_USE_OPENSSL_3_API
+      int dec_len = 0;
+
+      if (EVP_DecryptUpdate(bfctx, (unsigned char *)wbuf, &dec_len,
+                            (unsigned char *)rbuf, bytes) != 1 ||
+          dec_len != bytes)
+        return;
+      #else
       BF_cfb64_encrypt((unsigned char *)rbuf, (unsigned char *)wbuf, bytes,
                        &bfkey, (unsigned char *)vec, &num, BF_DECRYPT);
+      #endif
       memcpy(rbuf, wbuf, bytes);
     }
     fwrite(rbuf, 1, bytes, f);
@@ -109,6 +128,10 @@ void check_packets(u_char *foo, const struct pcap_pkthdr *header,
   seq++;
   if (end) {
     printf("All received.\n");
+    #ifdef THC_USE_OPENSSL_3_API
+    if (bfctx != NULL) EVP_CIPHER_CTX_free(bfctx);
+    if (legacy_provider != NULL) OSSL_PROVIDER_unload(legacy_provider);
+    #endif
     fclose(f);
     exit(0);
   }
@@ -143,11 +166,25 @@ int main(int argc, char *argv[]) {
   }
 
   if (key != NULL) {
-    memset(&bfkey, 0, sizeof(bfkey));
     SHA1((unsigned char *)key, strlen(key), (unsigned char *)hash);
+    #ifdef THC_USE_OPENSSL_3_API
+    if ((legacy_provider = OSSL_PROVIDER_load(NULL, "legacy")) == NULL) {
+      fprintf(stderr, "Error: could not load OpenSSL legacy provider\n");
+      exit(-1);
+    }
+    if ((bfctx = EVP_CIPHER_CTX_new()) == NULL ||
+        EVP_DecryptInit_ex(bfctx, EVP_bf_cfb64(), NULL,
+                           (unsigned char *)hash,
+                           (unsigned char *)vec) != 1) {
+      fprintf(stderr, "Error: could not initialize Blowfish context\n");
+      exit(-1);
+    }
+    #else
+    memset(&bfkey, 0, sizeof(bfkey));
     BF_set_key(&bfkey, sizeof(hash), (unsigned char *)hash);
     memset(vec, 0, sizeof(vec));
     num = 0;
+    #endif
   }
 
   if ((p = thc_pcap_init(interface, "ip6")) == NULL) {

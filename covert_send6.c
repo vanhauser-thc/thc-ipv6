@@ -24,9 +24,14 @@ int main() {
   #include <sys/wait.h>
   #include <time.h>
   #include <pcap.h>
-  #include <openssl/blowfish.h>
+  #include <openssl/evp.h>
   #include <openssl/sha.h>
   #include "thc-ipv6.h"
+  #ifdef THC_USE_OPENSSL_3_API
+    #include <openssl/provider.h>
+  #else
+    #include <openssl/blowfish.h>
+  #endif
 
 void help(char *prg) {
   printf("%s %s (c) 2022 by %s %s\n\n", prg, VERSION, AUTHOR, RESOURCE);
@@ -59,7 +64,12 @@ int main(int argc, char *argv[]) {
   ;
   int    rawmode = 0, tcp_port = -1;
   FILE * f;
+  #ifdef THC_USE_OPENSSL_3_API
+  EVP_CIPHER_CTX *bfctx = NULL;
+  OSSL_PROVIDER * legacy_provider = NULL;
+  #else
   BF_KEY bfkey;
+  #endif
 
   if (argc < 4 || strncmp(argv[1], "-h", 2) == 0) help(argv[0]);
 
@@ -119,11 +129,25 @@ int main(int argc, char *argv[]) {
   if ((mtu + i + 14) % 8 > 0) mtu = (((mtu + i + 14) / 8) * 8) - (i + 14);
   if (mtu > 14 * 255) mtu = 14 * 255;
   if (key != NULL) {
-    memset(&bfkey, 0, sizeof(bfkey));
     SHA1((unsigned char *)key, strlen(key), (unsigned char *)hash);
+    #ifdef THC_USE_OPENSSL_3_API
+    if ((legacy_provider = OSSL_PROVIDER_load(NULL, "legacy")) == NULL) {
+      fprintf(stderr, "Error: could not load OpenSSL legacy provider\n");
+      exit(-1);
+    }
+    if ((bfctx = EVP_CIPHER_CTX_new()) == NULL ||
+        EVP_EncryptInit_ex(bfctx, EVP_bf_cfb64(), NULL,
+                           (unsigned char *)hash,
+                           (unsigned char *)vec) != 1) {
+      fprintf(stderr, "Error: could not initialize Blowfish context\n");
+      exit(-1);
+    }
+    #else
+    memset(&bfkey, 0, sizeof(bfkey));
     BF_set_key(&bfkey, sizeof(hash), (unsigned char *)hash);
     memset(vec, 0, sizeof(vec));
     num = 0;
+    #endif
   }
 
   id = rand();
@@ -136,8 +160,19 @@ int main(int argc, char *argv[]) {
   while ((bytes = fread(rbuf, 1, mtu, f)) > 0) {
     seq++;
     if (key != NULL) {
+      #ifdef THC_USE_OPENSSL_3_API
+      int enc_len = 0;
+
+      if (EVP_EncryptUpdate(bfctx, (unsigned char *)wbuf, &enc_len,
+                            (unsigned char *)rbuf, bytes) != 1 ||
+          enc_len != bytes) {
+        fprintf(stderr, "Error: Blowfish encryption failed\n");
+        exit(-1);
+      }
+      #else
       BF_cfb64_encrypt((unsigned char *)rbuf, (unsigned char *)wbuf, bytes,
                        &bfkey, (unsigned char *)vec, &num, BF_ENCRYPT);
+      #endif
       memcpy(rbuf, wbuf, bytes);
     }
     memcpy(buf + 8, (char *)&seq, 4);
@@ -184,6 +219,10 @@ int main(int argc, char *argv[]) {
     pkt1 = thc_destroy_packet(pkt1);
   }
   printf("All sent.\n");
+  #ifdef THC_USE_OPENSSL_3_API
+  if (bfctx != NULL) EVP_CIPHER_CTX_free(bfctx);
+  if (legacy_provider != NULL) OSSL_PROVIDER_unload(legacy_provider);
+  #endif
   return 0;
 }
 

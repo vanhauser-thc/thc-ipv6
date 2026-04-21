@@ -14,7 +14,11 @@
 #include <pcap.h>
 #include <endian.h>
 #ifdef _HAVE_SSL
+  #include <openssl/evp.h>
   #include <openssl/rsa.h>
+  #if OPENSSL_VERSION_NUMBER >= 0x30000000L
+    #define THC_USE_OPENSSL_3_API 1
+  #endif
 #endif
 
 #define VERSION "3.8"
@@ -425,8 +429,12 @@ typedef struct {
 } thc_rsa_hdr;
 
 typedef struct {
+#ifdef THC_USE_OPENSSL_3_API
+  EVP_PKEY *pkey;
+#else
   RSA *rsa;
-  int  len;
+#endif
+  int len;
 } thc_key_t;
 
 typedef struct {

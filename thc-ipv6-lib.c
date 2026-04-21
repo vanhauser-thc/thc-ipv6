@@ -3327,8 +3327,27 @@ thc_key_t *thc_generate_key(int key_len) {
   thc_key_t *key;
 
   if ((key = (thc_key_t *)malloc(sizeof(thc_key_t))) == NULL) return NULL;
+  key->len = key_len;
 
-  #if defined(NO_RSA_LEGACY) || OPENSSL_VERSION_NUMBER >= 0x10100000L
+  #ifdef THC_USE_OPENSSL_3_API
+  EVP_PKEY_CTX *ctx = NULL;
+
+  key->pkey = NULL;
+  if ((ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, NULL)) == NULL) goto keygen_err;
+  if (EVP_PKEY_keygen_init(ctx) <= 0) goto keygen_err;
+  if (EVP_PKEY_CTX_set_rsa_keygen_bits(ctx, key_len) <= 0) goto keygen_err;
+  if (EVP_PKEY_keygen(ctx, &key->pkey) <= 0) goto keygen_err;
+  EVP_PKEY_CTX_free(ctx);
+  return key;
+
+keygen_err:
+  if (ctx != NULL) EVP_PKEY_CTX_free(ctx);
+  if (key->pkey != NULL) EVP_PKEY_free(key->pkey);
+  free(key);
+  if (key_len < 512)
+    printf("Key size too small. Try with 512 bits at least\n");
+  return NULL;
+  #elif defined(NO_RSA_LEGACY) || OPENSSL_VERSION_NUMBER >= 0x10100000L
   RSA *rsa = RSA_new();
 
   if (rsa == NULL) {
@@ -3353,7 +3372,6 @@ thc_key_t *thc_generate_key(int key_len) {
     free(key);
     return NULL;
   }
-  key->len = key_len;
   #endif
 
   return key;
@@ -3384,13 +3402,30 @@ thc_cga_hdr *thc_generate_cga(unsigned char *prefix, thc_key_t *key,
   close(rand_fd);
 
   /* DER-encode public key */
+  #ifdef THC_USE_OPENSSL_3_API
+  klen = i2d_PUBKEY(key->pkey, NULL);
+  #else
   klen = i2d_RSA_PUBKEY(key->rsa, NULL);
+  #endif
+  if (klen <= 0) {
+    free(cga_hdr);
+    return NULL;
+  }
   if ((cga_hdr->pub_key = (unsigned char *)malloc(klen)) == NULL) {
     free(cga_hdr);
     return NULL;
   }
   p = cga_hdr->pub_key;
+  #ifdef THC_USE_OPENSSL_3_API
+  klen = i2d_PUBKEY(key->pkey, &p);
+  #else
   klen = i2d_RSA_PUBKEY(key->rsa, &p);
+  #endif
+  if (klen <= 0) {
+    free(cga_hdr->pub_key);
+    free(cga_hdr);
+    return NULL;
+  }
 
   key->len = klen;
   cgasize += klen;
@@ -3468,7 +3503,7 @@ thc_rsa_hdr *thc_generate_rsa(char *data2sign, int data2sign_len,
                               thc_cga_hdr *cga_hdr, thc_key_t *key) {
   thc_rsa_hdr * rsa_hdr;
   unsigned char md_value[EVP_MAX_MD_SIZE], hash[20];
-  int           rsa_hdr_len, sign_len, fd, ignore = 0;
+  int           rsa_hdr_len, fd, ignore = 0;
 
   if ((rsa_hdr = (thc_rsa_hdr *)malloc(sizeof(thc_rsa_hdr))) == NULL)
     return NULL;
@@ -3487,17 +3522,45 @@ thc_rsa_hdr *thc_generate_rsa(char *data2sign, int data2sign_len,
     close(fd);
   }
 
-  sign_len = RSA_size(key->rsa);
+  #ifdef THC_USE_OPENSSL_3_API
+  EVP_PKEY_CTX *sigctx = NULL;
+  size_t        sign_len = EVP_PKEY_get_size(key->pkey);
+
+  if (sign_len == 0) {
+    free(rsa_hdr);
+    return NULL;
+  }
+  #else
+  int sign_len = RSA_size(key->rsa);
+  #endif
   if ((rsa_hdr->sign = malloc(sign_len)) == NULL) {
     free(rsa_hdr);
     return NULL;
   }
-  if (RSA_sign(NID_sha1, hash, 20, rsa_hdr->sign, &sign_len, key->rsa) == 0) {
+  #ifdef THC_USE_OPENSSL_3_API
+  sigctx = EVP_PKEY_CTX_new(key->pkey, NULL);
+  if (sigctx == NULL || EVP_PKEY_sign_init(sigctx) <= 0 ||
+      EVP_PKEY_CTX_set_rsa_padding(sigctx, RSA_PKCS1_PADDING) <= 0 ||
+      EVP_PKEY_CTX_set_signature_md(sigctx, EVP_sha1()) <= 0 ||
+      EVP_PKEY_sign(sigctx, (unsigned char *)rsa_hdr->sign, &sign_len, hash,
+                    sizeof(hash)) <= 0) {
+    if (sigctx != NULL) EVP_PKEY_CTX_free(sigctx);
     if (_thc_ipv6_showerrors)
       printf("Error during generating RSA signature! \n");
+    free(rsa_hdr->sign);
     free(rsa_hdr);
     return NULL;
   }
+  EVP_PKEY_CTX_free(sigctx);
+  #else
+  if (RSA_sign(NID_sha1, hash, 20, rsa_hdr->sign, &sign_len, key->rsa) == 0) {
+    if (_thc_ipv6_showerrors)
+      printf("Error during generating RSA signature! \n");
+    free(rsa_hdr->sign);
+    free(rsa_hdr);
+    return NULL;
+  }
+  #endif
   rsa_hdr_len = 20 + sign_len;
   if (rsa_hdr_len % 8 == 0) {
     rsa_hdr->len = rsa_hdr_len / 8;
