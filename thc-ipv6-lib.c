@@ -2820,24 +2820,43 @@ int thc_open_ipv6(char *interface) {
   else
     s = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
   // return socket(AF_INET, SOCK_PACKET, htons(ETH_P_ARP));
+  if (s < 0) {
+    if (_thc_ipv6_rawmode)
+      perror("socket(PF_PACKET, SOCK_DGRAM) failed, maybe use sudo?");
+    else
+      perror("socket(AF_PACKET, SOCK_RAW) failed, maybe use sudo?");
+    return -1;
+  }
 
   // Bind socket to interface
   if (interface) {
     strncpy((char *)ifr.ifr_name, interface, IFNAMSIZ);
     ret = ioctl(s, SIOCGIFINDEX, &ifr, sizeof(ifr));
-    if (ret < 0) { perror("IOCTL SIOCGIFINDEX Failed"); }
+    if (ret < 0) {
+      perror("IOCTL SIOCGIFINDEX failed");
+      close(s);
+      return -1;
+    }
     if (debug) printf("Socket interface idx %d\n", ifr.ifr_ifindex);
 
     sock_ll.sll_ifindex = ifr.ifr_ifindex;
-    ioctl(s, SIOCGIFHWADDR, &ifr, sizeof(ifr));
-    if (ret < 0) { perror("IOCTL SIOCGIFHWADDR, Failed"); }
+    ret = ioctl(s, SIOCGIFHWADDR, &ifr, sizeof(ifr));
+    if (ret < 0) {
+      perror("IOCTL SIOCGIFHWADDR failed");
+      close(s);
+      return -1;
+    }
     if (debug)
       printf("Socket interface HW addr: %s\n",
              ether_ntoa((struct ether_addr *)ifr.ifr_hwaddr.sa_data));
 
     memcpy(sock_ll.sll_addr, ifr.ifr_hwaddr.sa_data, ETH_ALEN);
     ret = bind(s, (const struct sockaddr *)&sock_ll, sizeof(sock_ll));
-    if (ret < 0) { perror("Bind failed"); }
+    if (ret < 0) {
+      perror("Bind failed");
+      close(s);
+      return -1;
+    }
   }
 
   return s;
