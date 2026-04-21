@@ -36,7 +36,7 @@ fragrouter6:	fragrouter6.c $(LIBS)
 connsplit6:	connsplit6.c $(LIBS)
 	-$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $^ $(LDFLAGS) -lnetfilter_queue || /bin/echo -e "\nCompilation of connsplit6 failed, you have to install libnetfilter-queue-dev for this!\n"
 
-%:	%.c $(LIBS)
+$(PROGRAMS): %: %.c $(LIBS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(STATIC) -o $@ $^ $(LDFLAGS)
 
 strip:	all
