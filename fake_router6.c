@@ -125,10 +125,10 @@ int main(int argc, char *argv[]) {
   mtu = thc_get_mtu(interface);
   if (argc - optind >= 5) mtu = atoi(argv[optind + 4]);
   if (argc - optind >= 7 && (ptr = argv[optind + 5]) != NULL)
-    sscanf(ptr, "%x:%x:%x:%x:%x:%x", (unsigned int *)&mac[0],
-           (unsigned int *)&mac[1], (unsigned int *)&mac[2],
-           (unsigned int *)&mac[3], (unsigned int *)&mac[4],
-           (unsigned int *)&mac[5]);
+    if (thc_parse_mac(ptr, mac) < 0) {
+      fprintf(stderr, "Error: invalid MAC address: %s\n", ptr);
+      exit(-1);
+    }
   else
     mac6 = thc_get_own_mac(interface);
 

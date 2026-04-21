@@ -194,24 +194,24 @@ int main(int argc, char *argv[]) {
         interval = atoi(optarg);
         break;
       case 'm':
-        sscanf(optarg, "%x:%x:%x:%x:%x:%x", (unsigned int *)&dmac[0],
-               (unsigned int *)&dmac[1], (unsigned int *)&dmac[2],
-               (unsigned int *)&dmac[3], (unsigned int *)&dmac[4],
-               (unsigned int *)&dmac[5]);
+        if (thc_parse_mac(optarg, dmac) < 0) {
+          fprintf(stderr, "Error: invalid MAC address: %s\n", optarg);
+          exit(-1);
+        }
         dstmac = dmac;
         break;
       case 'S':
-        sscanf(optarg, "%x:%x:%x:%x:%x:%x", (unsigned int *)&mac[0],
-               (unsigned int *)&mac[1], (unsigned int *)&mac[2],
-               (unsigned int *)&mac[3], (unsigned int *)&mac[4],
-               (unsigned int *)&mac[5]);
+        if (thc_parse_mac(optarg, mac) < 0) {
+          fprintf(stderr, "Error: invalid MAC address: %s\n", optarg);
+          exit(-1);
+        }
         mac6 = mac;
         break;
       case 'f':
-        sscanf(optarg, "%x:%x:%x:%x:%x:%x", (unsigned int *)&smac[0],
-               (unsigned int *)&smac[1], (unsigned int *)&smac[2],
-               (unsigned int *)&smac[3], (unsigned int *)&smac[4],
-               (unsigned int *)&smac[5]);
+        if (thc_parse_mac(optarg, smac) < 0) {
+          fprintf(stderr, "Error: invalid MAC address: %s\n", optarg);
+          exit(-1);
+        }
         fmac = smac;
         break;
       case 's':

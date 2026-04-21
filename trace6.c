@@ -68,14 +68,12 @@ void check_packets(u_char *foo, const struct pcap_pkthdr *header,
   unsigned short int *si;
   unsigned int *      ui, new_mtu = 0;
   unsigned char       pos = 0, pos2;
+  int                 l2off = rawmode ? 0 : 14;
 
-  if (!rawmode) {
-    ptr += 14;
-    len -= 14;
-  }
+  if (do_hdr_size) l2off += (do_hdr_size - 14);
+  if ((ptr = thc_pcap_get_data(header, data, l2off, &len)) == NULL) return;
   if (do_hdr_size) {
-    ptr += (do_hdr_size - 14);
-    len -= (do_hdr_size - 14);
+    if (len < 1) return;
     if ((ptr[0] & 240) != 0x60) return;
   }
   add = do_alert + do_frag + do_dst;
@@ -83,6 +81,8 @@ void check_packets(u_char *foo, const struct pcap_pkthdr *header,
 
   if (debug) thc_dump_data(ptr, len, "Received Packet");
   complete = 0;
+
+  if (len < 41) return;
 
   if (tunnel && ptr[6] == NXT_ICMP6 && ptr[40] == ICMP6_TOOBIG && len >= 100) {
     new_mtu = (ptr[44] << 24) + (ptr[45] << 16) + (ptr[46] << 8) + ptr[47];

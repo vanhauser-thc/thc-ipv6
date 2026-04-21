@@ -99,8 +99,188 @@ void ignore(int signal) {
   return;
 }
 
+int recv_exact(int fd, unsigned char *buffer, int want) {
+  int got, total = 0;
+
+  while (total < want) {
+    got = recv(fd, buffer + total, want - total, 0);
+    if (got <= 0) return -1;
+    total += got;
+  }
+
+  return total;
+}
+
+int recv_dns_message(unsigned char *buffer, int buffer_size) {
+  int recv_len;
+
+  if (tcp) {
+    if (recv_exact(sock, buffer, 2) != 2) return -1;
+    recv_len = (buffer[0] << 8) + buffer[1];
+    if (recv_len <= 0 || recv_len > buffer_size) return -1;
+    if (recv_exact(sock, buffer, recv_len) != recv_len) return -1;
+    return recv_len;
+  }
+
+  return recv(sock, buffer, buffer_size, 0);
+}
+
+int dns_decode_name(const unsigned char *msg, const unsigned char *end,
+                    const unsigned char *ptr, char *output, size_t output_size,
+                    const unsigned char **next) {
+  const unsigned char *resume = NULL;
+  size_t               out_len = 0;
+  int                  jumped = 0, limit = 0;
+
+  if (msg == NULL || end == NULL || ptr == NULL || output == NULL ||
+      output_size == 0)
+    return -1;
+
+  while (ptr < end && limit++ < 128) {
+    unsigned char label_len = *ptr++;
+
+    if ((label_len & 0xc0) == 0xc0) {
+      int offset;
+
+      if (ptr >= end) return -1;
+      offset = ((label_len & 0x3f) << 8) | *ptr++;
+      if (msg + offset >= end) return -1;
+      if (!jumped) resume = ptr;
+      ptr = msg + offset;
+      jumped = 1;
+      continue;
+    }
+
+    if (label_len == 0) {
+      if (out_len == 0) {
+        if (output_size < 2) return -1;
+        output[0] = '.';
+        output[1] = 0;
+      } else {
+        if (out_len + 1 >= output_size) return -1;
+        output[out_len++] = '.';
+        output[out_len] = 0;
+      }
+      if (next != NULL) *next = jumped ? resume : ptr;
+      return 0;
+    }
+
+    if (label_len > 63 || ptr + label_len > end) return -1;
+    if (out_len != 0) {
+      if (out_len + 1 >= output_size) return -1;
+      output[out_len++] = '.';
+    }
+    if (out_len + label_len >= output_size) return -1;
+    memcpy(output + out_len, ptr, label_len);
+    out_len += label_len;
+    output[out_len] = 0;
+    ptr += label_len;
+  }
+
+  return -1;
+}
+
+int dns_skip_name(const unsigned char *msg, const unsigned char *end,
+                  const unsigned char *ptr, const unsigned char **next) {
+  const unsigned char *resume = NULL;
+  int                  jumped = 0, limit = 0;
+
+  if (msg == NULL || end == NULL || ptr == NULL) return -1;
+
+  while (ptr < end && limit++ < 128) {
+    unsigned char label_len = *ptr++;
+
+    if ((label_len & 0xc0) == 0xc0) {
+      int offset;
+
+      if (ptr >= end) return -1;
+      offset = ((label_len & 0x3f) << 8) | *ptr++;
+      if (msg + offset >= end) return -1;
+      if (!jumped) resume = ptr;
+      ptr = msg + offset;
+      jumped = 1;
+      continue;
+    }
+
+    if (label_len == 0) {
+      if (next != NULL) *next = jumped ? resume : ptr;
+      return 0;
+    }
+
+    if (label_len > 63 || ptr + label_len > end) return -1;
+    ptr += label_len;
+  }
+
+  return -1;
+}
+
+int dns_reverse_name_to_ipv6(const char *name, unsigned char *ipv6) {
+  int         i, low = 0;
+  const char *ptr = name;
+
+  if (name == NULL || ipv6 == NULL) return -1;
+
+  memset(ipv6, 0, 16);
+  for (i = 0; i < 32; i++) {
+    if (!isxdigit((unsigned char)ptr[0]) || ptr[1] != '.') return -1;
+    if ((i & 1) == 0)
+      low = tochar(ptr[0]);
+    else
+      ipv6[15 - i / 2] = (tochar(ptr[0]) << 4) + low;
+    ptr += 2;
+  }
+
+  if (strcasecmp(ptr, "ip6.arpa.") != 0 && strcasecmp(ptr, "ip6.arpa") != 0)
+    return -1;
+
+  return 0;
+}
+
+int dns_parse_ptr_response(const unsigned char *msg, int msg_len, char *owner,
+                           size_t owner_len, char *target,
+                           size_t target_len) {
+  const unsigned char *ptr, *end, *next;
+  int                  qdcount, ancount, i;
+  unsigned int         type, class, rdlen;
+
+  if (msg == NULL || owner == NULL || target == NULL || msg_len < 12) return -1;
+
+  end = msg + msg_len;
+  qdcount = (msg[4] << 8) | msg[5];
+  ancount = (msg[6] << 8) | msg[7];
+  if (qdcount < 1 || ancount < 1) return -1;
+
+  ptr = msg + 12;
+  if (dns_decode_name(msg, end, ptr, owner, owner_len, &next) < 0) return -1;
+  ptr = next;
+  if (end - ptr < 4) return -1;
+  ptr += 4;
+
+  for (i = 1; i < qdcount; i++) {
+    if (dns_skip_name(msg, end, ptr, &next) < 0) return -1;
+    ptr = next;
+    if (end - ptr < 4) return -1;
+    ptr += 4;
+  }
+
+  for (i = 0; i < ancount; i++) {
+    if (dns_skip_name(msg, end, ptr, &next) < 0) return -1;
+    ptr = next;
+    if (end - ptr < 10) return -1;
+    type = (ptr[0] << 8) | ptr[1];
+    class = (ptr[2] << 8) | ptr[3];
+    rdlen = (ptr[8] << 8) | ptr[9];
+    ptr += 10;
+    if ((unsigned int)(end - ptr) < rdlen) return -1;
+    if (type == 12 && class == 1) return dns_decode_name(msg, end, ptr, target, target_len, NULL);
+    ptr += rdlen;
+  }
+
+  return -1;
+}
+
 int send_range() {
-  int i, recv_len = sizeof(buf2);
+  int i;
 
   for (i = 0; i < 32; i++) {
     buf[tcp_offset + sizeof(buf_start) + i * 2] = 1;
@@ -122,17 +302,8 @@ int send_range() {
   } else
     usleep(5);
 
-  if (tcp) {
-    alarm(waittime + 1);
-    len = recv(sock, buf2, 2, 0);
-    alarm(0);
-    if (len != 2) return -1;
-    recv_len = (buf2[0] << 8) + buf2[1];
-    if (recv_len > sizeof(buf2)) return -1;
-  }
-
   alarm(waittime + 1);
-  if ((len = recv(sock, buf2, recv_len, 0)) > 20) {
+  if ((len = recv_dns_message(buf2, sizeof(buf2))) > 20) {
     alarm(0);
     if ((buf2[3] & 3) == 0 && buf2[7] == 1)
       return 0;
@@ -145,8 +316,9 @@ int send_range() {
 }
 
 int deeper(int depth) {
-  unsigned char r[16], *ptr2, *foo;
-  int           i, j, ok = 0, rs = 0, len, clen, nlen, recv_len = sizeof(buf2);
+  unsigned char r[16], *foo;
+  char          owner[256], target[256];
+  int           i, ok = 0, rs = 0, len;
 
   if (depth > 31) return -1;
   memset(r, 0, sizeof(r));
@@ -187,61 +359,35 @@ redo:
   wait = 1;
   alarm(waittime);
   while (ok == 0 && wait == 1) {
-    if (tcp) {
-      recv(sock, buf2, 2, 0);
-      recv_len = (buf2[0] << 8) + buf2[1];
-      if (recv_len > sizeof(buf2)) {
-        close(sock);
-        sock = dnssocket(dst);
-        goto redo;
-      }
+    len = recv_dns_message(buf2, sizeof(buf2));
+    if (tcp && len < 0) {
+      close(sock);
+      sock = dnssocket(dst);
+      goto redo;
     }
-    if ((len = recv(sock, buf2, recv_len, 0)) > 70 && buf2[1] == cnt) {
+    if (len > 12 && buf2[1] == cnt) {
       i = (buf2[0] & 15);
       if ((buf2[3] & 3) == 0) {
         if (depth == 31) {
           r[i] = 3;
           if (buf2[7] == 1) {
-            found++;
-            strcpy(name, "Found: ");
-            ptr2 = buf2 + 12;
-            i = 0;
-            while (i < 32 && *ptr2 == 1) {
-              if (i % 2 == 0)
-                j = tochar(ptr2[1]);
-              else
-                dst6[15 - i / 2] = (tochar(ptr2[1]) * 16) + j;
-              ptr2 += 2;
-              i++;
-            }
-            foo = thc_ipv62notation(dst6);
-            strcat(name, foo);
-            free(foo);
-            strcat(name, " is ");
-            ptr2 = buf2 + 102;
-            while (*ptr2 != 0 && ptr2 + *ptr2 + 1 <= buf2 + len) {
-              clen = *ptr2;
-              nlen = *(ptr2 + clen + 1);
-              *(ptr2 + clen + 1) = 0;
-              strncat(name, ptr2 + 1, sizeof(name) - strlen(name) - 4);
-              strcat(name, ".");
-              *(ptr2 + *ptr2 + 1) = nlen;
-              ptr2 += clen + 1;
-            }
-            if (debug) {
-              strcat(name, " is ");
-              ptr2 = buf2 + 12;
-              while (*ptr2 != 0 && ptr2 + *ptr2 + 1 <= buf2 + len) {
-                clen = *ptr2;
-                nlen = *(ptr2 + clen + 1);
-                *(ptr2 + clen + 1) = 0;
-                strncat(name, ptr2 + 1, sizeof(name) - strlen(name) - 4);
-                strcat(name, ".");
-                *(ptr2 + *ptr2 + 1) = nlen;
-                ptr2 += clen + 1;
+            if (dns_parse_ptr_response(buf2, len, owner, sizeof(owner), target,
+                                       sizeof(target)) == 0 &&
+                dns_reverse_name_to_ipv6(owner, dst6) == 0) {
+              found++;
+              foo = thc_ipv62notation(dst6);
+              if (foo != NULL) {
+                snprintf((char *)name, sizeof(name), "Found: %s is %s", foo,
+                         target);
+                free(foo);
+                if (debug) {
+                  size_t used = strlen((char *)name);
+                  snprintf((char *)name + used, sizeof(name) - used, " is %s",
+                           owner);
+                }
+                printf("%s\n", name);
               }
             }
-            printf("%s\n", name);
           }
         } else
           r[i] = 2;

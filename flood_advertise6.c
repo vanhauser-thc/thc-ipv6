@@ -42,10 +42,10 @@ int main(int argc, char *argv[]) {
     argc--;
   }
   if (argc > 2 && strncmp(argv[1], "-m", 2) == 0) {
-    sscanf(argv[2], "%x:%x:%x:%x:%x:%x", (unsigned int *)&srcmac[0],
-           (unsigned int *)&srcmac[1], (unsigned int *)&srcmac[2],
-           (unsigned int *)&srcmac[3], (unsigned int *)&srcmac[4],
-           (unsigned int *)&srcmac[5]);
+    if (thc_parse_mac(argv[2], srcmac) < 0) {
+      fprintf(stderr, "Error: invalid MAC address: %s\n", argv[2]);
+      exit(-1);
+    }
     smac = srcmac;
     argv += 2;
     argc -= 2;

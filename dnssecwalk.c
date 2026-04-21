@@ -73,13 +73,196 @@ void noreply(int signo) {
   }
 }
 
+int recv_exact(int fd, unsigned char *buffer, int want) {
+  int got, total = 0;
+
+  while (total < want) {
+    got = recv(fd, buffer + total, want - total, 0);
+    if (got <= 0) return -1;
+    total += got;
+  }
+
+  return total;
+}
+
+int recv_dns_message(int fd, int use_tcp, unsigned char *buffer,
+                     size_t buffer_size) {
+  int recv_len;
+
+  if (!use_tcp) return recv(fd, buffer, buffer_size, 0);
+
+  if (recv_exact(fd, buffer, 2) != 2) return -1;
+  recv_len = (buffer[0] << 8) + buffer[1];
+  if (recv_len <= 0 || (size_t)recv_len > buffer_size) return -1;
+  if (recv_exact(fd, buffer, recv_len) != recv_len) return -1;
+
+  return recv_len;
+}
+
+int dns_decode_name(const unsigned char *msg, const unsigned char *end,
+                    const unsigned char *ptr, char *output, size_t output_size,
+                    const unsigned char **next) {
+  const unsigned char *resume = NULL;
+  size_t               out_len = 0;
+  int                  jumped = 0, limit = 0;
+
+  if (msg == NULL || end == NULL || ptr == NULL || output == NULL ||
+      output_size == 0)
+    return -1;
+
+  while (ptr < end && limit++ < 128) {
+    unsigned char label_len = *ptr++;
+
+    if ((label_len & 0xc0) == 0xc0) {
+      int offset;
+
+      if (ptr >= end) return -1;
+      offset = ((label_len & 0x3f) << 8) | *ptr++;
+      if (msg + offset >= end) return -1;
+      if (!jumped) resume = ptr;
+      ptr = msg + offset;
+      jumped = 1;
+      continue;
+    }
+
+    if (label_len == 0) {
+      if (out_len == 0) {
+        if (output_size < 2) return -1;
+        output[0] = '.';
+        output[1] = 0;
+      } else {
+        if (out_len + 1 >= output_size) return -1;
+        output[out_len++] = '.';
+        output[out_len] = 0;
+      }
+      if (next != NULL) *next = jumped ? resume : ptr;
+      return 0;
+    }
+
+    if (label_len > 63 || ptr + label_len > end) return -1;
+    if (out_len != 0) {
+      if (out_len + 1 >= output_size) return -1;
+      output[out_len++] = '.';
+    }
+    if (out_len + label_len >= output_size) return -1;
+    memcpy(output + out_len, ptr, label_len);
+    out_len += label_len;
+    output[out_len] = 0;
+    ptr += label_len;
+  }
+
+  return -1;
+}
+
+int dns_skip_name(const unsigned char *msg, const unsigned char *end,
+                  const unsigned char *ptr, const unsigned char **next) {
+  const unsigned char *resume = NULL;
+  int                  jumped = 0, limit = 0;
+
+  if (msg == NULL || end == NULL || ptr == NULL) return -1;
+
+  while (ptr < end && limit++ < 128) {
+    unsigned char label_len = *ptr++;
+
+    if ((label_len & 0xc0) == 0xc0) {
+      int offset;
+
+      if (ptr >= end) return -1;
+      offset = ((label_len & 0x3f) << 8) | *ptr++;
+      if (msg + offset >= end) return -1;
+      if (!jumped) resume = ptr;
+      ptr = msg + offset;
+      jumped = 1;
+      continue;
+    }
+
+    if (label_len == 0) {
+      if (next != NULL) *next = jumped ? resume : ptr;
+      return 0;
+    }
+
+    if (label_len > 63 || ptr + label_len > end) return -1;
+    ptr += label_len;
+  }
+
+  return -1;
+}
+
+int dns_nsec_bitmap_has_type(const unsigned char *ptr, const unsigned char *end,
+                             unsigned int type) {
+  while (ptr < end) {
+    unsigned int window, block_len, byte_index, bit_mask;
+
+    if (end - ptr < 2) return -1;
+    window = ptr[0];
+    block_len = ptr[1];
+    ptr += 2;
+    if (block_len == 0 || (unsigned int)(end - ptr) < block_len) return -1;
+
+    if (type / 256 == window) {
+      byte_index = (type % 256) / 8;
+      bit_mask = 0x80 >> (type % 8);
+      if (byte_index < block_len && (ptr[byte_index] & bit_mask) != 0) return 1;
+    }
+
+    ptr += block_len;
+  }
+
+  return 0;
+}
+
+int dns_parse_nsec_response(const unsigned char *msg, int msg_len, char *next,
+                            size_t next_len, int *has_ns) {
+  const unsigned char *ptr, *end, *next_ptr;
+  int                  qdcount, ancount, i, bitmap_state;
+  unsigned int         type, class, rdlen;
+
+  if (msg == NULL || next == NULL || has_ns == NULL || msg_len < 12) return -1;
+
+  end = msg + msg_len;
+  qdcount = (msg[4] << 8) | msg[5];
+  ancount = (msg[6] << 8) | msg[7];
+  ptr = msg + 12;
+
+  for (i = 0; i < qdcount; i++) {
+    if (dns_skip_name(msg, end, ptr, &next_ptr) < 0) return -1;
+    ptr = next_ptr;
+    if (end - ptr < 4) return -1;
+    ptr += 4;
+  }
+
+  for (i = 0; i < ancount; i++) {
+    if (dns_skip_name(msg, end, ptr, &next_ptr) < 0) return -1;
+    ptr = next_ptr;
+    if (end - ptr < 10) return -1;
+    type = (ptr[0] << 8) | ptr[1];
+    class = (ptr[2] << 8) | ptr[3];
+    rdlen = (ptr[8] << 8) | ptr[9];
+    ptr += 10;
+    if ((unsigned int)(end - ptr) < rdlen) return -1;
+    if (type == 47 && class == 1) {
+      const unsigned char *rdata_end = ptr + rdlen;
+
+      if (dns_decode_name(msg, rdata_end, ptr, next, next_len, &next_ptr) < 0)
+        return -1;
+      bitmap_state = dns_nsec_bitmap_has_type(next_ptr, rdata_end, 2);
+      if (bitmap_state < 0) return -1;
+      *has_ns = bitmap_state;
+      return 0;
+    }
+    ptr += rdlen;
+  }
+
+  return -1;
+}
+
 int main(int argc, char **argv) {
   unsigned char buf[1024], buf2[1024];
-  char *        ptr, *ptr2, nexthost[256], domain[256];
+  char *        ptr, *ptr2, nexthost[256], domain[256], next_rr[256];
   char b1[] = {0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   char b2[] = {0x00, 0x2f, 0x00, 0x01};
   int  pid = getpid(), dlen = 0, i = 0, fixi, len, ok = 1, cnt = 0, errcntbak,
-      sub = 0, recv_len;
+      sub = 0, has_ns = 0;
   struct addrinfo      hints, *res, *p;
   struct sockaddr_in6 *ipv6, *q;
   struct sockaddr_in * ipv4, *q4;
@@ -151,7 +334,7 @@ int main(int argc, char **argv) {
             argv[optind + 1]);
     exit(-1);
   }
-  strncpy(domain, argv[optind + 1], sizeof(nexthost) - 2);
+  strncpy(domain, argv[optind + 1], sizeof(domain) - 2);
   domain[sizeof(domain) - 2] = 0;
   if (domain[strlen(domain) - 1] != '.') strcat(domain, ".");
   strncpy(nexthost, argv[optind + 1], sizeof(nexthost) - 1);
@@ -221,25 +404,8 @@ int main(int argc, char **argv) {
     errcntbak = errcnt;
     signal(SIGALRM, noreply);
     memset(buf2, 0, sizeof(buf2));
-    if (tcp) {
-      alarm(5);
-      len = recv(sock, buf2, 2, 0);
-      alarm(0);
-      if (len != 2) {
-        close(sock);
-        sock = dnssocket(dst);
-        recv_len = 0;
-        if (errcntbak == errcnt) errcnt++;
-        if ((errcntbak != errcnt) && errcnt > 0 && errcnt <= RETRY) goto resend;
-        if (RETRY < errcnt || len < 10) noreply(0);
-      } else
-        recv_len =
-            (unsigned int)((unsigned int)buf2[0] << 8) + (unsigned int)buf2[1];
-      if (sock == -1) sock = dnssocket(dst);
-    } else
-      recv_len = sizeof(buf2);
     alarm(5);
-    len = recv(sock, buf2, recv_len, 0);
+    len = recv_dns_message(sock, tcp, buf2, sizeof(buf2));
     alarm(0);
     if (sock == -1) sock = dnssocket(dst);
     if (len <= 0 && errcntbak == errcnt) errcnt++;
@@ -264,37 +430,23 @@ int main(int argc, char **argv) {
       exit(1);
     }
 
-    ptr = (char *)(buf2 + i);
-    while (ptr < (char *)(buf2 + len) && *ptr != 0x2f)
-      ptr++;
-    ptr += 9;
-    ptr2 = ptr + 1;
-    i = *ptr;
-    if (*ptr == 0) {
-      ptr++;
-    } else {
-      while (i != 0) {
-        ptr += i + 1;
-        i = *ptr;
-        *ptr = '.';
-      }
-    }
-    *ptr++ = '.';
-    *ptr = 0;
-    if (*ptr2 != 0) {
-      for (i = 0; i < strlen(ptr2); i++)
-        ptr2[i] = (char)tolower((int)ptr2[i]);
-      if (strcasecmp(ptr2, domain) == 0)
+    if (dns_parse_nsec_response(buf2, len, next_rr, sizeof(next_rr), &has_ns) <
+        0) {
+      ok = 0;
+    } else if (next_rr[0] != 0 && strcmp(next_rr, ".") != 0) {
+      for (i = 0; i < (int)strlen(next_rr); i++)
+        next_rr[i] = (char)tolower((int)next_rr[i]);
+      if (strcasecmp(next_rr, domain) == 0)
         ok = 2;
       else {
         if (sub == 1) {
-          if (strcmp(firstsub, ptr2) == 0 || strcmp(beforesub, ptr2) == 0) {
+          if (strcmp(firstsub, next_rr) == 0 || strcmp(beforesub, next_rr) == 0) {
             fprintf(stderr, "Error: loop detected (sub), aborting\n");
             exit(-1);
           }
         }
         if (cnt != 0) {
-          if ((ptr2[2 + strlen(ptr2)] & 2) == 2) {
+          if (has_ns) {
             fprintf(stderr,
                     "Warning: start of a sub domain: %s - following items can "
                     "not be enumerated automatically (don't blame the tool, "
@@ -303,17 +455,17 @@ int main(int argc, char **argv) {
                     nexthost);
             sub = 1;
             strcpy(beforesub, nexthost);
-            strncpy(firstsub, ptr2, sizeof(firstsub) - 1);
+            strncpy(firstsub, next_rr, sizeof(firstsub) - 1);
             firstsub[sizeof(firstsub) - 1] = 0;
           }
-          if (strcmp(ptr2, first) == 0 || strcmp(ptr2, nexthost) == 0) {
+          if (strcmp(next_rr, first) == 0 || strcmp(next_rr, nexthost) == 0) {
             fprintf(stderr, "Error: loop detected, aborting\n");
             exit(-1);
           }
-          strncpy(nexthost, ptr2, sizeof(nexthost) - 1);
+          strncpy(nexthost, next_rr, sizeof(nexthost) - 1);
           nexthost[sizeof(nexthost) - 1] = 0;
         } else {
-          strncpy(nexthost, ptr2, sizeof(nexthost) - 1);
+          strncpy(nexthost, next_rr, sizeof(nexthost) - 1);
           nexthost[sizeof(nexthost) - 1] = 0;
           strcpy(first, nexthost);
         }

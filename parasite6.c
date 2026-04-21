@@ -220,10 +220,10 @@ int main(int argc, char *argv[]) {
   if (argc - optind < 1) help(argv[0]);
   interface = argv[optind];
   if (argc - optind == 2 && argv[optind + 1] != NULL)
-    sscanf(argv[optind + 1], "%x:%x:%x:%x:%x:%x", (unsigned int *)&mac[0],
-           (unsigned int *)&mac[1], (unsigned int *)&mac[2],
-           (unsigned int *)&mac[3], (unsigned int *)&mac[4],
-           (unsigned int *)&mac[5]);
+    if (thc_parse_mac(argv[optind + 1], mac) < 0) {
+      fprintf(stderr, "Error: invalid MAC address: %s\n", argv[optind + 1]);
+      exit(-1);
+    }
   else
     ownmac = thc_get_own_mac(interface);
   if (thc_get_own_ipv6(interface, NULL, PREFER_LINK) == NULL) {

@@ -135,10 +135,10 @@ int main(int argc, char *argv[]) {
 
   mac6 = mac;
   if (argc >= 7)
-    sscanf(argv[6], "%x:%x:%x:%x:%x:%x", (unsigned int *)&mac[0],
-           (unsigned int *)&mac[1], (unsigned int *)&mac[2],
-           (unsigned int *)&mac[3], (unsigned int *)&mac[4],
-           (unsigned int *)&mac[5]);
+    if (thc_parse_mac(argv[6], mac) < 0) {
+      fprintf(stderr, "Error: invalid MAC address: %s\n", argv[6]);
+      exit(-1);
+    }
   else
     mac6 = thc_get_own_mac(interface);
   realownmac = thc_get_own_mac(interface);

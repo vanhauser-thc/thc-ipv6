@@ -65,10 +65,10 @@ int main(int argc, char *argv[]) {
         break;
       case 'm':
         mac = srcmac;
-        sscanf(optarg, "%x:%x:%x:%x:%x:%x", (unsigned int *)&mac[0],
-               (unsigned int *)&mac[1], (unsigned int *)&mac[2],
-               (unsigned int *)&mac[3], (unsigned int *)&mac[4],
-               (unsigned int *)&mac[5]);
+        if (thc_parse_mac(optarg, mac) < 0) {
+          fprintf(stderr, "Error: invalid MAC address: %s\n", optarg);
+          exit(-1);
+        }
         break;
       case 's':
         if ((src6 = thc_resolve6(optarg)) == NULL) {

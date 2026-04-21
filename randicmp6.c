@@ -13,16 +13,17 @@
 
 void check_packet(u_char *foo, const struct pcap_pkthdr *header,
                   const unsigned char *data) {
-  unsigned char *ipv6hdr = (unsigned char *)(data + 14);
-  int            len = header->caplen - 14;
+  unsigned char *ipv6hdr;
+  int            len, offset = 14;
 
   if (do_hdr_size) {
-    ipv6hdr = (unsigned char *)(data + do_hdr_size);
-    len -= (do_hdr_size - 14);
-    if ((ipv6hdr[0] & 240) != 0x60 || ipv6hdr[6] != NXT_ICMP6 || len < 48)
-      return;
-  } else if (len < 48)
+    offset = do_hdr_size;
+  }
+  if ((ipv6hdr = thc_pcap_get_data(header, data, offset, &len)) == NULL ||
+      len < 48)
     return;
+  if (do_hdr_size && (ipv6hdr[0] & 240) != 0x60) return;
+  if (ipv6hdr[6] != NXT_ICMP6) return;
 
   printf("Received type %d code %d\n", ipv6hdr[40], ipv6hdr[41]);
 }

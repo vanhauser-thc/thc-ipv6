@@ -46,8 +46,8 @@ void intercept(u_char *foo, const struct pcap_pkthdr *header,
   }
 
   if (type == 2) {  // 6in4
-    len -= do_hdr_size;
-    ipv6hdr = (unsigned char *)(data + do_hdr_size);
+    if ((ipv6hdr = thc_pcap_get_data(header, data, do_hdr_size, &len)) == NULL)
+      return;
     if ((ipv6hdr[0] & 240) != 0x60) return;
     if (len < 48 || ipv6hdr[6] != NXT_ICMP6 || ipv6hdr[41] != 0) return;
     seq = (unsigned int *)(ipv6hdr + 44);
@@ -71,8 +71,9 @@ void intercept(u_char *foo, const struct pcap_pkthdr *header,
     if (passive && ipv6hdr[40] == ICMP6_PINGREPLY)
       printf("Keep-alive ping reply ID 0x%x seen\n", htonl(*seq));
   } else {  // PPPoE
+    if (len < 40 || len > (int)sizeof(buf)) return;
     seen = (unsigned short int *)(data + 20 + offset + do_hdr_off);
-    if (len < 40 || len > 1500 || htons(*seen) != 0xc021) return;
+    if (htons(*seen) != 0xc021) return;
     seen = (unsigned short int *)(data + 16 + offset + do_hdr_off);
     if (memcmp(data + 16 + offset + do_hdr_off,
                do_hdr + 16 + offset + do_hdr_off, 2) != 0) {

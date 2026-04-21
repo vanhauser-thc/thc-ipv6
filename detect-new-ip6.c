@@ -29,12 +29,16 @@ void help(char *prg) {
 
 void intercept(u_char *foo, const struct pcap_pkthdr *header,
                const unsigned char *data) {
-  unsigned char *ipv6hdr = (unsigned char *)(data + 14);
-  int            len = header->caplen - 14;
+  unsigned char *ipv6hdr;
+  int            len, offset = 14;
 
   if (do_hdr_size) {
-    ipv6hdr = (unsigned char *)(data + do_hdr_size);
-    len = header->caplen - do_hdr_size;
+    offset = do_hdr_size;
+  }
+  if ((ipv6hdr = thc_pcap_get_data(header, data, offset, &len)) == NULL ||
+      len < 64)
+    return;
+  if (do_hdr_size) {
     if ((ipv6hdr[0] & 240) != 0x60) return;
   }
 
@@ -42,7 +46,7 @@ void intercept(u_char *foo, const struct pcap_pkthdr *header,
     printf("DEBUG: packet received\n");
     thc_dump_data((unsigned char *)data, header->caplen, "Received Packet");
   }
-  if (ipv6hdr[6] != NXT_ICMP6 || ipv6hdr[40] != ICMP6_NEIGHBORSOL || len < 64)
+  if (ipv6hdr[6] != NXT_ICMP6 || ipv6hdr[40] != ICMP6_NEIGHBORSOL)
     return;
   if (*(ipv6hdr + 8) + *(ipv6hdr + 9) + *(ipv6hdr + 10) + *(ipv6hdr + 11) +
           *(ipv6hdr + 12) + *(ipv6hdr + 13) + *(ipv6hdr + 14) +

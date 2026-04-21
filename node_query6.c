@@ -28,17 +28,20 @@ void help(char *prg) {
 
 void dump_node_reply(u_char *foo, const struct pcap_pkthdr *header,
                      const unsigned char *data) {
-  unsigned char *ipv6hdr = (unsigned char *)(data + 14), *ptr;
-  int            i, len = header->caplen - 14;
+  unsigned char *ipv6hdr, *ptr;
+  int            i, len, offset = 14;
 
   if (do_hdr_size) {
-    len = header->caplen - do_hdr_size;
-    ipv6hdr = (unsigned char *)(data + do_hdr_size);
+    offset = do_hdr_size;
+  }
+  if ((ipv6hdr = thc_pcap_get_data(header, data, offset, &len)) == NULL ||
+      len < 56)
+    return;
+  if (do_hdr_size) {
     if ((ipv6hdr[0] & 240) != 0x60) return;
   }
 
-  if (ipv6hdr[6] != NXT_ICMP6 || ipv6hdr[40] != ICMP6_INFOREPLY ||
-      len < 40 + 16)
+  if (ipv6hdr[6] != NXT_ICMP6 || ipv6hdr[40] != ICMP6_INFOREPLY)
     return;
 
   ret = 0;

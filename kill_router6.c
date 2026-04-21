@@ -134,17 +134,17 @@ int main(int argc, char *argv[]) {
   interface = argv[optind];
   frint = argv[optind];
   if (argc - optind >= 4 && (ptr = argv[optind + 3]) != NULL)
-    sscanf(ptr, "%x:%x:%x:%x:%x:%x", (unsigned int *)&dmac[0],
-           (unsigned int *)&dmac[1], (unsigned int *)&dmac[2],
-           (unsigned int *)&dmac[3], (unsigned int *)&dmac[4],
-           (unsigned int *)&dmac[5]);
+    if (thc_parse_mac(ptr, dmac) < 0) {
+      fprintf(stderr, "Error: invalid MAC address: %s\n", ptr);
+      exit(-1);
+    }
   else
     dstmac = NULL;
   if (argc - optind >= 3 && (ptr = argv[optind + 2]) != NULL)
-    sscanf(ptr, "%x:%x:%x:%x:%x:%x", (unsigned int *)&mac[0],
-           (unsigned int *)&mac[1], (unsigned int *)&mac[2],
-           (unsigned int *)&mac[3], (unsigned int *)&mac[4],
-           (unsigned int *)&mac[5]);
+    if (thc_parse_mac(ptr, mac) < 0) {
+      fprintf(stderr, "Error: invalid MAC address: %s\n", ptr);
+      exit(-1);
+    }
   else
     mac6 = thc_get_own_mac(interface);
 

@@ -105,10 +105,10 @@ int main(int argc, char *argv[]) {
     src6 = thc_resolve6(argv[3]);
 
   if (argc == 5 && argv[4] != NULL && argv[4][0] != 0)
-    sscanf(argv[4], "%x:%x:%x:%x:%x:%x", (unsigned int *)&srcmac[0],
-           (unsigned int *)&srcmac[1], (unsigned int *)&srcmac[2],
-           (unsigned int *)&srcmac[3], (unsigned int *)&srcmac[4],
-           (unsigned int *)&srcmac[5]);
+    if (thc_parse_mac(argv[4], srcmac) < 0) {
+      fprintf(stderr, "Error: invalid MAC address: %s\n", argv[4]);
+      exit(-1);
+    }
   else
     mac = thc_get_own_mac(interface);
 

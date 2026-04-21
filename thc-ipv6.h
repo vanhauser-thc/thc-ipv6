@@ -98,9 +98,13 @@ extern int     thc_pcap_function(char *interface, char *capture, char *function,
                                  int promisc, char *opt);
 extern pcap_t *thc_pcap_init(char *interface, char *capture);
 extern pcap_t *thc_pcap_init_promisc(char *interface, unsigned char *capture);
+extern unsigned char *thc_pcap_get_data(const struct pcap_pkthdr *header,
+                                        const unsigned char *data, int offset,
+                                        int *len);
 extern void    thc_ipv6_rawmode(int mode);
 extern int     thc_pcap_check(pcap_t *p, char *function, char *opt);
 extern char *  thc_pcap_close(pcap_t *p);
+extern int     thc_parse_mac(const char *text, unsigned char *mac);
 extern unsigned char *thc_resolve6(char *target);
 extern unsigned char *thc_lookup_ipv6_mac(char *interface, unsigned char *dst);
 extern unsigned char *thc_get_own_mac(char *interface);

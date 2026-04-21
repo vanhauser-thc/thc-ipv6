@@ -87,10 +87,10 @@ int main(int argc, char *argv[]) {
 
   interface = argv[1];
 
-  sscanf(argv[2], "%x:%x:%x:%x:%x:%x", (unsigned int *)&dmac[0],
-         (unsigned int *)&dmac[1], (unsigned int *)&dmac[2],
-         (unsigned int *)&dmac[3], (unsigned int *)&dmac[4],
-         (unsigned int *)&dmac[5]);
+  if (thc_parse_mac(argv[2], dmac) < 0) {
+    fprintf(stderr, "Error: invalid MAC address: %s\n", argv[2]);
+    exit(-1);
+  }
 
   mac = argv[2];
   if ((smac = thc_get_own_mac(interface)) == NULL) {

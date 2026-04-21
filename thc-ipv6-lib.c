@@ -184,6 +184,17 @@ pcap_t *thc_pcap_init_promisc(char *interface, unsigned char *capture) {
   return pcap_link;
 }
 
+unsigned char *thc_pcap_get_data(const struct pcap_pkthdr *header,
+                                 const unsigned char *data, int offset,
+                                 int *len) {
+  if (header == NULL || data == NULL || len == NULL || offset < 0)
+    return NULL;
+  if ((unsigned int)offset > header->caplen) return NULL;
+
+  *len = (int)header->caplen - offset;
+  return (unsigned char *)data + offset;
+}
+
 int thc_pcap_check(pcap_t *pcap_link, char *function, char *opt) {
   if (pcap_link == NULL) return -1;
   return pcap_dispatch(pcap_link, 1, (pcap_handler)function, opt);
@@ -192,6 +203,23 @@ int thc_pcap_check(pcap_t *pcap_link, char *function, char *opt) {
 char *thc_pcap_close(pcap_t *pcap_link) {
   if (pcap_link != NULL) pcap_close(pcap_link);
   return NULL;
+}
+
+int thc_parse_mac(const char *text, unsigned char *mac) {
+  unsigned int bytes[6];
+  int          i;
+
+  if (text == NULL || mac == NULL) return -1;
+  if (sscanf(text, "%x:%x:%x:%x:%x:%x", &bytes[0], &bytes[1], &bytes[2],
+             &bytes[3], &bytes[4], &bytes[5]) != 6)
+    return -1;
+
+  for (i = 0; i < 6; i++) {
+    if (bytes[i] > 0xff) return -1;
+    mac[i] = (unsigned char)bytes[i];
+  }
+
+  return 0;
 }
 
 /* wow, ugly, complicated work for something a standard linux library could do
@@ -702,16 +730,22 @@ unsigned char *thc_get_multicast_mac(unsigned char *dst) {
 
 void thc_get_mac_from_sniff(u_char *foo, const struct pcap_pkthdr *header,
                             const unsigned char *data) {
-  int            off = 0, len = header->caplen - 14;
-  unsigned char *ptr = (unsigned char *)data + 14;
+  int            off = 0, len, offset = 14;
+  unsigned char *ptr;
+
+  if ((ptr = thc_pcap_get_data(header, data, offset, &len)) == NULL) return;
 
   if (do_hdr_size) {
-    ptr += (do_hdr_size - 14);
-    len -= (do_hdr_size - 14);
+    offset = do_hdr_size;
+    if ((ptr = thc_pcap_get_data(header, data, offset, &len)) == NULL) return;
+    if (len < 1) return;
     if ((ptr[0] & 240) != 0x60) return;
   }
 
+  if (len < 41) return;
+
   if (ptr[6] == NXT_FRAG) {
+    if (len < 48) return;
     if (ptr[40] == NXT_ICMP6)
       off = 8;
     else
@@ -2636,16 +2670,18 @@ int thc_open_ipv6(char *interface) {
       exit(-1);
     }
     ptr2 = strtok(ptr, ",");
-    sscanf(ptr2, "%x:%x:%x:%x:%x:%x", (unsigned int *)&do_hdr[6],
-           (unsigned int *)&do_hdr[7], (unsigned int *)&do_hdr[8],
-           (unsigned int *)&do_hdr[9], (unsigned int *)&do_hdr[10],
-           (unsigned int *)&do_hdr[11]);
+    if (thc_parse_mac(ptr2, (unsigned char *)&do_hdr[6]) < 0) {
+      fprintf(stderr, "Error: invalid source MAC in THC_IPV6_PPPOE: %s\n",
+              ptr2);
+      exit(-1);
+    }
     memcpy(tbuf, do_hdr + 6, 6);
     ptr2 = strtok(NULL, ",");
-    sscanf(ptr2, "%x:%x:%x:%x:%x:%x", (unsigned int *)&do_hdr[0],
-           (unsigned int *)&do_hdr[1], (unsigned int *)&do_hdr[2],
-           (unsigned int *)&do_hdr[3], (unsigned int *)&do_hdr[4],
-           (unsigned int *)&do_hdr[5]);
+    if (thc_parse_mac(ptr2, (unsigned char *)&do_hdr[0]) < 0) {
+      fprintf(stderr, "Error: invalid destination MAC in THC_IPV6_PPPOE: %s\n",
+              ptr2);
+      exit(-1);
+    }
     memcpy(do_hdr + 6, tbuf, 6);
     if (do_hdr_vlan)
       sprintf(do_capture, /*"ether proto 0x8100 and */ "ether src %18s", ptr2);
@@ -2698,16 +2734,18 @@ int thc_open_ipv6(char *interface) {
       exit(-1);
     }
     ptr2 = strtok(ptr, ",");
-    sscanf(ptr2, "%x:%x:%x:%x:%x:%x", (unsigned int *)&do_hdr[6],
-           (unsigned int *)&do_hdr[7], (unsigned int *)&do_hdr[8],
-           (unsigned int *)&do_hdr[9], (unsigned int *)&do_hdr[10],
-           (unsigned int *)&do_hdr[11]);
+    if (thc_parse_mac(ptr2, (unsigned char *)&do_hdr[6]) < 0) {
+      fprintf(stderr, "Error: invalid source MAC in THC_IPV6_6IN4: %s\n",
+              ptr2);
+      exit(-1);
+    }
     memcpy(tbuf, do_hdr + 6, 6);
     ptr2 = strtok(NULL, ",");
-    sscanf(ptr2, "%x:%x:%x:%x:%x:%x", (unsigned int *)&do_hdr[0],
-           (unsigned int *)&do_hdr[1], (unsigned int *)&do_hdr[2],
-           (unsigned int *)&do_hdr[3], (unsigned int *)&do_hdr[4],
-           (unsigned int *)&do_hdr[5]);
+    if (thc_parse_mac(ptr2, (unsigned char *)&do_hdr[0]) < 0) {
+      fprintf(stderr, "Error: invalid destination MAC in THC_IPV6_6IN4: %s\n",
+              ptr2);
+      exit(-1);
+    }
     memcpy(do_hdr + 6, tbuf, 6);
     if (do_hdr_vlan) memcpy(do_hdr + 12, vbuf, 4);
 
@@ -2754,16 +2792,18 @@ int thc_open_ipv6(char *interface) {
     }
     ptr = getenv("THC_IPV6_VLAN");
     ptr2 = strtok(ptr, ",");
-    sscanf(ptr2, "%x:%x:%x:%x:%x:%x", (unsigned int *)&do_hdr[6],
-           (unsigned int *)&do_hdr[7], (unsigned int *)&do_hdr[8],
-           (unsigned int *)&do_hdr[9], (unsigned int *)&do_hdr[10],
-           (unsigned int *)&do_hdr[11]);
+    if (thc_parse_mac(ptr2, (unsigned char *)&do_hdr[6]) < 0) {
+      fprintf(stderr, "Error: invalid source MAC in THC_IPV6_VLAN: %s\n",
+              ptr2);
+      exit(-1);
+    }
     memcpy(tbuf, do_hdr + 6, 6);
     ptr2 = strtok(NULL, ",");
-    sscanf(ptr2, "%x:%x:%x:%x:%x:%x", (unsigned int *)&do_hdr[0],
-           (unsigned int *)&do_hdr[1], (unsigned int *)&do_hdr[2],
-           (unsigned int *)&do_hdr[3], (unsigned int *)&do_hdr[4],
-           (unsigned int *)&do_hdr[5]);
+    if (thc_parse_mac(ptr2, (unsigned char *)&do_hdr[0]) < 0) {
+      fprintf(stderr, "Error: invalid destination MAC in THC_IPV6_VLAN: %s\n",
+              ptr2);
+      exit(-1);
+    }
     memcpy(do_hdr + 6, tbuf, 6);
     memcpy(do_hdr + 12, vbuf, 4);
     do_hdr[16] = 0x86;

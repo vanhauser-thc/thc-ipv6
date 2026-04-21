@@ -31,7 +31,7 @@ void help(char *prg) {
 }
 
 int main(int argc, char *argv[]) {
-  unsigned char *ptr, *dst6, ipv4[16] = "", ipv6[64], *prefix;
+  unsigned char *ptr, *dst6, ipv4[16] = "", ipv6[64], *prefix, mac[6];
   int            i, j, k, found = 0;
   struct in_addr in;
 
@@ -159,14 +159,19 @@ int main(int argc, char *argv[]) {
   }
 
   if (index(argv[1], ':') != NULL) {  // mac to ipv6
-    sscanf(argv[1], "%x:%x:%x:%x:%x:%x", (unsigned int *)&k,
-           (unsigned int *)&ipv6[9], (unsigned int *)&ipv6[10],
-           (unsigned int *)&ipv6[13], (unsigned int *)&ipv6[14],
-           (unsigned int *)&ipv6[15]);
+    if (thc_parse_mac(argv[1], mac) < 0) {
+      fprintf(stderr, "Error: invalid MAC address: %s\n", argv[1]);
+      return -1;
+    }
     memcpy(ipv6, prefix, 8);
-    ipv6[8] = (k ^ 2);
+    ipv6[8] = (mac[0] ^ 2);
+    ipv6[9] = mac[1];
+    ipv6[10] = mac[2];
     ipv6[11] = 0xff;
     ipv6[12] = 0xfe;
+    ipv6[13] = mac[3];
+    ipv6[14] = mac[4];
+    ipv6[15] = mac[5];
     printf("%s\n", thc_ipv62notation(ipv6));
     return 1;
   }

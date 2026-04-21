@@ -399,20 +399,20 @@ int main(int argc, char *argv[]) {
 
   if (argc - optind >= 4) {
     if (strcmp(argv[optind + 3], "x") != 0)
-      sscanf(argv[optind + 3], "%x:%x:%x:%x:%x:%x", (unsigned int *)&smac[0],
-             (unsigned int *)&smac[1], (unsigned int *)&smac[2],
-             (unsigned int *)&smac[3], (unsigned int *)&smac[4],
-             (unsigned int *)&smac[5]);
+      if (thc_parse_mac(argv[optind + 3], smac) < 0) {
+        fprintf(stderr, "Error: invalid MAC address: %s\n", argv[optind + 3]);
+        exit(-1);
+      }
     else
       srcmac = NULL;
   } else
     srcmac = NULL;
   if (argc - optind >= 5) {
     if (strcmp(argv[optind + 4], "x") != 0)
-      sscanf(argv[optind + 4], "%x:%x:%x:%x:%x:%x", (unsigned int *)&dmac[0],
-             (unsigned int *)&dmac[1], (unsigned int *)&dmac[2],
-             (unsigned int *)&dmac[3], (unsigned int *)&dmac[4],
-             (unsigned int *)&dmac[5]);
+      if (thc_parse_mac(argv[optind + 4], dmac) < 0) {
+        fprintf(stderr, "Error: invalid MAC address: %s\n", argv[optind + 4]);
+        exit(-1);
+      }
     else
       dstmac = NULL;
   } else

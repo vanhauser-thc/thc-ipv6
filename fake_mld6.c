@@ -119,17 +119,17 @@ int main(int argc, char *argv[]) {
     src6 = thc_get_own_ipv6(interface, dst6, PREFER_LINK);
   if (rawmode == 0) {
     if (argv[7] != NULL && argc > 7)
-      sscanf(argv[7], "%x:%x:%x:%x:%x:%x", (unsigned int *)&srcmac[0],
-             (unsigned int *)&srcmac[1], (unsigned int *)&srcmac[2],
-             (unsigned int *)&srcmac[3], (unsigned int *)&srcmac[4],
-             (unsigned int *)&srcmac[5]);
+      if (thc_parse_mac(argv[7], srcmac) < 0) {
+        fprintf(stderr, "Error: invalid MAC address: %s\n", argv[7]);
+        exit(-1);
+      }
     else
       mac = thc_get_own_mac(interface);
     if (argv[8] != NULL && argc > 8)
-      sscanf(argv[8], "%x:%x:%x:%x:%x:%x", (unsigned int *)&dstmac[0],
-             (unsigned int *)&dstmac[1], (unsigned int *)&dstmac[2],
-             (unsigned int *)&dstmac[3], (unsigned int *)&dstmac[4],
-             (unsigned int *)&dstmac[5]);
+      if (thc_parse_mac(argv[8], dstmac) < 0) {
+        fprintf(stderr, "Error: invalid MAC address: %s\n", argv[8]);
+        exit(-1);
+      }
     else
       dmac = NULL;
   }
