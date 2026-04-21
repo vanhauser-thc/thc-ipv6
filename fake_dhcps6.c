@@ -52,12 +52,12 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Error: invalid interface %s\n", interface);
     exit(-1);
   }
-  if (argc >= 6 && (ptr = argv[5]) != NULL)
+  if (argc >= 6 && (ptr = argv[5]) != NULL) {
     if (thc_parse_mac(ptr, mac) < 0) {
       fprintf(stderr, "Error: invalid MAC address: %s\n", ptr);
       exit(-1);
     }
-  else
+  } else
     mac6 = thc_get_own_mac(interface);
 
   if (argc >= 5 && argv[4] != NULL)

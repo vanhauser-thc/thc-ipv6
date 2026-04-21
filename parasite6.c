@@ -42,6 +42,7 @@ void help(char *prg) {
 void kill_children(int signo) {
   int i;
 
+  (void)signo;
   for (i = 0; i <= pp_cnt; i++)
     if (pp[i] > 0 && pp[i] < 65536) kill(pp[i], SIGKILL);
 
@@ -219,12 +220,12 @@ int main(int argc, char *argv[]) {
 
   if (argc - optind < 1) help(argv[0]);
   interface = argv[optind];
-  if (argc - optind == 2 && argv[optind + 1] != NULL)
+  if (argc - optind == 2 && argv[optind + 1] != NULL) {
     if (thc_parse_mac(argv[optind + 1], mac) < 0) {
       fprintf(stderr, "Error: invalid MAC address: %s\n", argv[optind + 1]);
       exit(-1);
     }
-  else
+  } else
     ownmac = thc_get_own_mac(interface);
   if (thc_get_own_ipv6(interface, NULL, PREFER_LINK) == NULL) {
     fprintf(stderr, "Error: invalid interface %s\n", interface);

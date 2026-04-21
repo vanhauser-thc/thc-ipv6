@@ -119,12 +119,12 @@ int main(int argc, char *argv[]) {
   memset(mac, 0, sizeof(mac));
   mac6 = mac;
   interface = argv[1];
-  if (argc >= 5 && (ptr = argv[4]) != NULL)
+  if (argc >= 5 && (ptr = argv[4]) != NULL) {
     if (thc_parse_mac(ptr, mac) < 0) {
       fprintf(stderr, "Error: invalid MAC address: %s\n", ptr);
       exit(-1);
     }
-  else
+  } else
     mac6 = thc_get_own_mac(interface);
 
   if (argc >= 4 && argv[3] != NULL)

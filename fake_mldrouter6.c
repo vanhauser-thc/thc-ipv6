@@ -104,12 +104,12 @@ int main(int argc, char *argv[]) {
   else
     src6 = thc_resolve6(argv[3]);
 
-  if (argc == 5 && argv[4] != NULL && argv[4][0] != 0)
+  if (argc == 5 && argv[4] != NULL && argv[4][0] != 0) {
     if (thc_parse_mac(argv[4], srcmac) < 0) {
       fprintf(stderr, "Error: invalid MAC address: %s\n", argv[4]);
       exit(-1);
     }
-  else
+  } else
     mac = thc_get_own_mac(interface);
 
   if ((p = thc_pcap_init(interface, string)) == NULL) {

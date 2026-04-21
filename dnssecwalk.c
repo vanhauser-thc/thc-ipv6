@@ -60,6 +60,7 @@ int dnssocket(char *server) {
 }
 
 void noreply(int signo) {
+  (void)signo;
   ++errcnt;
   if (errcnt < RETRY) {
     fprintf(stderr, "Warning: DNS server timeout (%d of %d retries)\n", errcnt,
@@ -214,7 +215,7 @@ int dns_nsec_bitmap_has_type(const unsigned char *ptr, const unsigned char *end,
 int dns_parse_nsec_response(const unsigned char *msg, int msg_len, char *next,
                             size_t next_len, int *has_ns) {
   const unsigned char *ptr, *end, *next_ptr;
-  int                  qdcount, ancount, i, bitmap_state;
+  int                  qdcount, ancount, nscount, i, bitmap_state;
   unsigned int         type, class, rdlen;
 
   if (msg == NULL || next == NULL || has_ns == NULL || msg_len < 12) return -1;
@@ -222,7 +223,10 @@ int dns_parse_nsec_response(const unsigned char *msg, int msg_len, char *next,
   end = msg + msg_len;
   qdcount = (msg[4] << 8) | msg[5];
   ancount = (msg[6] << 8) | msg[7];
+  nscount = (msg[8] << 8) | msg[9];
   ptr = msg + 12;
+  next[0] = 0;
+  *has_ns = 0;
 
   for (i = 0; i < qdcount; i++) {
     if (dns_skip_name(msg, end, ptr, &next_ptr) < 0) return -1;
@@ -231,7 +235,7 @@ int dns_parse_nsec_response(const unsigned char *msg, int msg_len, char *next,
     ptr += 4;
   }
 
-  for (i = 0; i < ancount; i++) {
+  for (i = 0; i < ancount + nscount; i++) {
     if (dns_skip_name(msg, end, ptr, &next_ptr) < 0) return -1;
     ptr = next_ptr;
     if (end - ptr < 10) return -1;

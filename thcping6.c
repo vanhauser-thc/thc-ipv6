@@ -398,22 +398,22 @@ int main(int argc, char *argv[]) {
   strcat(string, thc_ipv62notation(src6));
 
   if (argc - optind >= 4) {
-    if (strcmp(argv[optind + 3], "x") != 0)
+    if (strcmp(argv[optind + 3], "x") != 0) {
       if (thc_parse_mac(argv[optind + 3], smac) < 0) {
         fprintf(stderr, "Error: invalid MAC address: %s\n", argv[optind + 3]);
         exit(-1);
       }
-    else
+    } else
       srcmac = NULL;
   } else
     srcmac = NULL;
   if (argc - optind >= 5) {
-    if (strcmp(argv[optind + 4], "x") != 0)
+    if (strcmp(argv[optind + 4], "x") != 0) {
       if (thc_parse_mac(argv[optind + 4], dmac) < 0) {
         fprintf(stderr, "Error: invalid MAC address: %s\n", argv[optind + 4]);
         exit(-1);
       }
-    else
+    } else
       dstmac = NULL;
   } else
     dstmac = NULL;

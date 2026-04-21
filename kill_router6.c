@@ -133,19 +133,19 @@ int main(int argc, char *argv[]) {
 
   interface = argv[optind];
   frint = argv[optind];
-  if (argc - optind >= 4 && (ptr = argv[optind + 3]) != NULL)
+  if (argc - optind >= 4 && (ptr = argv[optind + 3]) != NULL) {
     if (thc_parse_mac(ptr, dmac) < 0) {
       fprintf(stderr, "Error: invalid MAC address: %s\n", ptr);
       exit(-1);
     }
-  else
+  } else
     dstmac = NULL;
-  if (argc - optind >= 3 && (ptr = argv[optind + 2]) != NULL)
+  if (argc - optind >= 3 && (ptr = argv[optind + 2]) != NULL) {
     if (thc_parse_mac(ptr, mac) < 0) {
       fprintf(stderr, "Error: invalid MAC address: %s\n", ptr);
       exit(-1);
     }
-  else
+  } else
     mac6 = thc_get_own_mac(interface);
 
   if (argv[optind + 1][0] == '*' || argv[optind + 1][1] == '*') {

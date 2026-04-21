@@ -81,12 +81,12 @@ int main(int argc, char *argv[]) {
     exit(-1);
   }
   if (rawmode == 0) {
-    if (argc - optind >= 4 && argv[optind + 3] != NULL)
+    if (argc - optind >= 4 && argv[optind + 3] != NULL) {
       if (thc_parse_mac(argv[optind + 3], srcmac) < 0) {
         fprintf(stderr, "Error: invalid MAC address: %s\n", argv[optind + 3]);
         exit(-1);
       }
-    else
+    } else
       mac = thc_get_own_mac(interface);
   }
   if (argc - optind >= 5 && argv[optind + 4] != NULL)

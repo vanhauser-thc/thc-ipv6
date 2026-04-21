@@ -118,19 +118,19 @@ int main(int argc, char *argv[]) {
   else
     src6 = thc_get_own_ipv6(interface, dst6, PREFER_LINK);
   if (rawmode == 0) {
-    if (argv[7] != NULL && argc > 7)
+    if (argv[7] != NULL && argc > 7) {
       if (thc_parse_mac(argv[7], srcmac) < 0) {
         fprintf(stderr, "Error: invalid MAC address: %s\n", argv[7]);
         exit(-1);
       }
-    else
+    } else
       mac = thc_get_own_mac(interface);
-    if (argv[8] != NULL && argc > 8)
+    if (argv[8] != NULL && argc > 8) {
       if (thc_parse_mac(argv[8], dstmac) < 0) {
         fprintf(stderr, "Error: invalid MAC address: %s\n", argv[8]);
         exit(-1);
       }
-    else
+    } else
       dmac = NULL;
   }
 

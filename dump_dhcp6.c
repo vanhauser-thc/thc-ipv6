@@ -54,6 +54,7 @@ void help(char *prg) {
 }
 
 void clean_exit(int signo) {
+  (void)signo;
   printf("\n%d replies received\n", counter);
   exit(0);
 }

@@ -10,6 +10,7 @@
 #include "thc-ipv6.h"
 
 void noreply(int signo) {
+  (void)signo;
   printf("Result: DNS server timeout\n");
   exit(1);
 }
