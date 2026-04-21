@@ -7,6 +7,7 @@ v3.8/3.7-dev
  * honors now CC and CLAGS environment variables and compiles with clang
  * fixed various issues
  * OpenSSL 3 API support (no more deprecation warnings)
+ * Various bugfixes and better errors by AI, reviewed
  * new code indention
 
 
