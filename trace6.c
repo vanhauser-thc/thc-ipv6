@@ -98,7 +98,7 @@ void check_packets(u_char *foo, const struct pcap_pkthdr *header,
         pos = ptr[101 + 0x30 + 8 * (add + do_toobig - 1)];
         pos2 = ptr[100 + 0x30 + 8 * (add + do_toobig - 1)];
       }
-      if (pos == pos2 && pos <= up_to) {
+      if (pos > 0 && pos == pos2 && pos <= up_to) {
         rmtu[pos - 1] = new_mtu;
         mtu = new_mtu;
         buf_len = mtu - offset;
